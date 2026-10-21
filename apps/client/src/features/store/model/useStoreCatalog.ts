@@ -1,6 +1,6 @@
 import type { StoreBagItem, StoreCatalog, StoreItem } from '@creatures/contracts/store';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createStoreIntent, type StoreIntentOutcome } from '~/features/store/model/storeIntent';
 import { readStoreErrorMessage } from '~/features/store/model/storeMessages';
@@ -124,15 +124,12 @@ function useStoreCommand(
   setError: (error: string | null) => void,
 ): (itemId: string, quantity: number, onDone: (outcome: StoreOutcome) => void) => void {
   const [intent] = useState(createStoreIntent);
-  const [controller] = useState(createAbortController);
-  useEffect(
-    function abortWhenTheScreenGoesAway(): () => void {
-      return function abort(): void {
-        controller.abort();
-      };
-    },
-    [controller],
-  );
+  const controller = useRef<AbortController | null>(null);
+  useEffect(function abortWhenTheScreenGoesAway(): () => void {
+    return function abort(): void {
+      controller.current?.abort();
+    };
+  }, []);
   return useCallback(
     function runCommand(
       itemId: string,
@@ -141,29 +138,25 @@ function useStoreCommand(
     ): void {
       setIsBusy(true);
       const key = intent.begin();
-      command(deps, itemId, quantity, key, controller.signal).then(function withOutcome(
+      controller.current?.abort();
+      const current = new globalThis.AbortController();
+      controller.current = current;
+      command(deps, itemId, quantity, key, current.signal).then(function withOutcome(
         result: StoreCommandResult,
       ): void {
-        if (controller.signal.aborted) {
+        const isCurrent = controller.current === current;
+        if (isCurrent) {
+          setIsBusy(false);
+        }
+        if (current.signal.aborted) {
           return;
         }
-        setIsBusy(false);
         intent.settle(readIntentOutcome(result));
         applyResult(result, applyWallet, setError, onDone);
       });
     },
-    [applyWallet, command, controller, deps, intent, setError, setIsBusy],
+    [applyWallet, command, deps, intent, setError, setIsBusy],
   );
-}
-
-/**
- * The controller of the request of the command.
- *
- * The screen can go away while the command runs: the request is aborted, and
- * the answer that comes later is ignored.
- */
-function createAbortController(): AbortController {
-  return new globalThis.AbortController();
 }
 
 /**

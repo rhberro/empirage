@@ -33,10 +33,11 @@ export function createStoreIntent(): StoreIntent {
   let running = false;
   return {
     begin(): string {
-      // A purchase the server is still running is the same purchase: the key
-      // of the intent that did not end survives, so the attempt that comes
-      // after is not a second charge. A purchase that ended is a new one, and
-      // a new one gets a new key.
+      // A purchase that ended is a new one, and a new one gets a new key. The
+      // key of a purchase the server is still running survives the refusal, so
+      // the attempt that comes after is the same purchase and not a second
+      // charge. A second click while a purchase runs is a second purchase, and
+      // it gets a second key.
       if (key === null || running) {
         key = createIntentKey();
       }

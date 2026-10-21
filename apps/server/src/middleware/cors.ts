@@ -1,7 +1,14 @@
 import type { Middleware, RequestContext } from '~/router';
 
 const DEV_ORIGIN = 'http://localhost:5173';
-const ALLOWED_HEADERS = 'Authorization, Content-Type';
+/**
+ * The headers the client is allowed to send.
+ *
+ * The list has to carry every header the client puts on a request: a header
+ * that is missing here is answered by the preflight and then blocked by the
+ * browser, and the request never reaches the server.
+ */
+const ALLOWED_HEADERS = 'Authorization, Content-Type, Idempotency-Key';
 const ALLOWED_METHODS = 'DELETE, GET, PATCH, POST, PUT, OPTIONS';
 const NO_CONTENT = 204;
 

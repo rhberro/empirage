@@ -575,6 +575,12 @@ Aplicam-se a todas as lanes.
    da Fase 2. Antes disso, a reconstrução continua correta, apenas cara.
 10. **Nenhuma rota nova fica sem autenticação**, exceto `GET /api/starters`, que é
     conteúdo público por definição.
+11. **Todo header que o cliente envia tem que estar na lista do CORS do
+    servidor.** Um header que falta é respondido pelo preflight e **bloqueado
+    pelo navegador**: a requisição não chega ao servidor, e nenhum teste de
+    unidade ou de integração do lado do servidor percebe — eles não passam pelo
+    navegador. O header `Idempotency-Key` quebrou a loja exatamente assim, e só
+    a validação visual o revelou.
 
 ---
 
