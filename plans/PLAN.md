@@ -592,7 +592,11 @@ Aplicam-se a todas as lanes.
 | Quais criaturas e itens existem em cada área? | `docs/game/HUNT.md:59` | Conteúdo; a simulação é parametrizada por isso |
 | Regras de combate: dano, duração de batalha, chance de captura | — | **Não existe em documento nenhum.** Precisa ser escrito antes da Fase 3 |
 | Lista de criaturas e itens renderizados no canvas da caçada | `docs/game/HUNT.md:66` | Parcialmente resolvido pela decisão 2.2 |
-| O que acontece com a caçada quando o treinador troca de treinador | `docs/game/PLAY_SCREEN.md:169` | `end_reason: trainer_switched` |
+
+A troca de treinador **já está decidida** e não está na tabela: `docs/game/PLAY_SCREEN.md:169`
+diz que o cliente avisa o serviço de que está se desconectando, e que o treinador
+para qualquer atividade e não continua jogando sozinho. O código implementa isso
+como `end_reason: trainer_switched`.
 
 ### 11.1 Lacunas de schema descobertas na fundação da caçada
 

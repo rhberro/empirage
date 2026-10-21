@@ -21,7 +21,7 @@ O Creatures é composto por duas aplicações independentes que se comunicam ent
 | Validação | Valida apenas o formato da entrada antes de enviá-la | Valida se a ação é permitida e aplica as regras do jogo |
 | Regras e mecânicas | Nenhuma decisão de gameplay | Todas as regras, mecânicas e computações |
 | Persistência | Não guarda dados do jogo | Persiste o estado da conta e do treinador |
-| Conexão | Mantém a conexão e, ao perdê-la, reconecta por ação do jogador | Mantém as conexões ativas e gerencia a queda delas |
+| Conexão | Mantém o canal e, ao perdê-lo, reabre sozinho, com espera crescente e um limite de tentativas | Mantém as conexões ativas, fecha as que ficaram mudas e derruba a anterior quando a conta abre outra |
 
 > A regra que resume a tabela: **o cliente mostra, o servidor decide.** Se a resposta muda ao desligar o servidor, ela é do servidor.
 
@@ -37,3 +37,4 @@ O Creatures é composto por duas aplicações independentes que se comunicam ent
 
 - [Game Design](../game/GAME.md) — as regras e mecânicas do jogo.
 - [Coding Styles](../CODING_STYLES.md) — convenções de escrita de código.
+- [Plano da camada de tempo real](../../plans/PLAN.md) — o plano da camada de tempo real: o que a revisão do código encontrou, as decisões que valem para a documentação e o que ainda está em aberto. É um **plano**, não a documentação do que existe: quando o código e o plano divergirem, quem manda é o código.

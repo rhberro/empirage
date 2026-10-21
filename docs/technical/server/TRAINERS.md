@@ -265,6 +265,7 @@ O estado do trainer vive no Postgres do Supabase. O `trainerStore` que era um `M
 | `20261020230009_swap_active_creature_positions.sql` | A RPC `swap_active_creature` passa a trocar a criatura escolhida com a criatura em campo, em vez de deslocar as outras. |
 | `20261020230010_starter_backpack.sql` | A mochila inicial do treinador novo, sorteada dentro da RPC de criação. |
 | `20261021100000_store_items.sql` | A coluna `items.is_store_item`, a restrição de preço dos itens da loja, e as RPCs transacionais `store_buy_item` e `store_sell_item`. |
+| `20261021130000_hunt_sessions.sql` | A tabela `hunt_sessions`, a sessão da caçada, com RLS deny-by-default, o cursor da simulação e dois índices parciais. Está em [A Caçada](HUNT.md). |
 
 O acesso é **deny-by-default**: RLS está ligado em todas as tabelas, `anon` e `authenticated` não têm grant nem policy, e só o `service_role` — que ignora RLS — enxerga os dados. O servidor, com a chave de serviço, é o único caminho de escrita.
 
@@ -464,7 +465,7 @@ Todas as rotas exigem `Authorization: Bearer <token>` válido, com uma exceção
 | `DELETE /api/trainers/:id` | `204` sem body |
 | `GET /api/starters` | `200` com as espécies iniciais |
 | `POST /api/session/trainer` | `204` sem body |
-| `GET /api/player/state` | `200` com o `PlayerState` |
+| `GET /api/player/state` | `200` com o `PlayerState`, ou `204` quando o `sinceRev` pedido já é a revisão atual |
 | `POST /api/team` | `204` sem body |
 | `PUT /api/team` | `204` sem body |
 | `DELETE /api/team/:creatureId` | `204` sem body |
@@ -768,7 +769,10 @@ Devolve o estado do jogador a partir do treinador ativo.
   "gold": number,
   "diamonds": number,
   "staminaMinutes": number,
-  "maxStaminaMinutes": number
+  "maxStaminaMinutes": number,
+  "rev": number,        // a revisão do estado, monotônica por conta dentro de um epoch
+  "epoch": string,      // o identificador do boot do processo que produziu o estado
+  "serverNow": number   // o relógio do servidor no momento do estado
 }
 ```
 
@@ -778,6 +782,12 @@ Devolve o estado do jogador a partir do treinador ativo.
 | --- | --- | --- |
 | 404 | `trainer_not_found` | A conta não tem treinador ativo, ou ele não existe mais |
 | 401 | `unauthenticated` | |
+
+**Query** — `sinceRev` (opcional): a revisão que o cliente já tem.
+
+Sem o parâmetro, a resposta é o estado completo. Com ele, a resposta é **204** quando o estado atual já está na revisão pedida — não há o que mandar —, e o estado completo quando o estado atual é mais novo.
+
+> O cliente usa o fallback quando a revisão de um comando não chega em 2 s, e quando um salto de revisão denuncia um estado perdido no caminho. A mecânica está em [O fallback](#o-fallback).
 
 O teto de stamina é o mesmo para todo treinador: 720 minutos (12 horas).
 
@@ -1249,6 +1259,7 @@ Compra um item da loja. A compra **não tem confirmação**: o clique executa.
 | 400 | `store_item_unavailable` | O `itemId` não é um uuid |
 | 404 | `store_item_unavailable` | O item não existe ou não está à venda |
 | 409 | `store_insufficient_gold` | O gold do treinador não paga a compra |
+| 409 | `store_request_in_flight` | A mesma compra já está em andamento; a operação não roda |
 | 404 | `trainer_not_found` | A conta não tem treinador ativo |
 | 401 | `unauthenticated` | |
 
@@ -1275,8 +1286,28 @@ Vende uma quantidade de um item da mochila. A venda **não tem confirmação** e
 | 400 | `store_item_unavailable` | O `itemId` não é um uuid |
 | 404 | `store_item_unavailable` | O item não existe ou não tem preço |
 | 404 | `store_item_not_in_backpack` | O treinador não tem o item, ou não tem a quantidade pedida |
+| 409 | `store_request_in_flight` | A mesma venda já está em andamento; a operação não roda |
 | 404 | `trainer_not_found` | A conta não tem treinador ativo |
 | 401 | `unauthenticated` | |
+
+### A idempotência da compra
+
+As duas operações aceitam o header `Idempotency-Key`, e é ele que impede que uma repetição do pedido cobre o jogador duas vezes.
+
+A chave pertence ao **pedido**, e não à conta: duas contas com a mesma chave são dois pedidos diferentes. O servidor guarda a chave e o resultado por conta, numa janela de dez minutos.
+
+O que o servidor faz, na ordem:
+
+1. A chave que já tem resultado guardado devolve esse resultado, sem executar a operação e sem cobrar de novo.
+2. A chave que **não** tem resultado é **reservada** antes da operação rodar. A reserva é síncrona, e é ela que fecha a corrida: dois pedidos da mesma chave que chegam juntos não acham a chave livre os dois.
+3. A reserva negada responde **409** com `store_request_in_flight`, e a operação **não** roda — o jogador não é cobrado.
+4. A operação roda. No sucesso, o resultado é guardado. Na recusa **sem ter rodado** — corpo inválido, ausência da sessão do treinador, ou recusa do banco —, a chave é liberada, e uma retentativa com a mesma chave roda de novo.
+
+> A chave **não** é liberada quando a operação **lança** exceção: pode ter havido cobrança no banco, e liberá-la ali abriria a cobrança dupla. Nesse caso a chave sai pela janela de dez minutos, e uma retentativa com a mesma chave recebe o mesmo resultado.
+
+Uma chave vazia, ou com mais de duzentos caracteres, não é uma chave: o pedido roda como se ela não existisse.
+
+> A chave é de uso único do ponto de vista do cliente: uma chave nova por compra. Duas compras com a mesma chave seriam a mesma compra, e é por isso que o cliente não reusa a chave de uma compra encerrada.
 
 ### O push do estado
 
@@ -1292,6 +1323,7 @@ Os códigos da loja vivem no namespace do contrato da loja (`apps/shared/contrac
 | `store_item_unavailable` | 400 / 404 | O item não existe, não está à venda ou o `itemId` está malformado |
 | `store_insufficient_gold` | 409 | O gold do treinador não paga a compra |
 | `store_item_not_in_backpack` | 404 | O treinador não tem o item na quantidade pedida |
+| `store_request_in_flight` | 409 | A mesma operação já está em andamento; ela não roda |
 | `trainer_not_found` | 404 | A conta não tem treinador ativo |
 
 ## Regras de Negócio
@@ -1556,20 +1588,23 @@ Os tipos de input e output desta API vivem em `apps/shared/contracts/`, um pacot
 
 ```
 apps/shared/contracts/
-  auth.ts        # AuthErrorCode, AuthResult, AuthUser, AuthSession, AuthAdapter
-  creature.ts    # Creature, SpeciesSummary, CreatureAbility, Potential
-  game.ts        # ClientMessage, ServerMessage, GameErrorCode
-  inventory.ts   # InventoryItem, ItemCategory
-  player.ts      # PlayerState, TeamSlot
-  rateLimit.ts   # RateLimitErrorCode
-  species.ts     # Species, StarterSpecies, Ability, Element
-  store.ts       # StoreItem, StoreBagItem, StoreCatalog, StoreErrorCode
-  trainer.ts     # NewTrainerInput, Trainer, Gender, TrainerErrorCode
+  auth.ts         # AuthErrorCode, AuthResult, AuthUser, AuthSession, AuthAdapter
+  creature.ts     # Creature, SpeciesSummary, CreatureAbility, Potential
+  game.ts         # ClientMessage, ServerMessage, GameCommand, GameErrorCode, PROTOCOL_VERSION
+  hunt.ts         # HuntArea, HuntAreaDetail, HuntAreaTone
+  huntSession.ts  # HuntSession, HuntEndReason, HuntAccountType, e as fórmulas da stamina
+  inventory.ts    # InventoryItem, ItemCategory
+  player.ts       # PlayerState, TeamSlot
+  rateLimit.ts    # RateLimitErrorCode
+  skill.ts        # SkillSlot, EquippedAbility, EquippedConsumable, CreatureVitals
+  species.ts      # Species, StarterSpecies, Ability, Element
+  store.ts        # StoreItem, StoreBagItem, StoreCatalog, StoreErrorCode
+  trainer.ts      # NewTrainerInput, Trainer, Gender, TrainerErrorCode
   index.ts
-  package.json   # name: "@creatures/contracts"
+  package.json    # name: "@creatures/contracts"
 ```
 
-Nenhum Zod, nenhuma dependência de runtime. Apenas tipos puros de TypeScript.
+Nenhum Zod, nenhuma dependência externa. O pacote carrega **tipos** e, em `huntSession.ts`, **funções puras** — as fórmulas da stamina e da sessão offline, que os dois lados derivam dos mesmos timestamps.
 
 ### O que NÃO vive no pacote compartilhado
 
@@ -1647,7 +1682,7 @@ A suíte toda, unidade e integração, roda com `bun test` na raiz.
 - **Sessão do treinador por processo** — o mapa `userId → trainerId` vive na memória do processo. Ele não sobrevive a um reinício e não é compartilhado entre instâncias. Isso liga com a decisão de instância única, ainda em aberto no [Stack](STACK.md#pendências), e é o que impede o servidor de subir com mais de uma instância, conforme o [runbook](../DEPLOY.md#o-que-ainda-não-está-pronto-para-o-público).
 - **O time pode ser remanejado durante a caçada** — as rotas de time não recusam nada além do que a regra do [time](../../game/TRAINER.md#time) já proíbe hoje. Quando a caçada existir, o servidor precisa saber que ela está em andamento para fechar o time, como está escrito em [Durante a Caçada](../../game/TRAINER.md#durante-a-caçada).
 - **A mochila é só de leitura** — o servidor entrega os itens que o treinador tem, mas nada os dá ou os gasta. Quem escreve a quantidade é o gameplay, que ainda não existe. A única escrita automática é o sorteio da mochila do treinador novo, na criação.
-- **A caçada não existe** — as rotas de área entregam o catálogo e o detalhe do local. Quem entra na caçada, quem encontra a criatura selvagem, quem resolve a captura e quem entrega o drop é o marco seguinte, e ainda não foi escrito.
+- **A caçada não existe** — as rotas de área entregam o catálogo e o detalhe do local. Quem entra na caçada, quem encontra a criatura selvagem, quem resolve a captura e quem entrega o drop é o marco seguinte, e ainda não foi escrito. A **fundação** — a função de avanço e a sessão com o cursor — já existe e está em [A Caçada](HUNT.md).
 - **O catálogo de áreas é pequeno e fixo** — o seed traz quatro áreas com as cinco espécies existentes. Crescer o catálogo é mexer no `seed.sql`, sem migration.
 - **A área não sabe nada do treinador** — as rotas de área não olham o nível nem o time do treinador: o nível recomendado é um conselho, e nenhuma área é bloqueada por nível.
 - **A fórmula dos atributos ainda não está na documentação de produto** — o servidor implementa `d = 0.3` e `k = 0.05`, e a decisão precisa ser escrita em [Criaturas](../../game/CREATURES.md#atributos-atuais), que ainda marca a fórmula como pendente.

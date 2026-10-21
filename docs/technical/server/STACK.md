@@ -79,7 +79,9 @@ O estado do jogo é lido e escrito no Postgres do Supabase, pelo mesmo SDK.
 
 O que está persistido é a **conta e o treinador**: espécies, habilidades, itens, treinadores, criaturas, o inventário do treinador, a carga da barra de habilidades (os slots de habilidade de cada criatura e os slots de consumível e de dispositivo do treinador), a vida restante das criaturas e o catálogo de áreas de caça. A criação de treinador é uma RPC transacional, que grava o treinador e a criatura inicial na mesma transação — o motivo está em [API de Treinadores](TRAINERS.md#a-rpc-de-criação). As operações de time também são transações no Postgres, porque trocar a ordem do time toca em mais de uma linha de uma vez — o motivo está em [API de Treinadores](TRAINERS.md#as-funções-de-time).
 
-> **O estado de jogo ainda não existe.** Não há simulação, nem ciclo de avanço de tempo, nem o que seria persistido por esse ciclo. A pergunta "como o estado em memória é persistido, e com que frequência" tem a seguinte resposta honesta: hoje não há estado de jogo em memória para persistir, e o que o Postgres guarda é a conta e o treinador, escritos em tempo real, a cada requisição que altera algo. A resposta definitiva depende do desenho do ciclo de simulação, que ainda não foi feito.
+> **O estado de jogo ainda não existe.** Não há ciclo de avanço de tempo, nem estado de jogo em memória para persistir. A pergunta "como o estado em memória é persistido, e com que frequência" tem a seguinte resposta honesta: hoje não há estado de jogo em memória para persistir, e o que o Postgres guarda é a conta e o treinador, escritos em tempo real, a cada requisição que altera algo. A resposta definitiva depende do desenho do ciclo de simulação, que ainda não foi feito.
+>
+> O que existe é a **fundação** da caçada: uma função de avanço pura e determinística, e a sessão da caçada com o cursor que permite retomá-la. Não há rota que a use, e nada a executa. Está em [A Caçada](HUNT.md).
 
 Uma conta pode ter um treinador conectado por vez. Quando uma segunda conexão chega para o mesmo jogador, a anterior é derrubada.
 
@@ -128,13 +130,15 @@ O servidor distingue o que é comando, que vem do cliente, do que é atualizaç�
 
 > Comandos nunca alteram o estado diretamente: são validados e aplicados pelas mesmas regras que avançam a simulação. É isso que garante que o cliente não consiga sair do que as [regras do jogo](../../game/GAME.md) permitem.
 
-**O que o canal ainda não faz.** Não existe simulação de jogo: o canal abre a sessão do treinador e entrega o retrato inicial do estado, e nada mais. Os comandos de jogo, o ciclo de simulação e o empurrão de atualizações são o marco do gameplay, e ainda não foram escritos.
+**O que o canal ainda não faz.** Não existe simulação de jogo: o canal abre a sessão do treinador, empurra o retrato do estado depois de cada comando, e nada mais. Os comandos de jogo — as ações que só existem dentro de uma caçada — e o ciclo de simulação são o marco do gameplay, e ainda não foram escritos. O envelope do protocolo já os comporta, e o servidor recusa um comando de caçada com `invalid_command`.
 
 ## Simulação
 
 A simulação é executada por um ciclo do servidor, que avança o estado do jogo com o passar do tempo.
 
-> **A simulação ainda não existe.** Esta seção descreve o desenho que a stack pressupõe; o código da simulação é o marco do gameplay e ainda não foi escrito. Hoje o servidor persiste a conta e o treinador no Postgres, e o estado que entrega ao cliente é lido do banco a cada requisição.
+> **A simulação ainda não existe.** Esta seção descreve o desenho que a stack pressupõe; o ciclo de simulação é o marco do gameplay e ainda não foi escrito. Hoje o servidor persiste a conta e o treinador no Postgres, e o estado que entrega ao cliente é lido do banco a cada requisição.
+>
+> A **fundação** da caçada já está escrita: a função de avanço é pura e determinística, e a sessão da caçada guarda o cursor que permite retomá-la. O que falta é o ciclo que a chama e a rota que a inicia. Está em [A Caçada](HUNT.md).
 
 > O servidor é a única fonte de verdade porque é o único que sabe o tempo do jogo. O cliente não tem relógio próprio para nada que afete o estado, e nenhum temporizador do cliente tem autoridade sobre nada.
 
@@ -160,7 +164,7 @@ O que já roda contra o Postgres de verdade é a suíte de integração, em `app
 
 Os pontos abaixo dizem respeito à stack e ainda estão em aberto:
 
-- **O estado de jogo não existe.** O que o servidor persiste hoje é a conta e o treinador, no Postgres, em tempo real. O que o ciclo de simulação vai persistir — e com que frequência — depende do desenho do ciclo, que ainda não foi feito.
+- **O estado de jogo não existe.** O que o servidor persiste hoje é a conta e o treinador, no Postgres, em tempo real. O que o ciclo de simulação vai persistir — e com que frequência — depende do desenho do ciclo, que ainda não foi feito. A **fundação** da caçada — a função de avanço e a sessão com o cursor — já existe e está em [A Caçada](HUNT.md).
 - **O estado do jogador é reconstruído do banco a cada push.** A caçada vai sobreviver à conexão, e o estado do jogador vai virar um estado **em memória com checkpoint no banco**, retomado no boot do servidor. É a Fase 2 do [plano da camada de tempo real](../../../plans/PLAN.md). Hoje o `rev`, o registro das conexões e a sessão do treinador são mapas na memória do processo: um restart zera o contador de revisões, e é por isso que o `epoch` existe.
 - **O rate limit é por processo.** O contador das tentativas falhas mora na memória do processo, como a sessão do treinador e o registro das conexões. Com mais de uma instância, cada uma conta só as tentativas que ela viu, e o limite enfraquece na proporção do número de instâncias. A regra está em [Rate Limit](TRAINERS.md#rate-limit).
 
