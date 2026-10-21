@@ -2,9 +2,11 @@ import type { PlayerState } from '@creatures/contracts/player';
 import { useStore } from 'zustand/react';
 import { createStore, type StateCreator, type StoreApi } from 'zustand/vanilla';
 
-import type { TeamCommand, TeamErrorCode, TeamRoster } from './team.types';
-import { satisfiesCommand } from './teamPrediction';
-import { readRoster } from './teamRoster';
+import { playerStateSync } from './playerStateSync';
+import type { PlayerStateSource } from './playerStateSync';
+import type { TeamCommand, TeamErrorCode } from './team.types';
+import { applyTeamState } from './teamStateApply';
+import type { TeamStateSnapshot } from './teamStateApply';
 
 /**
  * The team of the player: the state of the server and the changes that are on
@@ -15,19 +17,9 @@ import { readRoster } from './teamRoster';
  * predicts has to reach the grid of the storage in the same instant it reaches
  * the row of the team.
  */
-export type TeamStoreSnapshot = {
-  /** The changes of the team that are on their way to the server. */
-  commands: TeamCommand[];
+export type TeamStoreSnapshot = TeamStateSnapshot & {
   /** The refusal of the last command, when the server refused it. */
   error: TeamErrorCode | null;
-  /** Whether the state of the server ever arrived. */
-  isLoaded: boolean;
-  /** Whether the state of the server is being read: only the first read. */
-  isLoading: boolean;
-  /** Whether the channel of the game carries the state of the server. */
-  isPushed: boolean;
-  /** The state of the server, the truth the predictions are built on. */
-  state: PlayerState | null;
 };
 
 export type TeamStoreActions = {
@@ -37,6 +29,8 @@ export type TeamStoreActions = {
   applyPushedState(state: PlayerState): void;
   /** Applies the state the request over REST read. */
   applyRestState(state: PlayerState): void;
+  /** Applies a state that another consumer of the player state applied. */
+  applyPublishedState(state: PlayerState, source: PlayerStateSource): void;
   /** Forgets the changes that are on their way. */
   clearCommands(): void;
   /** Forgets the refusal of the last command. */
@@ -74,8 +68,21 @@ export const teamStore: TeamStore = createTeamStore();
  * that stays.
  */
 export function applyTeamSnapshot(state: PlayerState): void {
-  teamStore.getState().applyPushedState(state);
+  playerStateSync.publish(state, 'push');
 }
+
+/**
+ * The team follows the state of the player.
+ *
+ * The team is one of the consumers of the state of the player: whoever
+ * applies it tells the others about it, and the team applies it too.
+ */
+playerStateSync.subscribe(function applyPublishedState(
+  state: PlayerState,
+  source: PlayerStateSource,
+): void {
+  teamStore.getState().applyPublishedState(state, source);
+});
 
 /**
  * Reads a piece of the state of the team.
@@ -96,10 +103,12 @@ function buildInitializer(): StateCreator<TeamStoreState> {
 function buildInitialSnapshot(): TeamStoreSnapshot {
   return {
     commands: [],
+    epoch: null,
     error: null,
     isLoaded: false,
     isLoading: false,
     isPushed: false,
+    rev: 0,
     state: null,
   };
 }
@@ -110,6 +119,7 @@ function buildActions(
 ): TeamStoreActions {
   return {
     addCommand: buildAddCommand(set, get),
+    applyPublishedState: buildApplyPublishedState(set, get),
     applyPushedState: buildApplyPushedState(set, get),
     applyRestState: buildApplyRestState(set, get),
     clearCommands: buildClearCommands(set),
@@ -141,14 +151,7 @@ function buildApplyPushedState(
   get: () => TeamStoreState,
 ): (state: PlayerState) => void {
   return function applyPushedState(state: PlayerState): void {
-    const roster = readRoster(state);
-    set({
-      commands: readPendingCommands(get().commands, roster),
-      isLoaded: true,
-      isLoading: false,
-      isPushed: true,
-      state,
-    });
+    applyTeamState({ get, set }, state, 'push', true);
   };
 }
 
@@ -163,13 +166,22 @@ function buildApplyRestState(
   get: () => TeamStoreState,
 ): (state: PlayerState) => void {
   return function applyRestState(state: PlayerState): void {
-    const roster = readRoster(state);
-    set({
-      commands: readPendingCommands(get().commands, roster),
-      isLoaded: true,
-      isLoading: false,
-      state,
-    });
+    applyTeamState({ get, set }, state, 'rest', true);
+  };
+}
+
+/**
+ * A state that another consumer of the player state applied.
+ *
+ * The state is not published again: the one that published it already told
+ * everyone about it.
+ */
+function buildApplyPublishedState(
+  set: (partial: Partial<TeamStoreState>) => void,
+  get: () => TeamStoreState,
+): (state: PlayerState, source: PlayerStateSource) => void {
+  return function applyPublishedState(state: PlayerState, source: PlayerStateSource): void {
+    applyTeamState({ get, set }, state, source, false);
   };
 }
 
@@ -216,16 +228,4 @@ function buildSetLoading(
   return function setLoading(isLoading: boolean): void {
     set({ isLoading });
   };
-}
-
-/**
- * The changes that the state of the server does not carry yet.
- *
- * A change that the state already carries is confirmed: the server did it,
- * and the client has nothing left to predict.
- */
-function readPendingCommands(commands: TeamCommand[], roster: TeamRoster): TeamCommand[] {
-  return commands.filter(function keepPending(command: TeamCommand): boolean {
-    return !satisfiesCommand(roster, command);
-  });
 }

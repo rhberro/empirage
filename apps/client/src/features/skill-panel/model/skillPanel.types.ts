@@ -46,8 +46,6 @@ export type TriggerHpPercent = number;
 export type SkillPanelOptions = {
   /** Called when the server refuses a command of the panel. */
   onCommandFailed: (code: TrainerClientErrorCode) => void;
-  /** Called after a command that the server accepted. */
-  onStateChanged: () => void;
 };
 
 export type SkillPanelView = {

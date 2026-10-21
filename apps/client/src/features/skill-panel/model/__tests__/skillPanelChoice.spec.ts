@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import type { PlayerState } from '@creatures/contracts/player';
 import type { EquippedAbility, SkillSlot } from '@creatures/contracts/skill';
 
+import { buildPlayerStateFixture } from '~/entities/team';
 import {
   planAbilityChoice,
   planConsumableChoice,
@@ -52,29 +53,11 @@ function buildAbilities(): PlayerState['activeAbilities'] {
 }
 
 function buildState(): PlayerState {
-  return {
+  return buildPlayerStateFixture({
     activeAbilities: buildAbilities(),
     activeCreatureId: 'creature-1',
     activeVitals: { currentHp: 12, maxHp: 24 },
-    backpack: [],
-    diamonds: 0,
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    gold: 0,
-    maxStaminaMinutes: 720,
-    staminaMinutes: 720,
-    storage: [],
-    team: [],
-    trainer: {
-      createdAt: '2026-01-01T00:00:00.000Z',
-      gender: 'male',
-      id: 'trainer-1',
-      level: 1,
-      name: 'Time de Teste',
-      starterSpeciesId: 'species-1',
-    },
-  };
+  });
 }
 
 function buildStateWithConsumable(): PlayerState {

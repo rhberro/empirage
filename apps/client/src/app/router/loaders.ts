@@ -34,9 +34,9 @@ export function redirectIfAuthenticatedOrRecoveringLoader(): Promise<null> {
  * The OAuth return and the confirmation e-mail link both come back as a full
  * page load, and both carry the session in the URL. This route waits for the
  * session to settle, merges a Google session with the account that has the
- * same e-mail, and then asks the server where the player belongs: an account
- * without a trainer goes to the screen that creates one, an account with
- * trainers goes to the list.
+ * same e-mail, and then sends the player to the list of the trainers. The
+ * list is read by the screen itself, in a query that the whole client shares:
+ * an account without a trainer goes on to the screen that creates one.
  */
 export function postAuthLoader(): Promise<null> {
   const store = getAuthStore();

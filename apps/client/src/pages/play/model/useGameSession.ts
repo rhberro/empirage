@@ -1,7 +1,6 @@
 import type { PlayerState } from '@creatures/contracts/player';
 import type { NavigateFunction } from 'react-router-dom';
 
-import { applyTeamSnapshot } from '~/entities/team';
 import { useSkillPanel } from '~/features/skill-panel';
 import type { SkillPanelView } from '~/features/skill-panel';
 import { buildSessionActions } from '~/pages/play/model/sessionActions';
@@ -62,15 +61,6 @@ export type GameModalsView = {
  * abilities and the manual swap of the creature live together here, so that
  * the screen stays a screen.
  */
-function buildSnapshotApplier(
-  applySnapshot: (state: PlayerState) => void,
-): (state: PlayerState) => void {
-  return function applyToEveryStore(state: PlayerState): void {
-    applySnapshot(state);
-    applyTeamSnapshot(state);
-  };
-}
-
 export function useGameSession(options: GameSessionOptions): GameSession {
   const { navigate, show, signOut } = options;
   const store = usePlayerStateStore();
@@ -80,18 +70,17 @@ export function useGameSession(options: GameSessionOptions): GameSession {
   const actions = buildPlayActions(overlays);
   const skillPanel = useSkillPanel({
     onCommandFailed: buildCommandNotifier(show),
-    onStateChanged: refresh,
     state,
   });
-  const swap = useCreatureSwap({ onFailed: notify, onSwapped: refresh });
+  const swap = useCreatureSwap({ onFailed: notify });
   const channel = useGameChannel({
-    applySnapshot: buildSnapshotApplier(applySnapshot),
+    applySnapshot,
     navigate,
     onWarning: notify,
     refresh,
     state,
   });
-  const session = buildSessionActions(signOut, navigate, notify);
+  const session = buildSessionActions(signOut, navigate, notify, channel);
   return {
     actions,
     connectionLost: channel.connectionLost,

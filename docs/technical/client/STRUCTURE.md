@@ -9,6 +9,9 @@ Este documento descreve como o código do cliente está organizado: as camadas, 
 | Tópico | O que responde |
 | --- | --- |
 | [As camadas](#as-camadas) | Quais são as camadas e o que cabe em cada uma. |
+| [A camada de queries](#a-camada-de-queries) | Onde mora a chave e o fetcher de cada query. |
+| [O `QueryClient` da aplicação](#o-queryclient-da-aplicação) | Por que o cache é um singleton do `app/`. |
+| [O registro global do estado do jogador](#o-registro-global-do-estado-do-jogador) | Onde o estado empurrado pelo canal é registrado. |
 | [Onde o código mora](#onde-o-código-mora) | A pergunta que decide a camada de um arquivo novo. |
 | [A API pública](#a-api-pública) | O que um consumidor pode importar de uma fatia. |
 | [A regra de dependência](#a-regra-de-dependência) | Para onde a dependência pode apontar. |
@@ -23,26 +26,57 @@ O cliente segue o **Feature-Sliced Design** (FSD v2.1). A dependência só apont
 
 ```
 apps/client/src/
-  app/            ponto de entrada, providers, router e escala da interface
+  app/            ponto de entrada, providers, router, query/ e escala da interface
   pages/          uma fatia por rota, cada uma com ui/ e, quando tem estado próprio, model/
   widgets/        blocos compostos de tela: game-hud/
   features/       ações do usuário: authentication/, store/, storage/, backpack/, delete-trainer/
-  entities/       modelo de domínio: trainer/ (model/, ui/)
-  shared/         ui/ (design system), theme/ (tokens), auth/ (sessão), api/ (cliente HTTP)
+  entities/       modelo de domínio: trainer/ (model/, ui/), team/ (model/, ui/, api/)
+  shared/         ui/ (design system), theme/ (tokens), auth/ (sessão), api/ (cliente HTTP e queries)
 ```
 
 | Camada | O que vive ali | Quem importa |
 | --- | --- | --- |
-| `app/` | O ponto de entrada: providers, router, rotas protegidas e a escala da interface. | O `app/` e o `shared/`. |
+| `app/` | O ponto de entrada: providers, router, rotas protegidas, o `QueryClient` e a escala da interface. | O `app/` e o `shared/`. |
 | `pages/` | A tela: a rota, o layout e a orquestração. | O `app/`, pelo roteador. |
 | `widgets/` | Blocos de tela que mais de uma página usa — hoje, só o HUD do jogo. | `pages/`. |
 | `features/` | Uma ação do usuário com dono: entrar, criar treinador, abrir a loja. | `pages/` e `widgets/`. |
-| `entities/` | O modelo do jogo: o treinador, com tipos, schema, regra e UI. | `features/`, `widgets/` e `pages/`. |
-| `shared/` | Infraestrutura sem regra de jogo: o design system, o tema, a sessão e o cliente HTTP. | Todas as camadas. |
+| `entities/` | O modelo do jogo: o treinador e o time, com tipos, schema, regra e UI. | `features/`, `widgets/` e `pages/`. |
+| `shared/` | Infraestrutura sem regra de jogo: o design system, o tema, a sessão, o cliente HTTP e as queries. | Todas as camadas. |
 
 Dentro de uma fatia, os arquivos são agrupados por segmento: `ui/` para a tela, `model/` para o estado, a regra e a lógica, `api/` para a conversa com o servidor.
 
 **O nome do arquivo diz o assunto.** Um arquivo se chama pelo domínio que ele serve — `trainer.schema.ts`, `trainer.types.ts`, `useTrainers.ts` — e não pelo papel técnico que ele exerce. `types.ts` e `utils.ts` soltos não respondem "de quem é este arquivo".
+
+### A camada de queries
+
+`shared/api/queries/` guarda a chave e o fetcher de cada query do TanStack Query.
+
+> A chave e o fetcher moram juntos porque são a mesma coisa: a chave identifica o recurso, e o fetcher é a única forma de lê-lo. Separados, o cache e a rede poderiam divergir sem ninguém perceber.
+
+| Arquivo | A query |
+| --- | --- |
+| `trainerQueries.ts` | A lista de treinadores da conta. |
+| `starterQueries.ts` | As espécies iniciais. |
+| `huntAreaQueries.ts` | A lista de áreas de caça e o detalhe de uma área. |
+| `storeQueries.ts` | O catálogo da loja. |
+
+A `staleTime` de cada uma está escrita na query: o conteúdo do catálogo muda em deploy, e a lista de treinadores e o catálogo da loja mudam por ação do jogador — por isso os dois são invalidados pela mutação que os mudou.
+
+### O `QueryClient` da aplicação
+
+O `QueryClient` mora em `app/query/`, e o provider fica em `app/query/QueryProvider.tsx`.
+
+> Ele é **de aplicação**, e não de `shared/`: o cache é uma decisão do cliente inteiro, não uma infraestrutura que uma fatia usa. E ele precisa ser um **singleton**, porque o cache compartilhado é o que faz duas telas que pedem a mesma coisa pedirem ao servidor uma vez só.
+
+O `QueryClient` é criado uma vez, com os padrões que toda query do jogo quer: sem retentativa numa recusa nomeada pelo servidor, sem tempestade de pedidos quando a aba volta ao primeiro plano, e sem regra de frescor que não esteja escrita na própria query.
+
+### O registro global do estado do jogador
+
+`entities/team/model/playerStateSync.ts` é o registro global do estado do jogador.
+
+> Ele mora na fatia do time porque é o **slice mais baixo** que a página, as features e as entidades alcançam: o estado que o canal empurra é a mesma verdade que o time, o painel de habilidades e os comandos do cliente leem. Um store que vivesse na página não seria alcançável pelas entidades, e um provider React colocaria o estado de volta dentro do React — que é exatamente o que o estado do jogo não pode ser.
+
+O registro não é um store Zustand: é um módulo com a revisão aplicada, o relógio do servidor corrigido e os ouvintes do estado. O estado do jogador **não** vira query do TanStack Query: ele é empurrado pelo WebSocket, e é a revisão que decide a aplicação.
 
 ## Onde o código mora
 
@@ -98,9 +132,14 @@ No cliente, a conversa com o servidor sobre treinador está assim:
 | Listar as criaturas iniciais | `shared/api/endpoints/starter.ts` | Idem. |
 | Ler o estado do jogador e abrir a sessão de um treinador | `shared/api/endpoints/player.ts` | Idem. |
 | Validar os dados do novo treinador | `entities/trainer/model/trainer.schema.ts` | É a regra do domínio: é o schema que define o que é um treinador válido. |
-| A lista de treinadores que a tela usa | `entities/trainer/model/trainersController.ts` + `entities/trainer/model/trainersStore.ts` | É estado do domínio, com mais de um consumidor: o controller tem a regra, a store publica o retrato para as telas. |
+| A chave e o fetcher da lista de treinadores | `shared/api/queries/trainerQueries.ts` | A lista é o estado do servidor, e a query é o cache compartilhado. A regra continua no controller, a tela consome a query. |
+| O que a tela faz com a lista | `entities/trainer/model/useTrainers.ts` + `entities/trainer/model/trainersStore.ts` | A query entrega o dado, o carregando e o erro; o store guarda o que é da sessão: o treinador escolhido e o fato de a lista já ter sido lida. |
 
-O `shared/api/` guarda a base e os endereços (`client.ts`), o transporte (`http.ts`) e os endpoints (`endpoints/`). O `shared/` nunca importa de `entities/`, `features/`, `pages/` ou `widgets/`.
+O `shared/api/` guarda a base e os endereços (`client.ts`), o transporte (`http.ts`), os endpoints (`endpoints/`) e as queries (`queries/`). O `shared/` nunca importa de `entities/`, `features/`, `pages/` ou `widgets/`.
+
+> **A camada de queries entra depois do endpoint.** O endpoint sabe falar com o servidor; a query sabe o que fazer com a resposta — a chave que identifica o recurso, o fetcher que a lê e a `staleTime` que diz por quanto tempo ela é boa. Um recurso com regra de domínio tem a query em `entities/<nome>/api/`.
+
+O `QueryClient` que as queries usam vive em `app/query/`, e o provider em `app/query/QueryProvider.tsx`: o cache é uma decisão do cliente inteiro, e ele precisa ser um singleton para que duas telas que pedem a mesma coisa peçam ao servidor uma vez só.
 
 A base da API vem da variável `VITE_API_BASE_URL`. Em desenvolvimento, a ausência da variável aponta para `http://localhost:3001`; em um build, a ausência é um erro — o cliente não sobe apontando para a máquina de quem compilou.
 

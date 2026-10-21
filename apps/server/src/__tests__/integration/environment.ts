@@ -3,11 +3,15 @@ import pino from 'pino';
 
 import type { ServerDependencies } from '~/dependencies';
 import { createAttemptLimiter } from '~/ratelimit/attemptLimiter';
+import { createPublicLimiter } from '~/ratelimit/publicLimiter';
 import { createTrainerSessionStore } from '~/session/trainerSession';
+import { createIdempotencyStore } from '~/state/idempotency';
+import { createRevCounter } from '~/state/rev';
 import { createSupabaseServer, readSupabaseEnv } from '~/supabase';
 import { createConnectionRegistry } from '~/ws/connections';
 import type { ConnectionRegistry } from '~/ws/connections';
 import { createStateBroadcaster } from '~/ws/stateBroadcaster';
+import { createTicketStore } from '~/ws/tickets';
 
 export const TEST_PASSWORD = 'creatures-integration-pass';
 export const STARTER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -43,13 +47,19 @@ export function prepareEnvironment(): Promise<IntegrationEnvironment> {
     const anon = createClient(env.url, env.anonKey);
     const logger = pino({ level: 'silent' });
     const connections = createConnectionRegistry();
+    const revs = createRevCounter();
     const deps: ServerDependencies = {
       admin,
-      broadcaster: createStateBroadcaster(admin, connections, logger),
+      broadcaster: createStateBroadcaster(admin, connections, logger, revs),
       claims: supabase.claims,
+      connections,
+      idempotency: createIdempotencyStore(),
       limiter: createAttemptLimiter(),
       logger,
+      publicLimiter: createPublicLimiter(),
+      revs,
       sessions: createTrainerSessionStore(),
+      tickets: createTicketStore(),
       users: supabase.users,
     };
     const ownerEmail = buildTestEmail();

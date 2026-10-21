@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import type { Creature } from '@creatures/contracts/creature';
 import type { PlayerState, TeamSlot } from '@creatures/contracts/player';
 
+import { buildPlayerStateFixture, FIXTURE_REV } from '~/entities/team/model/playerStateFixture';
 import type { TeamCommand } from '~/entities/team/model/team.types';
 import { applyCommands } from '~/entities/team/model/teamPrediction';
 import { readRoster } from '~/entities/team/model/teamRoster';
@@ -41,29 +42,11 @@ function buildSlot(id: string, slot: number): TeamSlot {
 }
 
 function buildState(): PlayerState {
-  return {
-    activeAbilities: [],
+  return buildPlayerStateFixture({
     activeCreatureId: BRASA_ID,
-    activeVitals: null,
-    backpack: [],
-    diamonds: 0,
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    gold: 0,
-    maxStaminaMinutes: 720,
-    staminaMinutes: 720,
     storage: [buildCreature(MUSGUIM_ID)],
     team: [buildSlot(BRASA_ID, 1), buildSlot(GOTA_ID, 2)],
-    trainer: {
-      createdAt: '2026-01-01T00:00:00.000Z',
-      gender: 'male',
-      id: 'trainer-1',
-      level: 1,
-      name: 'Time de Teste',
-      starterSpeciesId: 'species-1',
-    },
-  };
+  });
 }
 
 function readTeam(store: TeamStore): string[] {
@@ -87,6 +70,7 @@ test('the state the server pushes confirms the change', function confirmsCommand
   store.getState().applyRestState(buildState());
   store.getState().addCommand({ creatureId: MUSGUIM_ID, kind: 'add' });
   const pushed = buildState();
+  pushed.rev = FIXTURE_REV + 1;
   pushed.team = [...pushed.team, buildSlot(MUSGUIM_ID, 3)];
   pushed.storage = [];
   store.getState().applyPushedState(pushed);
@@ -98,9 +82,40 @@ test('the change stays on the screen until the server carries it', function keep
   const store = createTeamStore();
   store.getState().applyRestState(buildState());
   store.getState().addCommand({ creatureId: MUSGUIM_ID, kind: 'add' });
-  store.getState().applyPushedState(buildState());
+  const pushed = buildState();
+  pushed.rev = FIXTURE_REV + 1;
+  store.getState().applyPushedState(pushed);
   expect(store.getState().commands.length).toBe(1);
   expect(readTeam(store)).toEqual([BRASA_ID, GOTA_ID, MUSGUIM_ID]);
+});
+
+/**
+ * A state that is not newer than the one the client has is ignored: a push
+ * that arrives late does not put the client back in the past.
+ */
+test('the state that is not newer is ignored', function ignoresOldState(): void {
+  const store = createTeamStore();
+  store.getState().applyRestState(buildState());
+  const older = buildState();
+  older.rev = FIXTURE_REV - 1;
+  store.getState().applyPushedState(older);
+  expect(store.getState().rev).toBe(FIXTURE_REV);
+});
+
+/**
+ * A server that restarted has a counter that starts over: the state of the
+ * new server is taken, even with a revision that is smaller than the one the
+ * client had.
+ */
+test('the state of a server that restarted is taken', function takesResync(): void {
+  const store = createTeamStore();
+  store.getState().applyRestState(buildState());
+  const resynced = buildState();
+  resynced.epoch = 'another-epoch';
+  resynced.rev = 1;
+  store.getState().applyPushedState(resynced);
+  expect(store.getState().epoch).toBe('another-epoch');
+  expect(store.getState().rev).toBe(1);
 });
 
 test('the refusal of the server takes the change back', function revertsCommand(): void {

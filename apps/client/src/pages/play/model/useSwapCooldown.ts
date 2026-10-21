@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { playerStateSync } from '~/entities/team';
+
 const TICK_MS = 200;
 
 export type SwapCooldown = {
@@ -17,6 +19,10 @@ export type SwapCooldown = {
  * The player sees the tabs waiting: the mask descends and the count tells how
  * long is left. The server decides when the swap is accepted again; the
  * countdown is what the client shows while it waits.
+ *
+ * The countdown runs on the clock of the server: the state that the server
+ * pushes says what time it is there, and a client whose clock is behind does
+ * not show a countdown that ends in the wrong minute.
  */
 export function useSwapCooldown(totalMs: number): SwapCooldown {
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
@@ -28,7 +34,7 @@ export function useSwapCooldown(totalMs: number): SwapCooldown {
         return undefined;
       }
       const timer = setInterval(function step(): void {
-        const left = Math.max(0, cooldownUntil - Date.now());
+        const left = Math.max(0, cooldownUntil - playerStateSync.readServerTime());
         setRemainingMs(left);
         if (left <= 0) {
           clearInterval(timer);
@@ -42,7 +48,7 @@ export function useSwapCooldown(totalMs: number): SwapCooldown {
   );
 
   function start(): void {
-    setCooldownUntil(Date.now() + totalMs);
+    setCooldownUntil(playerStateSync.readServerTime() + totalMs);
     setRemainingMs(totalMs);
   }
 

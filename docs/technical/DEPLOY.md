@@ -168,7 +168,16 @@ A resposta é `204`, sem corpo.
 
 ### O canal do jogo abre
 
-O canal fica em `/ws`, no mesmo `Bun.serve` que serve o HTTP, e o token do jogador viaja na query string porque o upgrade do Bun não recebe headers:
+O canal fica em `/ws`, no mesmo `Bun.serve` que serve o HTTP. O token do jogador **não** viaja na query string: o upgrade do Bun não recebe headers, e um token na query é registrado por qualquer proxy à frente do servidor. O que viaja é um **ticket de uso único**, emitido pelo servidor para a conta autenticada.
+
+Primeiro o ticket:
+
+```
+TICKET=$(curl -s -X POST http://localhost:3001/api/ws-ticket \
+  -H "Authorization: Bearer $TOKEN" | jq -r .ticket)
+```
+
+Depois o canal, com o ticket:
 
 ```
 curl -i -N \
@@ -176,12 +185,14 @@ curl -i -N \
   -H "Upgrade: websocket" \
   -H "Sec-WebSocket-Version: 13" \
   -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
-  "http://localhost:3001/ws?token=$TOKEN"
+  "http://localhost:3001/ws?ticket=$TICKET"
 ```
 
-A resposta é `101 Switching Protocols`. O token é validado com o `getUser()`, que consulta o Auth server, e é por isso que o canal demora um pouco mais que uma rota comum.
+A resposta é `101 Switching Protocols`. O ticket vale 30 segundos e é de uso único: um ticket desconhecido, expirado ou já usado responde `401` no upgrade, e o navegador vê um handshake que falhou.
 
-> O token **não pode ser logado**: o servidor registra a abertura do canal pelo `userId`, nunca pelo token, e o log de requisição HTTP registra apenas o `pathname`, sem a query.
+O token viaja **dentro** do ticket, e o servidor o revalida no Auth server antes de abrir o canal — é o que permite detectar uma sessão revogada enquanto o token ainda parece válido. Por isso o canal demora um pouco mais que uma rota comum.
+
+> O ticket **não pode ser logado** pela mesma razão do token: o servidor registra a abertura pelo `userId`, nunca pelo ticket, e o log de requisição HTTP registra apenas o `pathname`, sem a query. O proxy à frente do servidor, porém, registra a query inteira — e é por isso que o token do jogador não viaja nela.
 
 ### O cliente sobe
 

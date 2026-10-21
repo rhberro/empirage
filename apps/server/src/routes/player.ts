@@ -6,6 +6,12 @@ import type { RequestContext, Route, RouteHandler } from '~/router';
 import { composeProtectedRoute } from '~/routes/routeChain';
 import { loadPlayerState } from '~/state/playerState';
 import { isUuid } from '~/validation/trainer';
+import {
+  DISCONNECTED_CLOSE_CODE,
+  DISCONNECTED_CLOSE_REASON,
+  REPLACED_CLOSE_CODE,
+  REPLACED_CLOSE_REASON,
+} from '~/ws/connections';
 
 const SESSION_PATH = '/api/session/trainer';
 const PLAYER_STATE_PATH = '/api/player/state';
@@ -36,6 +42,13 @@ export function createPlayerRoutes(deps: ServerDependencies): Route[] {
   ];
 }
 
+/**
+ * Opens the session of the trainer.
+ *
+ * The channel the account had open is closed: the account has one session and
+ * one channel, and the old one would keep receiving the state of a session
+ * that is not the one of the client anymore.
+ */
 function handleSelectSessionTrainer(deps: ServerDependencies): RouteHandler {
   return function selectSessionTrainer(
     req: Request,
@@ -52,6 +65,7 @@ function handleSelectSessionTrainer(deps: ServerDependencies): RouteHandler {
       .then(function toResponse(result: Response | string): Response {
         if (typeof result === 'string') {
           deps.sessions.set(userId, result);
+          deps.connections.disconnect(userId, REPLACED_CLOSE_CODE, REPLACED_CLOSE_REASON);
           logRouteEvent(deps.logger, ctx, 'trainer session opened', { trainerId: result });
           const init = { status: NO_CONTENT };
           return new globalThis.Response(null, init);
@@ -66,6 +80,10 @@ function handleSelectSessionTrainer(deps: ServerDependencies): RouteHandler {
  *
  * The session of the account stays alive: only the trainer is disconnected, so
  * the player goes back to the list of trainers without signing out.
+ *
+ * The channel of the account is closed with it: the screen of the game says
+ * that the trainer stops any activity when it is disconnected, and a channel
+ * left open would push the state of a session that does not exist anymore.
  */
 function handleClearSessionTrainer(deps: ServerDependencies): RouteHandler {
   return function clearSessionTrainer(
@@ -78,14 +96,22 @@ function handleClearSessionTrainer(deps: ServerDependencies): RouteHandler {
       return Promise.resolve(errorResponse(401, UNAUTHENTICATED_ERROR, UNAUTHENTICATED_MESSAGE));
     }
     deps.sessions.clear(userId);
+    deps.connections.disconnect(userId, DISCONNECTED_CLOSE_CODE, DISCONNECTED_CLOSE_REASON);
     const init = { status: NO_CONTENT };
     return Promise.resolve(new globalThis.Response(null, init));
   };
 }
 
+/**
+ * The state of the player.
+ *
+ * The client asks with the revision it already has: when the state of the
+ * account is still in that revision, the answer is that there is nothing new,
+ * and the body of the state is not sent again.
+ */
 function handleReadPlayerState(deps: ServerDependencies): RouteHandler {
   return function readPlayerState(
-    _req: Request,
+    req: Request,
     _params: Record<string, string>,
     ctx: RequestContext,
   ): Promise<Response> {
@@ -97,7 +123,13 @@ function handleReadPlayerState(deps: ServerDependencies): RouteHandler {
     if (trainerId === null) {
       return Promise.resolve(notFoundResponse());
     }
-    return loadPlayerState(deps.admin, trainerId, userId).then(function toBody(
+    const rev = deps.revs.current(userId);
+    const sinceRev = readSinceRev(req);
+    if (sinceRev !== null && rev <= sinceRev) {
+      return Promise.resolve(noContentResponse());
+    }
+    const revision = { epoch: deps.revs.epoch, rev };
+    return loadPlayerState(deps.admin, trainerId, userId, revision).then(function toBody(
       state: unknown,
     ): Response {
       if (state === null) {
@@ -106,6 +138,24 @@ function handleReadPlayerState(deps: ServerDependencies): RouteHandler {
       return jsonResponse(state, OK);
     });
   };
+}
+
+/**
+ * The revision the client already has.
+ *
+ * A value that is not a revision is ignored: the client gets the whole state,
+ * which is always safe.
+ */
+function readSinceRev(req: Request): number | null {
+  const value = new globalThis.URL(req.url).searchParams.get('sinceRev');
+  if (value === null || value.trim() === '') {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    return null;
+  }
+  return parsed;
 }
 
 function checkTrainerOwnership(
@@ -148,6 +198,11 @@ function readTrainerId(body: unknown): string | Response {
     return errorResponse(BAD_REQUEST, INVALID_TRAINER_ERROR, INVALID_TRAINER_MESSAGE);
   }
   return trainerId;
+}
+
+function noContentResponse(): Response {
+  const init = { status: NO_CONTENT };
+  return new globalThis.Response(null, init);
 }
 
 function notFoundResponse(): Response {

@@ -1,20 +1,17 @@
 import type { StoreBagItem, StoreCatalog, StoreItem } from '@creatures/contracts/store';
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { createStoreIntent, type StoreIntentOutcome } from '~/features/store/model/storeIntent';
 import { readStoreErrorMessage } from '~/features/store/model/storeMessages';
-import { createApiDeps } from '~/shared/api';
-// The endpoint is imported by its own path until the barrel of the shared API
-// publishes it. The barrel line is the one reported in the reconciliation.
+import type { ApiDeps, StoreCommandResult, StoreOutcome } from '~/shared/api';
 import {
+  createApiDeps,
   requestStoreBuy,
-  requestStoreCatalog,
   requestStoreSell,
-} from '~/shared/api/endpoints/store';
-import type {
-  StoreCatalogResult,
-  StoreCommandResult,
-  StoreOutcome,
-} from '~/shared/api/endpoints/store';
+  STORE_CATALOG_QUERY_KEY,
+  storeCatalogQueryOptions,
+} from '~/shared/api';
 import { getAccessToken } from '~/shared/auth';
 
 export type StoreCatalogView = {
@@ -36,13 +33,18 @@ export type StoreCatalogView = {
   sell: (itemId: string, quantity: number, onDone: (outcome: StoreOutcome) => void) => void;
 };
 
+type StoreCommand = (
+  deps: ApiDeps,
+  itemId: string,
+  quantity: number,
+  idempotencyKey: string,
+  signal: AbortSignal,
+) => Promise<StoreCommandResult>;
+
 type StoreWallet = {
   bag: StoreBagItem[];
-  error: string | null;
   gold: number;
 };
-
-const EMPTY_WALLET: StoreWallet = { bag: [], error: null, gold: 0 };
 
 /**
  * The catalog of the store and the wallet of the trainer.
@@ -50,60 +52,87 @@ const EMPTY_WALLET: StoreWallet = { bag: [], error: null, gold: 0 };
  * The server is the source of all of them: the modal reads the catalog when
  * it opens, and every command answers with the new wallet and the new
  * backpack.
+ *
+ * The catalog is a query: the answer mixes the content of the store with the
+ * state of the player, and the command that changes the player leaves the
+ * cache behind.
  */
 export function useStoreCatalog(isOpen: boolean, snapshot: StoreCatalog | null): StoreCatalogView {
-  const [catalog, setCatalog] = useState<StoreItem[]>([]);
-  const [wallet, setWallet] = useState<StoreWallet>(EMPTY_WALLET);
+  const queryClient = useQueryClient();
+  const deps = useMemo(buildDeps, []);
+  const query = useQuery({
+    ...storeCatalogQueryOptions(deps),
+    enabled: isOpen && snapshot === null,
+  });
   const [isBusy, setIsBusy] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  useEffect(loadWhenOpen, [isOpen, snapshot]);
-
-  function loadWhenOpen(): void {
-    if (!isOpen) {
-      return;
-    }
-    if (snapshot !== null) {
-      applySnapshot(snapshot, setCatalog, setWallet);
-      return;
-    }
-    setIsLoading(true);
-    requestStoreCatalog(createApiDeps(getAccessToken)).then(function withCatalog(
-      result: StoreCatalogResult,
-    ): void {
-      applyCatalog(result, setCatalog, setWallet, setIsLoading);
-    });
-  }
-
-  const buy = useStoreCommand(requestStoreBuy, setIsBusy, setWallet);
-  const sell = useStoreCommand(requestStoreSell, setIsBusy, setWallet);
+  const [error, setError] = useState<string | null>(null);
+  const [sampleWallet, setSampleWallet] = useState<StoreWallet | null>(null);
+  const applyWallet = useStoreWallet(queryClient, snapshot, setSampleWallet);
+  const buy = useStoreCommand(requestStoreBuy, deps, applyWallet, setIsBusy, setError);
+  const sell = useStoreCommand(requestStoreSell, deps, applyWallet, setIsBusy, setError);
+  const wallet = readWallet(query.data, snapshot, sampleWallet);
 
   return {
     bag: wallet.bag,
     buy,
-    catalog,
-    error: wallet.error,
+    catalog: query.data?.items ?? snapshot?.items ?? [],
+    error,
     gold: wallet.gold,
     isBusy,
-    isLoading,
+    isLoading: snapshot === null && isOpen && query.isPending,
     sell,
   };
 }
 
-type StoreCommand = (
-  deps: ReturnType<typeof createApiDeps>,
-  itemId: string,
-  quantity: number,
-) => Promise<StoreCommandResult>;
+/**
+ * Where the wallet of a command is written.
+ *
+ * The catalog that comes from outside — the gallery of the design system shows
+ * the store with a catalog of samples — is not in the cache, so its wallet
+ * lives in the screen.
+ */
+function useStoreWallet(
+  queryClient: ReturnType<typeof useQueryClient>,
+  snapshot: StoreCatalog | null,
+  setSampleWallet: (wallet: StoreWallet | null) => void,
+): (outcome: StoreOutcome) => void {
+  return useCallback(
+    function applyOutcome(outcome: StoreOutcome): void {
+      if (snapshot !== null) {
+        setSampleWallet({ bag: outcome.bag, gold: outcome.gold });
+        return;
+      }
+      writeWallet(queryClient, outcome);
+    },
+    [queryClient, setSampleWallet, snapshot],
+  );
+}
 
 /**
  * A command of the store: the buy and the sale share the same shape.
+ *
+ * The command owns the key of the purchase: the key is born with the click and
+ * dies with the operation, so a new click is a new purchase. The key lives
+ * here and not in the transport because the transport only knows the request,
+ * not the intent of the player.
  */
 function useStoreCommand(
   command: StoreCommand,
+  deps: ApiDeps,
+  applyWallet: (outcome: StoreOutcome) => void,
   setIsBusy: (isBusy: boolean) => void,
-  setWallet: Dispatch<SetStateAction<StoreWallet>>,
+  setError: (error: string | null) => void,
 ): (itemId: string, quantity: number, onDone: (outcome: StoreOutcome) => void) => void {
+  const [intent] = useState(createStoreIntent);
+  const [controller] = useState(createAbortController);
+  useEffect(
+    function abortWhenTheScreenGoesAway(): () => void {
+      return function abort(): void {
+        controller.abort();
+      };
+    },
+    [controller],
+  );
   return useCallback(
     function runCommand(
       itemId: string,
@@ -111,76 +140,95 @@ function useStoreCommand(
       onDone: (outcome: StoreOutcome) => void,
     ): void {
       setIsBusy(true);
-      command(createApiDeps(getAccessToken), itemId, quantity).then(function withOutcome(
+      const key = intent.begin();
+      command(deps, itemId, quantity, key, controller.signal).then(function withOutcome(
         result: StoreCommandResult,
       ): void {
+        if (controller.signal.aborted) {
+          return;
+        }
         setIsBusy(false);
-        applyOutcome(setWallet, result, onDone);
+        intent.settle(readIntentOutcome(result));
+        applyResult(result, applyWallet, setError, onDone);
       });
     },
-    [command, setIsBusy, setWallet],
+    [applyWallet, command, controller, deps, intent, setError, setIsBusy],
   );
 }
 
-function applySnapshot(
-  catalog: StoreCatalog,
-  setCatalog: (items: StoreItem[]) => void,
-  setWallet: (wallet: StoreWallet) => void,
-): void {
-  setCatalog(catalog.items);
-  setWallet({ bag: catalog.bag, error: null, gold: catalog.gold });
+/**
+ * The controller of the request of the command.
+ *
+ * The screen can go away while the command runs: the request is aborted, and
+ * the answer that comes later is ignored.
+ */
+function createAbortController(): AbortController {
+  return new globalThis.AbortController();
 }
 
 /**
- * The catalog that arrives: the store shows what it sells and what the
- * trainer owns.
+ * How the purchase of the command ended.
+ *
+ * A purchase the server is still running did not end: it keeps its key, so
+ * the attempt that comes after is the same purchase.
  */
-function applyCatalog(
-  result: StoreCatalogResult,
-  setCatalog: (items: StoreItem[]) => void,
-  setWallet: (wallet: StoreWallet) => void,
-  setIsLoading: (isLoading: boolean) => void,
-): void {
-  setIsLoading(false);
-  if (!result.ok) {
-    // The catalog that does not load leaves the store empty: the player sees a
-    // store with nothing in it, and no action that fails silently.
-    setCatalog([]);
-    setWallet(EMPTY_WALLET);
-    return;
+function readIntentOutcome(result: StoreCommandResult): StoreIntentOutcome {
+  if (!result.ok && result.code === 'store_request_in_flight') {
+    return 'in_flight';
   }
-  applySnapshot(result.catalog, setCatalog, setWallet);
+  return 'ended';
+}
+
+function buildDeps(): ApiDeps {
+  return createApiDeps(getAccessToken);
+}
+
+function readWallet(
+  catalog: StoreCatalog | undefined,
+  snapshot: StoreCatalog | null,
+  sampleWallet: StoreWallet | null,
+): StoreWallet {
+  if (sampleWallet !== null) {
+    return sampleWallet;
+  }
+  if (catalog !== undefined) {
+    return { bag: catalog.bag, gold: catalog.gold };
+  }
+  return { bag: snapshot?.bag ?? [], gold: snapshot?.gold ?? 0 };
 }
 
 /**
  * The answer of a command: the new wallet and the new backpack, or the reason
  * of the refusal.
+ *
+ * The wallet is written right away, and the server is asked again: the answer
+ * of the command is what the player sees, and the answer of the server is what
+ * stays.
  */
-function applyOutcome(
-  setWallet: Dispatch<SetStateAction<StoreWallet>>,
+function applyResult(
   result: StoreCommandResult,
+  applyWallet: (outcome: StoreOutcome) => void,
+  setError: (error: string | null) => void,
   onDone: (outcome: StoreOutcome) => void,
 ): void {
   if (!result.ok) {
-    readRefusal(setWallet, result.code);
+    setError(readStoreErrorMessage(result.code));
     return;
   }
-  setWallet({ bag: result.outcome.bag, error: null, gold: result.outcome.gold });
+  applyWallet(result.outcome);
+  setError(null);
   onDone(result.outcome);
 }
 
-/**
- * The refusal of the server.
- *
- * The wallet stays as it is: the catalog, the backpack and the gold are still
- * true, and the player adjusts the quantity and tries again. Only the reason
- * of the refusal is new.
- */
-function readRefusal(
-  setWallet: Dispatch<SetStateAction<StoreWallet>>,
-  code: Parameters<typeof readStoreErrorMessage>[0],
-): void {
-  setWallet(function withError(wallet: StoreWallet): StoreWallet {
-    return { ...wallet, error: readStoreErrorMessage(code) };
-  });
+function writeWallet(queryClient: ReturnType<typeof useQueryClient>, outcome: StoreOutcome): void {
+  queryClient.setQueryData<StoreCatalog>(
+    STORE_CATALOG_QUERY_KEY,
+    function withWallet(catalog: StoreCatalog | undefined): StoreCatalog | undefined {
+      if (catalog === undefined) {
+        return catalog;
+      }
+      return { ...catalog, bag: outcome.bag, gold: outcome.gold };
+    },
+  );
+  void queryClient.invalidateQueries({ queryKey: STORE_CATALOG_QUERY_KEY });
 }

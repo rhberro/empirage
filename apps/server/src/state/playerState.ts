@@ -43,12 +43,29 @@ type TeamCollections = {
 };
 
 /**
+ * Where the state of the account is in the sequence of its revisions.
+ *
+ * The revision only means something inside the epoch of the process, so the
+ * two travel together.
+ */
+export type StateRevision = {
+  /** The identifier of the boot of the server that produced the state. */
+  epoch: string;
+  /** The revision of the state, monotonic inside the epoch. */
+  rev: number;
+};
+
+/**
  * The whole state the game screen reads.
  *
  * The creature in the field is the one in the first slot of the team: the
  * order of the team is what decides who enters the field.
  */
-export function buildPlayerState(parts: PlayerStateParts): PlayerState {
+export function buildPlayerState(
+  parts: PlayerStateParts,
+  revision: StateRevision,
+  serverNow: number = Date.now(),
+): PlayerState {
   const {
     activeAbilities,
     activeVitals,
@@ -67,11 +84,14 @@ export function buildPlayerState(parts: PlayerStateParts): PlayerState {
     activeVitals,
     backpack,
     diamonds: trainer.diamonds ?? 0,
+    epoch: revision.epoch,
     equippedAbilities,
     equippedConsumables,
     equippedDevice,
     gold: trainer.gold ?? 0,
     maxStaminaMinutes: MAX_STAMINA_MINUTES,
+    rev: revision.rev,
+    serverNow,
     staminaMinutes: trainer.staminaMinutes ?? MAX_STAMINA_MINUTES,
     storage,
     team,
@@ -87,12 +107,14 @@ export function loadPlayerState(
   admin: SupabaseClient,
   trainerId: string,
   ownerId: string,
+  revision: StateRevision,
 ): Promise<PlayerState | null> {
-  return findTrainerById(admin, trainerId, ownerId).then(readPlayerParts(admin));
+  return findTrainerById(admin, trainerId, ownerId).then(readPlayerParts(admin, revision));
 }
 
 function readPlayerParts(
   admin: SupabaseClient,
+  revision: StateRevision,
 ): (trainer: Trainer | null) => Promise<PlayerState | null> {
   return function buildParts(trainer: Trainer | null): Promise<PlayerState | null> {
     if (trainer === null) {
@@ -106,17 +128,7 @@ function readPlayerParts(
         return readTrainerGear(admin, trainer.id).then(function withGear(
           gear: TrainerGear,
         ): PlayerState {
-          return buildPlayerState({
-            activeAbilities: [],
-            activeVitals: null,
-            backpack: collections.backpack,
-            equippedAbilities: [],
-            equippedConsumables: gear.consumables,
-            equippedDevice: gear.device,
-            storage: collections.storage,
-            team: collections.team,
-            trainer,
-          });
+          return buildState(trainer, collections, [[], [], null, gear], revision);
         });
       }
       return Promise.all([
@@ -125,21 +137,36 @@ function readPlayerParts(
         readActiveVitals(admin, trainer.id),
         readTrainerGear(admin, trainer.id),
       ]).then(function withLoadout(reads: LoadoutReads): PlayerState {
-        const [activeAbilities, equippedAbilities, activeVitals, gear] = reads;
-        return buildPlayerState({
-          activeAbilities,
-          activeVitals,
-          backpack: collections.backpack,
-          equippedAbilities,
-          equippedConsumables: gear.consumables,
-          equippedDevice: gear.device,
-          storage: collections.storage,
-          team: collections.team,
-          trainer,
-        });
+        return buildState(trainer, collections, reads, revision);
       });
     });
   };
+}
+
+/**
+ * The state of the trainer, with what the loadout and the collections say.
+ */
+function buildState(
+  trainer: Trainer,
+  collections: TeamCollections,
+  loadout: LoadoutReads,
+  revision: StateRevision,
+): PlayerState {
+  const [activeAbilities, equippedAbilities, activeVitals, gear] = loadout;
+  return buildPlayerState(
+    {
+      activeAbilities,
+      activeVitals,
+      backpack: collections.backpack,
+      equippedAbilities,
+      equippedConsumables: gear.consumables,
+      equippedDevice: gear.device,
+      storage: collections.storage,
+      team: collections.team,
+      trainer,
+    },
+    revision,
+  );
 }
 
 type LoadoutReads = [CreatureAbility[], EquippedAbility[], CreatureVitals | null, TrainerGear];

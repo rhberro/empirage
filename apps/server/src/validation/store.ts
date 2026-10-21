@@ -22,6 +22,8 @@ const ERROR_MESSAGES: Record<StoreErrorCode, string> = {
   store_invalid_quantity: 'A quantidade precisa ser um número inteiro entre 1 e 999999.',
   store_item_not_in_backpack: 'O item não está na mochila.',
   store_item_unavailable: 'O item não está à venda.',
+  store_request_in_flight:
+    'Esta operação já está em andamento. Tente novamente em alguns instantes.',
   trainer_not_found: 'Treinador não encontrado.',
   unauthenticated: 'Token inválido ou ausente.',
 };

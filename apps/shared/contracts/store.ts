@@ -76,5 +76,12 @@ export type StoreErrorCode =
   | 'store_invalid_quantity'
   | 'store_item_not_in_backpack'
   | 'store_item_unavailable'
+  // The same request is still running.
+  //
+  // The client sends an idempotency key, and the server refuses a second request
+  // with the same key while the first one has not answered yet. The refusal is
+  // not a failure of the operation: the operation is happening, and the client
+  // is expected to ask again with the same key.
+  | 'store_request_in_flight'
   | 'trainer_not_found'
   | 'unauthenticated';

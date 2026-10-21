@@ -6,7 +6,7 @@ import { isItemOwned, resolveSaleTotal, type StoreSale } from '~/features/store/
 import { useStoreCatalog } from '~/features/store/model/useStoreCatalog';
 import { useStoreQuantity } from '~/features/store/model/useStoreQuantity';
 import { computeStoreTotal, useStoreSelection } from '~/features/store/model/useStoreSelection';
-import type { StoreOutcome } from '~/shared/api/endpoints/store';
+import type { StoreOutcome } from '~/shared/api';
 
 /**
  * The state of the store modal.

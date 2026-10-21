@@ -2,6 +2,7 @@ export * from './auth';
 export * from './creature';
 export * from './game';
 export * from './hunt';
+export * from './huntSession';
 export * from './inventory';
 export * from './player';
 export * from './rateLimit';

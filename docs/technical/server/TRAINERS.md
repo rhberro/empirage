@@ -478,6 +478,7 @@ Todas as rotas exigem `Authorization: Bearer <token>` válido, com uma exceção
 | `GET /api/store` | `200` com o catálogo da loja, a mochila e o gold |
 | `POST /api/store/buy` | `200` com a mochila e o gold novos |
 | `POST /api/store/sell` | `200` com a mochila e o gold novos |
+| `POST /api/ws-ticket` | `200` com o ticket de uso único que abre o canal |
 | `GET /api/health` | `200` com `{ status: 'ok' }` |
 
 ### `POST /api/trainers`
@@ -1408,21 +1409,71 @@ O canal fica em `/ws`, no mesmo `Bun.serve` que serve o HTTP. A implementação 
 
 ### Abertura
 
-O canal é aberto com o token do jogador na query string: `GET /ws?token=<access_token>`.
+O canal é aberto com um **ticket de uso único** na query string: `GET /ws?ticket=<ticket>`.
 
-1. Sem token, ou com token vazio → `401 { error: 'unauthenticated' }`.
-2. O token é validado com `getUser()`, que consulta o Auth server. É essa validação com rede que detecta uma sessão revogada. Token inválido → `401`.
-3. Se o upgrade falhar → `400 { error: 'upgrade_failed' }`.
+1. Sem ticket, ou com ticket vazio → `401 { error: 'unauthenticated' }`.
+2. O ticket é consumido do store. Ticket desconhecido, já usado ou expirado → `401`.
+3. O token que viaja dentro do ticket é revalidado no Auth server, com `getUser()`. É essa validação com rede que detecta uma sessão revogada. Token inválido, expirado, ou de outra conta → `401`.
+4. Se o upgrade falhar → `400 { error: 'upgrade_failed' }`.
 
-> O token viaja na query string porque o upgrade do Bun não recebe headers. Por isso o token **não pode ser logado**: o servidor registra a abertura do canal pelo `userId`, nunca pelo token, e o log de requisição HTTP registra apenas o `pathname`, sem a query.
+> O token do Supabase **não** viaja na query string. O upgrade do Bun não recebe headers, e um JWT na query string é registrado por qualquer proxy ou balanceador à frente do servidor. O token viaja dentro do ticket, que é opaco, de uso único e válido por 30 s. O ticket e o token **nunca são logados**: o servidor registra a abertura pelo `userId`, e o log de requisição HTTP registra apenas o `pathname`, sem a query.
 
 Depois da abertura, o canal **não** revalida o token: as mensagens seguintes são atendidas com o `userId` registrado na conexão.
 
+### `POST /api/ws-ticket`
+
+Emite o ticket que abre o canal do jogo.
+
+**Request** — sem corpo. Exige `Authorization: Bearer <token>` válido, como toda rota de trainer.
+
+**Response 200**
+
+```
+{
+  "ticket": string,      // opaco, de uso único
+  "expiresAt": number    // em milissegundos, o instante em que o ticket deixa de abrir o canal
+}
+```
+
+**Erros**
+
+| Status | code | Quando |
+| --- | --- | --- |
+| 401 | `unauthenticated` | Token ausente ou inválido |
+
+O ticket carrega a identidade da conta **e** o token dela. O token precisa viajar junto porque o upgrade revalida o token no Auth server: sem a revalidação haveria uma janela de 30 s em que uma sessão revogada ainda abriria canal.
+
+> O ticket é de uso único: consumir o ticket o remove do store, e o mesmo valor nunca abre dois canais. Ele vive na memória do processo, como a sessão do treinador e o registro das conexões. O `ticket` e o `token` nunca são registrados em log.
+
 ### Uma conta, uma conexão
 
-O servidor mantém um mapa `userId → conexão`. Quando uma segunda conexão chega para a mesma conta, a anterior é fechada com o código `1000` e a razão `replaced by a newer connection`.
+O servidor mantém um mapa `userId → conexão`. Quando uma segunda conexão chega para a mesma conta, a anterior é fechada com o código `4001` e a razão `replaced by a newer connection`.
+
+> O código não é `1000` de propósito: o cliente reconecta automaticamente depois de um encerramento normal, e duas abas da mesma conta se derrubariam em laço, cada uma reconectando logo depois de a outra fechá-la. O cliente lê o `4001` e não reabre.
 
 O mapa mora em `apps/server/src/ws/connections.ts`, fora do handler do WebSocket: as rotas HTTP precisam dele para empurrar o estado. O `ConnectionRegistry` é criado em `apps/server/src/index.ts` e entregue tanto ao handler do WebSocket quanto ao broadcaster.
+
+### A entrada e a saída do treinador
+
+A sessão do treinador decide o canal do jogo.
+
+- **`POST /api/session/trainer`** registra o treinador ativo e **derruba a conexão anterior** da conta, com o código `4001`. A conta tem uma sessão e um canal: a conexão antiga continuaria recebendo o estado de uma sessão que já não é a do cliente.
+- **`DELETE /api/session/trainer`** desconecta o treinador e **fecha o canal** da conta, com o código `1000`. A sessão da conta continua viva: só o treinador sai.
+
+> O cliente sabe que o fechamento é consequência do comando dele, e não trata isso como conexão perdida. O `4001` da entrada é o que impede as duas abas de se derrubarem em laço; o `1000` da saída é o encerramento normal, e o cliente não o conta como perda.
+
+### Os códigos de fechamento
+
+| Código | Significado |
+| --- | --- |
+| `1000` | Encerramento normal, inclusive a desconexão do treinador |
+| `4001` | A conexão foi substituída por outra mais recente |
+
+### A vivacidade
+
+O Bun manda ping de protocolo (`sendPings`) e o `idleTimeout` de 120 s fecha a conexão ociosa. O `pong` de protocolo não chega no evento `message` do browser: ele tem o seu próprio handler, e é lá que o servidor marca a conexão como viva.
+
+Uma varredura a cada 30 s fecha as conexões silenciosas há mais de 120 s. O servidor não confia só no timer do runtime: o limite do servidor é o que decide o que é "ocioso".
 
 ### O push do estado
 
@@ -1450,22 +1501,48 @@ A resposta HTTP do comando continua sendo `204`, sem corpo: o que o cliente prec
 
 ### Mensagens
 
+Toda mensagem carrega a versão do protocolo, no campo `v`. Uma mensagem de outra versão é recusada com `error` e o código `invalid_message`: o envelope existe para que uma mudança de protocolo seja rejeitada com clareza, em vez de mal interpretada.
+
 Cliente → servidor:
 
 | type | Campos | O que o servidor faz |
 | --- | --- | --- |
-| `select_trainer` | `trainerId` (uuid) | Confirma que o trainer pertence à conta, registra-o como trainer ativo e responde com um `state_snapshot`. Trainer de outra conta → `error` com `trainer_not_found`. |
+| `select_trainer` | `trainerId` (uuid), `reqId` | Confirma que o trainer pertence à conta, registra-o como trainer ativo e responde com um `state_snapshot`. Trainer de outra conta → `command_result` com `ok: false` e o código `trainer_not_found`. |
+| `command` | `command` (o comando da caçada), `reqId` | Responde com `command_result`. Os comandos da caçada ainda não são executados: a resposta é `ok: false` com o código `invalid_command`. |
 | `ping` | `sentAt` (number) | Responde `pong` com o mesmo `sentAt`. |
 
 Servidor → cliente:
 
 | type | Campos |
 | --- | --- |
-| `state_snapshot` | `state` (`PlayerState`) |
+| `state_snapshot` | `state` (`PlayerState`, com `rev`, `epoch` e `serverNow`) |
+| `command_result` | `reqId`, `ok`, `rev`, e `code` quando o comando não funcionou |
 | `pong` | `sentAt` |
 | `error` | `code` (`GameErrorCode`), `message` |
 
-Uma mensagem que não é JSON, ou que não é uma das duas conhecidas, recebe `error` com o código `invalid_message`.
+O `reqId` é o que correlaciona a resposta com o pedido. O motivo da falha viaja na resposta do comando, e não em um `error`: a mensagem de erro do canal não tem `reqId`, e sem ele o cliente não saberia qual pedido falhou.
+
+Uma mensagem que não é JSON, que não é uma das três conhecidas, ou que é de outra versão do protocolo, recebe `error` com o código `invalid_message`.
+
+### A revisão do estado
+
+O `PlayerState` carrega três campos que não são do jogo:
+
+| Campo | O que é |
+| --- | --- |
+| `rev` | A revisão do estado, monotônica por conta, dentro de um `epoch`. |
+| `epoch` | O identificador do boot do processo. Muda quando o servidor reinicia. |
+| `serverNow` | O relógio do servidor no momento do snapshot. |
+
+O `epoch` existe porque o contador de revisões vive na memória do processo: um restart o zera, e um cliente que comparasse só a revisão recusaria todo snapshot novo e ficaria congelado num estado obsoleto.
+
+O `state_snapshot` é o que o canal empurra, e ele carrega os três. O cliente compara o par `(epoch, rev)`: `epoch` diferente é resync, `rev` maior aplica, `rev` menor ou igual é ignorado.
+
+### O fallback
+
+`GET /api/player/state?sinceRev=<n>` devolve o estado completo quando o estado atual é mais novo que `n`, e **204** quando o estado atual já está na revisão pedida — nesse caso, não há o que mandar.
+
+> O cliente usa o fallback quando a revisão de um comando não chega em 2 s, e quando um salto de revisão denuncia um estado perdido no caminho.
 
 ### O que o canal ainda não faz
 

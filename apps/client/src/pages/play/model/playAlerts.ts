@@ -3,7 +3,7 @@ import { createElement } from 'react';
 import { SKILL_COMMAND_MESSAGES } from '~/features/skill-panel';
 import type { PlayOverlays } from '~/pages/play/model/usePlayOverlays';
 import { PlayAlertIcon, PlayAlertMessage } from '~/pages/play/ui/PlayAlert';
-import type { TrainerClientErrorCode } from '~/shared/api/http';
+import type { TrainerClientErrorCode } from '~/shared/api';
 import type { AlertInput } from '~/shared/ui/alert';
 
 const ALERT_DURATION = 4000;

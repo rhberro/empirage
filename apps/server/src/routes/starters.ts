@@ -1,27 +1,35 @@
 import { listStarterSpecies } from '~/db/speciesRepository';
 import type { ServerDependencies } from '~/dependencies';
-import { defineRoute, errorResponse, jsonResponse } from '~/router';
+import { protectRoute } from '~/ratelimit/protectedRoute';
+import { limitPublicRoute } from '~/ratelimit/publicLimiter';
+import { defineRoute, jsonResponse } from '~/router';
 import type { RequestContext, Route, RouteHandler } from '~/router';
-import { composeProtectedRoute } from '~/routes/routeChain';
 
 const STARTERS_PATH = '/api/starters';
 const OK = 200;
-const UNAUTHENTICATED_ERROR = 'unauthenticated';
-const UNAUTHENTICATED_MESSAGE = 'Token inválido ou ausente.';
 
 export function createStarterRoutes(deps: ServerDependencies): Route[] {
-  return [defineRoute('GET', STARTERS_PATH, composeProtectedRoute(deps, handleListStarters(deps)))];
+  /**
+   * The list of the species of the starter is public content.
+   *
+   * Asking for a token only costs the client a session it already has, and
+   * it keeps the answer of the route out of the cache of everybody. The route
+   * keeps the limit of attempts, counted by the address of the request, since
+   * there is no account to count.
+   */
+  const handler = limitPublicRoute(
+    deps.publicLimiter,
+    protectRoute(deps, handleListStarters(deps)),
+  );
+  return [defineRoute('GET', STARTERS_PATH, handler)];
 }
 
 function handleListStarters(deps: ServerDependencies): RouteHandler {
   return function listStarters(
     _req: Request,
     _params: Record<string, string>,
-    ctx: RequestContext,
+    _ctx: RequestContext,
   ): Promise<Response> {
-    if (ctx.userId === null) {
-      return Promise.resolve(errorResponse(401, UNAUTHENTICATED_ERROR, UNAUTHENTICATED_MESSAGE));
-    }
     return listStarterSpecies(deps.admin).then(function toBody(starters: unknown[]): Response {
       return jsonResponse({ starters }, OK);
     });

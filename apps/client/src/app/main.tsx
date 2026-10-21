@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from '~/app/App';
+import { QueryProvider } from '~/app/query/QueryProvider';
 import { InterfaceScale } from '~/app/scale';
 import { getAuthStore } from '~/shared/auth';
 import { system } from '~/shared/theme';
@@ -22,7 +23,9 @@ createRoot(rootEl).render(
       <InterfaceScale />
       <AlertsProvider>
         <AlertsViewport />
-        <App />
+        <QueryProvider>
+          <App />
+        </QueryProvider>
       </AlertsProvider>
     </ChakraProvider>
   </StrictMode>,

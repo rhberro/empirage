@@ -1,8 +1,8 @@
+import { readBearerToken } from '~/auth/bearer';
 import type { Middleware, RequestContext } from '~/router';
 import { errorResponse } from '~/router';
 import type { AuthClaims, ClaimsReader } from '~/supabase';
 
-const BEARER_PREFIX = 'Bearer ';
 const UNAUTHORIZED_ERROR = 'unauthenticated';
 const UNAUTHORIZED_MESSAGE = 'Token inválido ou ausente.';
 
@@ -27,15 +27,6 @@ function buildIdentityAttachment(
     ctx.email = claims.email;
     return null;
   };
-}
-
-function readBearerToken(req: Request): string | null {
-  const header = req.headers.get('authorization');
-  if (header === null || !header.startsWith(BEARER_PREFIX)) {
-    return null;
-  }
-  const token = header.slice(BEARER_PREFIX.length).trim();
-  return token === '' ? null : token;
 }
 
 function unauthenticatedResponse(): Response {

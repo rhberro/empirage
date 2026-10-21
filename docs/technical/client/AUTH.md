@@ -15,7 +15,7 @@ Este documento descreve a arquitetura de autenticação no cliente: como a sess�
 | [Roteamento Protegido](#roteamento-protegido) | Como `createBrowserRouter` + `loader` substituem `<RequireAuth>`. |
 | [Fluxos](#fluxos) | Como signin, signup, OAuth, recovery e signout são executados. |
 | [O e-mail pendente de confirmação](#o-e-mail-pendente-de-confirmação) | O cadastro sem sessão e o que a tela mostra nele. |
-| [A lista de treinadores compartilhada](#a-lista-de-treinadores-compartilhada) | A store que o redirecionamento pós-autenticação consulta. |
+| [A lista de treinadores compartilhada](#a-lista-de-treinadores-compartilhada) | A query que a tela da lista lê, e o store do que é da sessão. |
 | [A rota pós-autenticação](#a-rota-pós-autenticação) | A rota `/post-auth`, que decide o destino de quem entra pelo Google ou pelo link de confirmação. |
 | [O merge da conta Google](#o-merge-da-conta-google) | A fusão da conta Google com a conta de e-mail e senha, e o que acontece quando ela falha. |
 | [Testes](#testes) | O que está coberto e como. |
@@ -191,13 +191,12 @@ A nova arquitetura:
 5. Store NÃO muda de estado em falha (status permanece o atual).
 6. Em sucesso, adapter retorna ok. onAuthStateChange do Supabase dispara SIGNED_IN.
 7. Store move para AUTHENTICATED.
-8. Página recebe ok, pede a lista de treinadores e navega para /trainers
-   (conta com treinadores) ou /trainers/new (conta sem treinadores).
+8. Página recebe ok e navega para /trainers.
 ```
 
 Em falha, a sessão não é alterada. A navegação não acontece. O erro é apresentado no formulário.
 
-O destino é decidido pelo `postAuthRedirect` (`features/authentication/model/postAuthRedirect.ts`). Quando a lista não pode ser lida, o destino é `/trainers`: é a tela que mostra o erro da requisição, e ela não devolve o jogador para a autenticação — não há laço.
+O destino pós-autenticação é sempre `/trainers`. Quem decide se a conta tem ou não um treinador é a **tela da lista**, que descobre que a lista veio vazia e leva o jogador para a criação. A decisão não mora aqui porque a lista é lida por uma query compartilhada: perguntar por ela no momento do login seria pedir o mesmo recurso duas vezes.
 
 ### Signup
 
@@ -212,7 +211,7 @@ O destino é decidido pelo `postAuthRedirect` (`features/authentication/model/po
 7. Se a conta é nova e a confirmação é automática → adapter retorna ok,
    a sessão é criada, onAuthStateChange dispara SIGNED_IN.
 8. Store move para AUTHENTICATED.
-9. Página navega para /trainers ou /trainers/new, conforme a lista de treinadores.
+9. Página navega para /trainers.
 ```
 
 O passo 6 é o caso de um projeto com a confirmação automática de e-mail desligada: a conta existe, mas a sessão só chega depois que o jogador confirma o e-mail. O tratamento está em [O e-mail pendente de confirmação](#o-e-mail-pendente-de-confirmação).
@@ -230,8 +229,7 @@ O passo 6 é o caso de um projeto com a confirmação automática de e-mail desl
 8. postAuthLoader roda. Se status === INITIALIZING, espera o primeiro INITIAL_SESSION.
 9. INITIAL_SESSION chega com user. Status → AUTHENTICATED.
 10. O loader pede o merge da conta Google (ver "O merge da conta Google").
-11. Só então o loader decide o destino pela lista de treinadores e redireciona para
-    /trainers/new (conta sem treinadores) ou /trainers (conta com treinadores).
+11. Só então o loader redireciona para /trainers.
 ```
 
 A store não tem ação para `redirect()`. A página que pediu o OAuth navega por `globalThis.location.href` (full page reload, intencional).
@@ -301,20 +299,22 @@ O caminho do link é o `emailRedirectTo` do cadastro: a origem do cliente mais a
 
 O link volta no formato PKCE: a URL chega com `?code=`, e o cliente Supabase troca o código por uma sessão no primeiro carregamento da página. Por isso o `emailRedirectTo` é uma URL do próprio cliente, e não a do Supabase.
 
-Com a confirmação automática **ligada**, o `signUp` devolve a sessão, o `onAuthStateChange` dispara `SIGNED_IN` e o fluxo segue o redirecionamento normal: conta sem treinadores vai para `/trainers/new`, conta com treinadores vai para `/trainers`.
+Com a confirmação automática **ligada**, o `signUp` devolve a sessão, o `onAuthStateChange` dispara `SIGNED_IN` e o fluxo segue o redirecionamento normal: o jogador vai para `/trainers`.
 
 O e-mail que já está cadastrado é reconhecido pelo servidor do Supabase, que devolve um usuário sem identidades em vez de um erro. O adapter traduz esse caso para `email_already_exists`, e a tela mostra "Este e-mail já está cadastrado. Tente Entrar.".
 
 ## A lista de treinadores compartilhada
 
-O redirecionamento pós-autenticação decide o destino olhando a lista de treinadores da conta. Essa lista mora em uma store Zustand compartilhada (`entities/trainer/model/trainersStore.ts`), e não em um controller criado por tela:
+A lista de treinadores da conta é lida por uma **query do TanStack Query**, e não por um store: a chave e o fetcher moram em `shared/api/queries/trainerQueries.ts`, e o cache é compartilhado pelo cliente inteiro.
 
-- O controller (`entities/trainer/model/trainersController.ts`) continua sendo a camada de regra: valida, pede e decide o que acontece com a resposta.
-- A store guarda o retrato (a lista, o carregando e o erro) e o publica para as telas que a consomem.
+- O `useTrainers` (`entities/trainer/model/useTrainers.ts`) é a camada que as telas usam: ele entrega a lista, o carregando e o erro, e o pedido que já está em andamento é aguardado em vez de duplicado.
+- O store Zustand (`entities/trainer/model/trainersStore.ts`) guarda só o que é **da sessão**: o treinador que o jogador escolheu e o fato de a lista já ter sido lida.
 
-O motivo é o estado compartilhado: a tela de listar e a tela de criar treinador mostravam listas separadas, cada uma refazendo `GET /api/trainers`, e a tela de criar podia ler um estado velho no redirecionamento de limite. Com uma store só, as duas telas leem o mesmo retrato, e um pedido em andamento é aguardado em vez de duplicado.
+O motivo é o estado compartilhado: a tela de listar e a tela de criar treinador mostravam listas separadas, cada uma refazendo `GET /api/trainers`. Com uma query só, as duas telas leem o mesmo cache, e a tela que cria treinador não lê mais um estado velho.
 
-A store é zerada quando a sessão deixa de existir, para que a conta seguinte não herde a lista da conta anterior.
+A lista muda por ação do jogador, e por isso ela nunca fica velha sozinha: a `staleTime` é `0` e a invalidação é feita pela mutação que criou, editou ou deletou o treinador.
+
+> A decisão "conta sem treinador → tela de criação" mora na **tela da lista**, em `pages/trainers/model/emptyTrainersRedirect.ts`. Quem descobre que a lista veio vazia é a tela, e é ela que sabe o que fazer com isso.
 
 Cobertos pela suíte `authStore.spec.ts`:
 
@@ -350,11 +350,10 @@ O Google e o link de confirmação não passam pela tela de login: o Supabase de
 3. O postAuthLoader espera o primeiro status definitivo da store.
 4. Sem sessão → redireciona para /signin.
 5. Com sessão Google → pede o merge da conta (ver "O merge da conta Google").
-6. decideDestinationAfterAuth() pergunta ao servidor a lista de treinadores e
-   devolve /trainers/new ou /trainers.
+6. Redireciona para /trainers.
 ```
 
-A rota **nunca desenha**: o loader sempre redireciona. Ela existe para que uma conta que entra pelo Google ou pela confirmação de e-mail chegue na tela de criar treinador quando ainda não tem nenhum — e não numa lista vazia.
+A rota **nunca desenha**: o loader sempre redireciona. Ela existe para que uma conta que entra pelo Google ou pela confirmação de e-mail chegue na **tela da lista de treinadores**, que é quem decide se o jogador precisa criar um treinador.
 
 O mesmo destino vale para quem já está autenticado e abre `/signin`, `/signup` ou `/forgot-password`: o guard redireciona para `/post-auth`, e a rota aplica a mesma regra.
 
@@ -366,7 +365,7 @@ A regra de produto ([Autenticação](../../game/AUTHENTICATION.md)) é: quem ent
 
 O merge é pedido pelo `postAuthLoader`, quando a sessão está autenticada e o `user` tem `provider === 'google'` e um e-mail. Qualquer outra sessão (inclusive a de e-mail e senha) não pede nada: não há o que fundir.
 
-Ele acontece **depois** que o jogador entra pelo Google e **antes** de decidir para onde ele vai. A ordem não é um detalhe: o merge transfere os treinadores da conta de senha para a conta Google, e a decisão do destino consulta `GET /api/trainers`. Decidir antes do merge faria um jogador que já tinha dois treinadores ver uma lista vazia e cair em `/trainers/new` achando que não tem nenhum.
+Ele acontece **depois** que o jogador entra pelo Google e **antes** de decidir para onde ele vai. A ordem não é um detalhe: o merge transfere os treinadores da conta de senha para a conta Google, e a lista de treinadores que a tela da lista vai ler é a da conta fundida. Decidir antes do merge faria um jogador que já tinha dois treinadores ver uma lista vazia e cair na tela de criação achando que não tem nenhum.
 
 ### O que o cliente manda
 
@@ -386,7 +385,7 @@ Os dois `409` que viram `ok: true` **não são erro para quem está entrando**: 
 
 ### Quando o merge falha
 
-**Um merge que falhou não tranca a pessoa fora do jogo.** O jogador já está autenticado: o `postAuthLoader` leva o motivo da falha junto com o destino e segue para o destino normal, decidindo a lista de treinadores como sempre.
+**Um merge que falhou não tranca a pessoa fora do jogo.** O jogador já está autenticado: o `postAuthLoader` leva o motivo da falha junto com o destino e segue para o destino normal.
 
 O cliente não tem logger, então o motivo da falha não é registrado em log: ele volta no resultado do merge (`resolvePostAuth` devolve `{ destination, merge }`), que é o que a suíte de testes lê. A consequência de uma falha é visível no jogo — os treinadores da conta antiga continuam na conta antiga —, e não na entrada do jogador.
 

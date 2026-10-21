@@ -18,6 +18,7 @@ Este documento lista as tecnologias escolhidas para o cliente, o motivo de cada 
 | Chakra UI | Design system dos elementos de interface |
 | PixiJS | Renderização do mundo do jogo no canvas |
 | Zustand | Armazenamento do estado do cliente |
+| TanStack Query | Cache dos recursos HTTP de leitura |
 | Supabase Auth | Autenticação do usuário |
 | WebSocket | Comunicação com o servidor durante o jogo |
 
@@ -154,7 +155,21 @@ O estado da conta e da sessão fica em um store separado do estado do jogo.
 
 > Separar os dois evita que a troca de tela recrie o estado do treinador, que foi carregado uma vez ao entrar no jogo.
 
-**A lista de treinadores da conta também é um store compartilhado.** A tela que lista e a tela que cria treinador mostram a mesma lista: elas leem o mesmo store, e um pedido em andamento é aguardado em vez de duplicado. O store é zerado quando a sessão deixa de existir. A regra continua no controller, e o store publica o retrato.
+**A lista de treinadores da conta não é um store: é uma query.** A tela que lista e a tela que cria treinador mostram a mesma lista, e elas a leem do mesmo cache do TanStack Query (`shared/api/queries/trainerQueries.ts`). O pedido em andamento é aguardado pela própria query, sem dedup manual. O store Zustand ficou só com o que é **da sessão**: o treinador que o jogador escolheu e o fato de a lista já ter sido lida. Ele é zerado quando a sessão deixa de existir.
+
+**O estado vivo do jogo não entra no TanStack Query.** Ele é empurrado pelo WebSocket, e a revisão decide a aplicação: só o estado mais novo é aplicado, e um estado velho é descartado. Uma query de cache não sabe o que é uma revisão, e por isso o estado do jogador não pode morar lá — ele fica no registro global de `entities/team/model/playerStateSync.ts`.
+
+## TanStack Query
+
+Os recursos HTTP de leitura do cliente são cacheados pelo TanStack Query.
+
+> Escolhido porque o que o cliente lê do servidor é o estado do servidor, e o estado do servidor muda por ação do jogador. A query já entrega o que a tela precisa para pedir — o dado, o carregando e o erro — e o pedido que já está em andamento é aguardado em vez de duplicado.
+
+**O que é query.** O catálogo (espécies iniciais, áreas de caça, catálogo da loja) e a lista de treinadores da conta. A chave e o fetcher de cada uma moram em `shared/api/queries/`, e a `staleTime` de cada uma está escrita na própria query: o conteúdo do catálogo muda em deploy, e a lista de treinadores muda por ação do jogador — por isso ela nunca fica velha sozinha, e é invalidada pela mutação que a mudou.
+
+**O que não é query.** O estado vivo do jogo — treinador, time, vida, cooldown, caçada. Ele é empurrado pelo WebSocket, e a revisão decide a aplicação.
+
+> A regra do que é query e do que é store está em [Estrutura](STRUCTURE.md#onde-mora-um-pedido-ao-servidor).
 
 ## Supabase Auth
 
@@ -174,17 +189,31 @@ Duas partes do fluxo de autenticação não vêm prontas do Supabase e são impl
 
 O cliente se comunica com o servidor por **WebSocket**, usando a API nativa do browser, sem biblioteca intermediária.
 
-O canal é aberto uma vez, quando o jogador entra no jogo, e fica aberto até a saída. O servidor empurra as atualizações de estado e o cliente responde apenas com comandos. O cliente nunca pergunta o estado num intervalo de tempo.
+O canal é aberto quando o jogador entra no jogo, e fica aberto até a saída. O servidor empurra as atualizações de estado e o cliente responde apenas com comandos. O cliente nunca pergunta o estado num intervalo de tempo.
 
 > A WebSocket foi escolhida porque o servidor precisa iniciar a comunicação: ele avisa que uma criatura desmaiou, que um cooldown terminou ou que um treino terminou, e nada disso acontece em resposta a uma pergunta do cliente.
 
 > O Supabase Realtime foi considerado e descartado como canal do jogo. Ele adiciona um intermediário entre o cliente e o servidor, e a autorização por topic não substitui a validação que o servidor já faz do jogador. O porquê da escolha está em [Stack do Servidor](../server/STACK.md).
 
-O token é enviado uma vez, na abertura do canal, e não a cada mensagem.
+**O canal abre com um ticket, e o token do Supabase não viaja na URL.** O cliente pede `POST /api/ws-ticket` e abre `/ws?ticket=<ticket>`. O ticket é de uso único e vale 30 s.
 
-> O access token do Supabase tem validade curta, muito menor que a sessão do usuário descrita em [Autenticação](../../game/AUTHENTICATION.md). Como o canal fica aberto durante a partida inteira, o cliente acompanha a validade do token e renova a sessão antes de ele expirar. **O token novo não viaja pelo canal**: o protocolo não tem essa mensagem, e o servidor valida o token só na abertura. A renovação é do lado do cliente, com o Supabase; o servidor continua com o token que recebeu na abertura.
+> O motivo é o upgrade do Bun: ele não recebe headers, e o token teria de ir na query string — que qualquer proxy ou balanceador à frente do servidor registra. O ticket carrega a identidade **e** o token, e o servidor revalida o token no Auth server antes de abrir o canal. O que o servidor faz com o ticket está em [Stack do Servidor](../server/STACK.md).
 
-> O cliente acompanha a validade do token porque é ele quem o recebe do Supabase Auth. O que o servidor faz com esse token está em [Stack do Servidor](../server/STACK.md).
+**O protocolo é versionado.** Toda mensagem leva `v`, e uma mensagem de outra versão é recusada com clareza, em vez de ser mal interpretada.
+
+**Os comandos levam `reqId` e recebem `command_result`.** A resposta traz a revisão que o comando produziu e, quando o comando falhou, o código do motivo. O `reqId` é o que correlaciona a falha com o pedido: a mensagem de erro do canal não tem `reqId`, e sem ele o cliente não saberia qual pedido falhou.
+
+**O caminho de mutação é único.** O comando HTTP responde; o estado chega pelo WebSocket, com a revisão. O cliente aplica só a revisão maior e ignora as antigas. Se a revisão do comando não chegar em 2 s, o cliente busca o estado que está faltando em `GET /api/player/state?sinceRev=<rev>`.
+
+**A reconexão é automática.** Quando o canal cai, o cliente abre outro — pedindo um ticket novo a cada tentativa, porque o ticket é de uso único — com espera crescente: base de 1 s, o dobro a cada tentativa, teto de 30 s, e um jitter de ±20 %, para que dois jogadores que perderam a conexão no mesmo segundo não voltem no mesmo milissegundo. São 6 tentativas; depois disso a tela de [conexão perdida](../../game/PLAY_SCREEN.md#estados-da-tela) aparece. O botão "Reconectar" continua existindo e força uma tentativa imediata, zerando a espera.
+
+**A conexão substituída não reconecta.** O código de fechamento `4001` significa que outra conexão mais recente assumiu a conta. O cliente não reabre: duas abas da mesma conta se derrubariam em laço, cada uma reconectando logo depois de a outra fechá-la. Quem fica valendo é a aba mais recente, e a que foi substituída vai para a tela de conexão perdida.
+
+**O cliente observa o silêncio do servidor.** Ele manda `ping` a cada 45 s e considera a conexão morta depois de 100 s sem receber nada. O intervalo do ping é maior que o estrangulamento de timer de uma aba em segundo plano, e o `pong` do servidor é a prova de que o canal vive.
+
+**O relógio do servidor vem no snapshot.** Cada `state_snapshot` carrega `serverNow`, e o cliente corrige o próprio relógio por ele. Nenhum temporizador do cliente tem autoridade sobre o tempo do jogo.
+
+> O token do Supabase não viaja mais pelo canal: ele é conferido só na abertura, e a renovação é do SDK do Supabase, com `autoRefreshToken`. O servidor não renova nada.
 
 ## Testes
 

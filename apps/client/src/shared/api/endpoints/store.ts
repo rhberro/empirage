@@ -1,45 +1,24 @@
-import type {
-  StoreBagItem,
-  StoreCatalog,
-  StoreErrorCode,
-  StoreItem,
-} from '@creatures/contracts/store';
+import type { StoreCatalog } from '@creatures/contracts/store';
 
 import type { ApiDeps } from '~/shared/api/client';
-import { readBagItem, readItem, readNumber, readRecord } from '~/shared/api/endpoints/storeReaders';
+import type { StoreClientErrorCode, StoreOutcome } from '~/shared/api/endpoints/storeReaders';
+import { readCatalog, readErrorCode, readOutcome } from '~/shared/api/endpoints/storeReaders';
 import { buildHeaders, isSuccessStatus } from '~/shared/api/http';
+
+export { STORE_ERROR_CODES } from '~/shared/api/endpoints/storeReaders';
+export type { StoreClientErrorCode, StoreOutcome } from '~/shared/api/endpoints/storeReaders';
 
 const STORE_PATH = '/api/store';
 const BUY_PATH = '/api/store/buy';
 const SELL_PATH = '/api/store/sell';
-
-/**
- * Every code the store answers with.
- *
- * The map is exhaustive by construction: adding a code to the contract without
- * adding it here breaks the build.
- */
-const STORE_ERROR_CODES: Record<StoreErrorCode, true> = {
-  store_insufficient_gold: true,
-  store_internal_error: true,
-  store_invalid_quantity: true,
-  store_item_not_in_backpack: true,
-  store_item_unavailable: true,
-  trainer_not_found: true,
-  unauthenticated: true,
-};
-
-export type StoreClientErrorCode = StoreErrorCode | 'unknown';
+const IDEMPOTENCY_HEADER = 'Idempotency-Key';
+const IN_FLIGHT_CODE = 'store_request_in_flight';
+const MAX_IN_FLIGHT_RETRIES = 3;
+const IN_FLIGHT_DELAYS_MS = [400, 800, 1600];
 
 export type StoreCatalogResult =
   | { catalog: StoreCatalog; ok: true }
   | { code: StoreClientErrorCode; ok: false };
-
-export type StoreOutcome = {
-  bag: StoreBagItem[];
-  gold: number;
-  total: number;
-};
 
 export type StoreCommandResult =
   | { ok: true; outcome: StoreOutcome }
@@ -54,24 +33,34 @@ export function requestStoreCatalog(deps: ApiDeps): Promise<StoreCatalogResult> 
 
 /**
  * Buys an item of the store.
+ *
+ * The idempotency key is the key of the purchase: the same key is the same
+ * purchase, so the server does not charge the player twice for it.
  */
 export function requestStoreBuy(
   deps: ApiDeps,
   itemId: string,
   quantity: number,
+  idempotencyKey?: string,
+  signal?: AbortSignal,
 ): Promise<StoreCommandResult> {
-  return deps.getAccessToken().then(buildCommandRequester(deps, BUY_PATH, itemId, quantity));
+  return requestStoreCommand(deps, BUY_PATH, itemId, quantity, idempotencyKey, signal);
 }
 
 /**
  * Sells a quantity of an item of the backpack.
+ *
+ * The idempotency key is the key of the sale: the same key is the same sale,
+ * so the server does not pay the player twice for it.
  */
 export function requestStoreSell(
   deps: ApiDeps,
   itemId: string,
   quantity: number,
+  idempotencyKey?: string,
+  signal?: AbortSignal,
 ): Promise<StoreCommandResult> {
-  return deps.getAccessToken().then(buildCommandRequester(deps, SELL_PATH, itemId, quantity));
+  return requestStoreCommand(deps, SELL_PATH, itemId, quantity, idempotencyKey, signal);
 }
 
 function buildCatalogRequester(
@@ -90,24 +79,122 @@ function buildCatalogRequester(
   };
 }
 
-function buildCommandRequester(
+function requestStoreCommand(
   deps: ApiDeps,
   path: string,
   itemId: string,
   quantity: number,
-): (token: string | null) => Promise<StoreCommandResult> {
-  return function sendCommandWithToken(token: string | null): Promise<StoreCommandResult> {
+  idempotencyKey?: string,
+  signal?: AbortSignal,
+): Promise<StoreCommandResult> {
+  return deps.getAccessToken().then(function sendCommandWithToken(
+    token: string | null,
+  ): StoreCommandAnswer {
     if (token === null) {
-      return Promise.resolve({ code: 'unauthenticated', ok: false });
+      return { code: 'unauthenticated', ok: false };
     }
-    const headers = buildHeaders(token);
-    const body = JSON.stringify({ itemId, quantity });
-    const init = { body, headers, method: 'POST' };
-    return globalThis
-      .fetch(buildUrl(deps.baseUrl, path), init)
-      .then(readCommandResponse)
-      .catch(readNetworkFailure);
-  };
+    const request: StoreCommandRequest = {
+      deps,
+      idempotencyKey,
+      itemId,
+      path,
+      quantity,
+      signal,
+      token,
+    };
+    return sendCommand(request, 0);
+  });
+}
+
+/**
+ * The command of the store, with the key of the purchase.
+ */
+type StoreCommandRequest = {
+  deps: ApiDeps;
+  idempotencyKey: string | undefined;
+  itemId: string;
+  path: string;
+  quantity: number;
+  signal: AbortSignal | undefined;
+  token: string;
+};
+
+/**
+ * The answer of a command: the result itself, or the promise of it.
+ */
+type StoreCommandAnswer = StoreCommandResult | Promise<StoreCommandResult>;
+
+/**
+ * The command of the store, sent to the server.
+ *
+ * A request the server is still running is asked again with the same key: the
+ * first request finishes and keeps the result, and the second one reads that
+ * result instead of charging the player twice. The same key is what makes the
+ * repetition safe — a new key would be a second purchase.
+ */
+function sendCommand(request: StoreCommandRequest, retries: number): Promise<StoreCommandResult> {
+  if (request.signal?.aborted === true) {
+    return Promise.resolve({ code: 'unknown', ok: false });
+  }
+  const headers = buildHeaders(request.token);
+  if (request.idempotencyKey !== undefined) {
+    headers.set(IDEMPOTENCY_HEADER, request.idempotencyKey);
+  }
+  const body = JSON.stringify({ itemId: request.itemId, quantity: request.quantity });
+  const init = { body, headers, method: 'POST' };
+  return globalThis
+    .fetch(buildUrl(request.deps.baseUrl, request.path), init)
+    .then(readCommandResponse)
+    .catch(readNetworkFailure)
+    .then(function afterAnswer(result: StoreCommandResult): StoreCommandAnswer {
+      const inFlight = !result.ok && result.code === IN_FLIGHT_CODE;
+      if (!inFlight || retries >= MAX_IN_FLIGHT_RETRIES) {
+        return result;
+      }
+      return waitInFlight(IN_FLIGHT_DELAYS_MS[retries], request.signal).then(
+        function afterWait(): StoreCommandAnswer {
+          if (request.signal?.aborted === true) {
+            return result;
+          }
+          return sendCommand(request, retries + 1);
+        },
+      );
+    });
+}
+
+/**
+ * The wait between the attempts of a request the server is still running.
+ *
+ * The refusal is not a failure of the operation: the operation is happening,
+ * and the answer comes when it finishes. The wait ends early when the caller
+ * aborts: the screen can close in the middle of it, and a pending timer would
+ * keep the request alive for nothing.
+ */
+function waitInFlight(delayMs: number, signal: AbortSignal | undefined): Promise<void> {
+  return new Promise<void>(function wait(resolve): void {
+    if (signal?.aborted === true) {
+      resolve();
+      return;
+    }
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    function stopWaiting(): void {
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      signal?.removeEventListener('abort', onAbort);
+    }
+    function onAbort(): void {
+      stopWaiting();
+      resolve();
+    }
+    function onTimeout(): void {
+      stopWaiting();
+      resolve();
+    }
+    signal?.addEventListener('abort', onAbort);
+    timer = setTimeout(onTimeout, delayMs);
+  });
 }
 
 function readCatalogResponse(response: Response): Promise<StoreCatalogResult> {
@@ -156,82 +243,6 @@ function buildUnreadableResult(status: number): () => { code: StoreClientErrorCo
 
 function readNetworkFailure(): { code: StoreClientErrorCode; ok: false } {
   return { code: 'unknown', ok: false };
-}
-
-/**
- * The code of a failed answer.
- *
- * The codes of the store live in their own namespace: the shared map of the
- * trainer knows nothing about them, so the body is the only source.
- */
-function readErrorCode(status: number, body: unknown): StoreClientErrorCode {
-  const code = readBodyCode(body);
-  if (code !== null) {
-    return code;
-  }
-  if (status === 401) {
-    return 'unauthenticated';
-  }
-  return 'unknown';
-}
-
-function readBodyCode(body: unknown): StoreClientErrorCode | null {
-  const entry = readRecord(body);
-  if (entry === null) {
-    return null;
-  }
-  const error = entry.error;
-  if (typeof error !== 'string') {
-    return null;
-  }
-  return Object.hasOwn(STORE_ERROR_CODES, error) ? (error as StoreErrorCode) : null;
-}
-
-function readCatalog(body: unknown): StoreCatalog | null {
-  const entry = readRecord(body);
-  if (entry === null) {
-    return null;
-  }
-  const bag = readBag(entry.bag);
-  const gold = readNumber(entry, 'gold');
-  if (bag === null || gold === null) {
-    return null;
-  }
-  return { bag, gold, items: readItems(entry.items) };
-}
-
-function readOutcome(body: unknown): StoreOutcome | null {
-  const entry = readRecord(body);
-  if (entry === null) {
-    return null;
-  }
-  const bag = readBag(entry.bag);
-  const gold = readNumber(entry, 'gold');
-  const total = readNumber(entry, 'total');
-  if (bag === null || gold === null || total === null) {
-    return null;
-  }
-  return { bag, gold, total };
-}
-
-function readItems(value: unknown): StoreItem[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  const parsed = value.map(readItem);
-  return parsed.filter(isPresent);
-}
-
-function readBag(value: unknown): StoreBagItem[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const parsed = value.map(readBagItem);
-  return parsed.filter(isPresent);
-}
-
-function isPresent<T>(value: T | null): value is T {
-  return value !== null;
 }
 
 function buildUrl(baseUrl: string, path: string): string {

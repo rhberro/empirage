@@ -80,6 +80,49 @@ const STATUS_FALLBACK: Record<number, TrainerErrorCode | RateLimitErrorCode> = {
 
 export type TrainerClientErrorCode = TrainerErrorCode | RateLimitErrorCode | 'unknown';
 
+/**
+ * The failure of a request that the server answered with a refusal.
+ *
+ * The code is what the server named. The query layer throws it so that the
+ * failure becomes an error of the query, and not a value the screen has to
+ * remember to check.
+ */
+export class ApiRequestError extends Error {
+  public readonly code: string;
+
+  public constructor(code: string) {
+    super(code);
+    this.name = 'ApiRequestError';
+    this.code = code;
+  }
+}
+
+/**
+ * The code of a failed request, for the screen that shows it.
+ *
+ * A code the client does not know becomes `unknown`: the screen has a message
+ * for it, and the failure is still a failure.
+ */
+export function readErrorCode(error: unknown): TrainerClientErrorCode {
+  if (error instanceof ApiRequestError && isKnownErrorCode(error.code)) {
+    return error.code;
+  }
+  return 'unknown';
+}
+
+/**
+ * Only a request that got no answer deserves another attempt.
+ *
+ * Every code the server names is a decision: repeating the request would
+ * repeat the same refusal.
+ */
+export function isRetryableError(error: unknown): boolean {
+  if (error instanceof ApiRequestError) {
+    return error.code === 'unknown';
+  }
+  return true;
+}
+
 export function buildHeaders(token: string): Headers {
   const headers = new globalThis.Headers();
   headers.set('Authorization', `Bearer ${token}`);

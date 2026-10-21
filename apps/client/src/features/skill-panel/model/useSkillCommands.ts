@@ -1,5 +1,6 @@
 import type { PlayerState } from '@creatures/contracts/player';
 
+import { awaitStateAfterCommand, readAppliedRevision } from '~/entities/team';
 import { createApiDeps } from '~/shared/api';
 import type { SkillCommandResult, TrainerClientErrorCode } from '~/shared/api';
 import { requestClearGear, requestEquipAbilities, requestEquipGear } from '~/shared/api';
@@ -166,21 +167,26 @@ function send(
     if (!hasCommand(skillPanelStore.getState().commands, command.id)) {
       return Promise.resolve();
     }
+    // The revision the client has is the one the command is built on: the
+    // state that confirms the command is the one that is newer than it.
+    const expectedRev = readAppliedRevision();
     const request = build();
     if (request === null) {
       skillPanelStore.getState().removeCommand(command.id);
       return Promise.resolve();
     }
-    return request.then(handleAccepted, handleRefused(command, onCommandFailed));
+    return request.then(handleAccepted(expectedRev), handleRefused(command, onCommandFailed));
   });
 }
 
 /**
- * The server accepted the command: the state it pushes is the truth, and the
- * reconciliation is the one that closes the command.
+ * The server accepted the command: the client waits for the state that
+ * confirms it, and asks for the state when it does not come.
  */
-function handleAccepted(): void {
-  void 0;
+function handleAccepted(expectedRev: number): () => void {
+  return function onAccepted(): void {
+    void awaitStateAfterCommand(expectedRev);
+  };
 }
 
 /**

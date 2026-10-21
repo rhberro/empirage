@@ -23,7 +23,7 @@ import { useSkillPanelSelection } from './useSkillPanelSelection';
 export function useSkillPanel(
   options: SkillPanelOptions & { state: PlayerState | null },
 ): SkillPanelView {
-  const { onCommandFailed, onStateChanged, state } = options;
+  const { onCommandFailed, state } = options;
   const openSlot = useSkillPanelState(selectOpenSlot);
   const commands = useSkillPanelState(selectCommands);
   const triggerOverride = useSkillPanelState(selectTriggerOverride);
@@ -31,7 +31,7 @@ export function useSkillPanel(
   const pendingItemIds = readPendingItemIds(commands);
   const effectiveState = applyPending(state, pending);
   const selection = useSkillPanelSelection(effectiveState, triggerOverride, onCommandFailed);
-  useSkillPanelReconciliation(state, pending, onStateChanged);
+  useSkillPanelReconciliation(state, pending);
   const abilitySlot = openSlot ?? 0;
   const consumableSlot = openSlot ?? 4;
   return {

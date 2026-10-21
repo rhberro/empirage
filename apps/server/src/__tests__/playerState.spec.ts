@@ -11,6 +11,10 @@ import type {
 import type { Trainer } from '@creatures/contracts/trainer';
 
 import { buildPlayerState, MAX_STAMINA_MINUTES } from '~/state/playerState';
+import type { StateRevision } from '~/state/playerState';
+
+const REVISION: StateRevision = { epoch: 'epoch-of-the-test', rev: 7 };
+const SERVER_NOW = 1_700_000_000_000;
 
 const TRAINER: Trainer = {
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -95,17 +99,21 @@ const BACKPACK_ITEM: InventoryItem = {
 };
 
 function buildsStateFromTrainerAndTeam(): void {
-  const state = buildPlayerState({
-    activeAbilities: [],
-    activeVitals: null,
-    backpack: [],
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    storage: [],
-    team: [],
-    trainer: TRAINER,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [],
+      activeVitals: null,
+      backpack: [],
+      equippedAbilities: [],
+      equippedConsumables: [],
+      equippedDevice: null,
+      storage: [],
+      team: [],
+      trainer: TRAINER,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.trainer).toBe(TRAINER);
   expect(state.team).toEqual([]);
   expect(state.gold).toBe(340);
@@ -113,6 +121,33 @@ function buildsStateFromTrainerAndTeam(): void {
   expect(state.staminaMinutes).toBe(480);
   expect(state.maxStaminaMinutes).toBe(MAX_STAMINA_MINUTES);
   expect(state.maxStaminaMinutes).toBe(720);
+  expect(state.rev).toBe(7);
+  expect(state.epoch).toBe('epoch-of-the-test');
+  expect(state.serverNow).toBe(SERVER_NOW);
+}
+
+/**
+ * The state carries the revision of the account, so the client knows whether
+ * it is newer than the one it has.
+ */
+function carriesTheRevisionOfTheAccount(): void {
+  const state = buildPlayerState(
+    {
+      activeAbilities: [],
+      activeVitals: null,
+      backpack: [],
+      equippedAbilities: [],
+      equippedConsumables: [],
+      equippedDevice: null,
+      storage: [],
+      team: [],
+      trainer: TRAINER,
+    },
+    { epoch: 'another-epoch', rev: 42 },
+    SERVER_NOW,
+  );
+  expect(state.rev).toBe(42);
+  expect(state.epoch).toBe('another-epoch');
 }
 
 function buildsStateWithMissingWalletValues(): void {
@@ -120,17 +155,21 @@ function buildsStateWithMissingWalletValues(): void {
   delete trainer.gold;
   delete trainer.diamonds;
   delete trainer.staminaMinutes;
-  const state = buildPlayerState({
-    activeAbilities: [],
-    activeVitals: null,
-    backpack: [],
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    storage: [],
-    team: [],
-    trainer,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [],
+      activeVitals: null,
+      backpack: [],
+      equippedAbilities: [],
+      equippedConsumables: [],
+      equippedDevice: null,
+      storage: [],
+      team: [],
+      trainer,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.gold).toBe(0);
   expect(state.diamonds).toBe(0);
   expect(state.staminaMinutes).toBe(MAX_STAMINA_MINUTES);
@@ -139,17 +178,21 @@ function buildsStateWithMissingWalletValues(): void {
 function buildsStateWithTheWholeCollection(): void {
   const team: TeamSlot[] = [{ creature: CREATURE, slot: 1 }];
   const storage: Creature[] = [{ ...CREATURE, id: '77777777-7777-4777-8777-777777777777' }];
-  const state = buildPlayerState({
-    activeAbilities: [ABILITY],
-    activeVitals: { currentHp: 12, maxHp: 22 },
-    backpack: [BACKPACK_ITEM],
-    equippedAbilities: [EQUIPPED_ABILITY],
-    equippedConsumables: [CONSUMABLE],
-    equippedDevice: DEVICE,
-    storage,
-    team,
-    trainer: TRAINER,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [ABILITY],
+      activeVitals: { currentHp: 12, maxHp: 22 },
+      backpack: [BACKPACK_ITEM],
+      equippedAbilities: [EQUIPPED_ABILITY],
+      equippedConsumables: [CONSUMABLE],
+      equippedDevice: DEVICE,
+      storage,
+      team,
+      trainer: TRAINER,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.team).toEqual(team);
   expect(state.storage).toEqual(storage);
   expect(state.backpack).toEqual([BACKPACK_ITEM]);
@@ -157,17 +200,21 @@ function buildsStateWithTheWholeCollection(): void {
 }
 
 function carriesTheLoadoutAndTheLife(): void {
-  const state = buildPlayerState({
-    activeAbilities: [ABILITY],
-    activeVitals: { currentHp: 12, maxHp: 22 },
-    backpack: [],
-    equippedAbilities: [EQUIPPED_ABILITY],
-    equippedConsumables: [CONSUMABLE],
-    equippedDevice: DEVICE,
-    storage: [],
-    team: [{ creature: CREATURE, slot: 1 }],
-    trainer: TRAINER,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [ABILITY],
+      activeVitals: { currentHp: 12, maxHp: 22 },
+      backpack: [],
+      equippedAbilities: [EQUIPPED_ABILITY],
+      equippedConsumables: [CONSUMABLE],
+      equippedDevice: DEVICE,
+      storage: [],
+      team: [{ creature: CREATURE, slot: 1 }],
+      trainer: TRAINER,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.equippedAbilities).toEqual([EQUIPPED_ABILITY]);
   expect(state.equippedConsumables).toEqual([CONSUMABLE]);
   expect(state.equippedDevice).toEqual(DEVICE);
@@ -180,37 +227,46 @@ function namesTheCreatureInTheField(): void {
     creature: { ...CREATURE, id: '88888888-8888-4888-8888-888888888888' },
     slot: 2,
   };
-  const state = buildPlayerState({
-    activeAbilities: [],
-    activeVitals: null,
-    backpack: [],
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    storage: [],
-    team: [first, second],
-    trainer: TRAINER,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [],
+      activeVitals: null,
+      backpack: [],
+      equippedAbilities: [],
+      equippedConsumables: [],
+      equippedDevice: null,
+      storage: [],
+      team: [first, second],
+      trainer: TRAINER,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.activeCreatureId).toBe(CREATURE.id);
 }
 
 function hasNoCreatureInTheFieldWithoutATeam(): void {
-  const state = buildPlayerState({
-    activeAbilities: [],
-    activeVitals: null,
-    backpack: [],
-    equippedAbilities: [],
-    equippedConsumables: [],
-    equippedDevice: null,
-    storage: [],
-    team: [],
-    trainer: TRAINER,
-  });
+  const state = buildPlayerState(
+    {
+      activeAbilities: [],
+      activeVitals: null,
+      backpack: [],
+      equippedAbilities: [],
+      equippedConsumables: [],
+      equippedDevice: null,
+      storage: [],
+      team: [],
+      trainer: TRAINER,
+    },
+    REVISION,
+    SERVER_NOW,
+  );
   expect(state.activeCreatureId).toBeNull();
   expect(state.activeVitals).toBeNull();
 }
 
 test('buildPlayerState copies the trainer wallet and stamina', buildsStateFromTrainerAndTeam);
+test('buildPlayerState carries the revision of the account', carriesTheRevisionOfTheAccount);
 test('buildPlayerState defaults missing wallet values', buildsStateWithMissingWalletValues);
 test(
   'buildPlayerState carries the team, the storage and the backpack',

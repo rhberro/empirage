@@ -15,8 +15,9 @@ import { defineRoute, errorResponse, jsonResponse } from '~/router';
 import type { RequestContext, Route, RouteHandler } from '~/router';
 import { readJsonBody, readSessionTrainer } from '~/routes/loadoutSupport';
 import { composeProtectedRoute } from '~/routes/routeChain';
+import { claimKey, readIdempotencyKey, releaseKey } from '~/routes/storeIdempotency';
 import { readStoreErrorMessage, validateStoreCommand } from '~/validation/store';
-import type { StoreCommandValidation } from '~/validation/store';
+import type { StoreCommand, StoreCommandValidation } from '~/validation/store';
 
 const STORE_PATH = '/api/store';
 const BUY_PATH = '/api/store/buy';
@@ -117,27 +118,75 @@ function runCommand(
   if (userId === null) {
     return Promise.resolve(unauthenticatedResponse());
   }
+  const key = readIdempotencyKey(req);
+  const claimed = claimKey(deps, userId, key);
+  if (claimed !== null) {
+    return Promise.resolve(claimed);
+  }
   const trainerId = readSessionTrainer(deps, userId);
   if (typeof trainerId !== 'string') {
+    releaseKey(deps, userId, key);
     return Promise.resolve(trainerId);
   }
-  return readJsonBody(req)
+  return readCommandBody(req, deps, userId, key)
     .then(validateStoreCommand)
     .then(function withCommand(validation: StoreCommandValidation): Response | Promise<Response> {
       if (!validation.ok) {
+        releaseKey(deps, userId, key);
         return errorResponse(BAD_REQUEST, validation.code, validation.message);
       }
-      return operation(deps.admin, {
-        itemId: validation.value.itemId,
-        quantity: validation.value.quantity,
-        trainerId,
-      }).then(function afterOperation(outcome: unknown): Promise<Response> {
-        return readOutcome(deps, ctx, userId, trainerId, outcome, event, {
-          itemId: validation.value.itemId,
-          quantity: validation.value.quantity,
-        });
-      });
+      return runOperation(deps, operation, validation.value, trainerId).then(
+        function afterOperation(outcome: unknown): Promise<Response> {
+          return readOutcome(
+            deps,
+            ctx,
+            userId,
+            trainerId,
+            outcome,
+            event,
+            {
+              itemId: validation.value.itemId,
+              quantity: validation.value.quantity,
+            },
+            key,
+          );
+        },
+      );
     });
+}
+
+/**
+ * The body of the command, with the key free when the body could not be read.
+ *
+ * A body that cannot be read is a request that never ran: the key is freed,
+ * so the client can send the same key again with a body it wrote.
+ */
+function readCommandBody(
+  req: Request,
+  deps: ServerDependencies,
+  userId: string,
+  key: string | null,
+): Promise<unknown> {
+  return readJsonBody(req).catch(function afterUnreadableBody(error: unknown): never {
+    releaseKey(deps, userId, key);
+    throw error;
+  });
+}
+
+/**
+ * The command of the store, applied in the database.
+ */
+function runOperation(
+  deps: ServerDependencies,
+  operation: StoreOperation,
+  command: StoreCommand,
+  trainerId: string,
+): Promise<unknown> {
+  return operation(deps.admin, {
+    itemId: command.itemId,
+    quantity: command.quantity,
+    trainerId,
+  });
 }
 
 /**
@@ -146,6 +195,9 @@ function runCommand(
  * The gold and the backpack that come back are the ones of the database, and
  * the new state is pushed to the channel of the account: the wallet and the
  * backpack of the player changed, and the screen has to know.
+ *
+ * The result is kept when the request carries a key: a retried request must
+ * not charge the player twice.
  */
 function readOutcome(
   deps: ServerDependencies,
@@ -155,9 +207,13 @@ function readOutcome(
   outcome: unknown,
   event: string,
   fields: RouteLogFields,
+  key: string | null,
 ): Promise<Response> {
   const failure = readFailure(outcome);
   if (failure !== null) {
+    // The command was refused by the database, so it was not applied: the key
+    // is free and the client can send it again.
+    releaseKey(deps, userId, key);
     const mapped = mapStoreOperationError(failure);
     return Promise.resolve(errorResponse(mapped.status, mapped.code, mapped.message));
   }
@@ -166,7 +222,11 @@ function readOutcome(
   return listStoreBag(deps.admin, trainerId).then(function withBag(bag: StoreBagItem[]): Response {
     deps.broadcaster.pushState(userId, trainerId);
     logRouteEvent(deps.logger, ctx, event, { ...fields, total });
-    return jsonResponse({ bag, gold, total }, OK);
+    const body = { bag, gold, total };
+    if (key !== null) {
+      deps.idempotency.set(userId, key, { body, status: OK });
+    }
+    return jsonResponse(body, OK);
   });
 }
 

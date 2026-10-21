@@ -59,9 +59,11 @@ O `@supabase/supabase-js` roda no servidor e é ele que faz a validação, usand
 **A validação tem duas formas, e o servidor usa as duas em lugares diferentes.**
 
 - **Nas chamadas REST**, o servidor valida localmente com `getClaims()`, que confere assinatura e expiração sem nenhuma chamada de rede.
-- **Na abertura do canal**, o servidor chama `getUser()`, que consulta o Auth server e devolve o registro canônico do usuário.
+- **Na abertura do canal**, o servidor revalida o token no Auth server, com `getUser()`, que consulta o Auth server e devolve o registro canônico do usuário. O token chega ao canal **dentro do ticket de uso único**, e nunca na URL.
 
 > A distinção importa porque o token continua válido mesmo depois que a sessão por trás dele é encerrada. O fluxo de [Autenticação](../../game/AUTHENTICATION.md) exige que encerrar sessão em um lugar invalide o acesso em todos os outros — o merge da conta Google e a redefinição de senha fazem isso. Só o `getUser()` detecta a revogação, e é por isso que ele é chamado na abertura do canal. Uma validação só no início é o suficiente: enquanto a partida dura, nenhuma regra do jogo encerra a sessão do jogador.
+
+**A revalidação acontece no upgrade, e é ela que fecha a janela do ticket.** O ticket viaja dentro da URL do upgrade, e o token viaja dentro do ticket: o upgrade consome o ticket e revalida o token no Auth server antes de abrir o canal. Token inválido ou expirado recusa o upgrade com `401`, e o handshake falha — o navegador abre e fecha o socket sem nunca ter conversado. O custo é uma chamada de rede por abertura de canal, o mesmo do código anterior.
 
 **O token é conferido uma vez.** Na API REST, a cada requisição. No canal, só na abertura: as mensagens seguintes são atendidas com o `userId` registrado na conexão, sem uma nova validação.
 
@@ -89,17 +91,38 @@ O servidor atende WebSocket com a API nativa do Bun, sem biblioteca intermediár
 
 > Escolhido porque o Bun já traz servidor WebSocket embutido, com upgrade de conexão e envio e recebimento de mensagens no mesmo `Bun.serve` que serve o HTTP. Adicionar uma biblioteca seria trocar algo que já existe por algo que ainda precisaria ser configurado.
 
-O canal é aberto uma vez, quando o jogador entra no jogo, e fica aberto até a saída. O desenho é que o servidor empurra as atualizações de estado e receba apenas comandos.
+O canal é aberto quando o jogador entra no jogo, e fica aberto até a saída. O desenho é que o servidor empurra as atualizações de estado e receba apenas comandos.
 
 > A WebSocket foi escolhida porque o servidor precisa iniciar a comunicação: ele avisa que uma criatura desmaiou, que um cooldown terminou ou que um treino terminou, e nada disso acontece em resposta a uma pergunta do cliente.
 
-**O canal já existe.** Ele é aberto em `/ws`, com o token do jogador na query string, e a validação do token, a regra de uma conexão por conta e as mensagens trocadas estão descritas em [API de Treinadores](TRAINERS.md#websocket).
+**O canal já existe.** Ele é aberto em `/ws`, com um **ticket de uso único** na query string (`?ticket=`), e a validação do token, a regra de uma conexão por conta e as mensagens trocadas estão descritas em [API de Treinadores](TRAINERS.md#websocket).
 
-> O token viaja na query string porque o upgrade do Bun não recebe headers. Por isso ele não pode ser logado: o servidor registra a abertura do canal pelo `userId`, nunca pelo token, e o log de requisição HTTP registra apenas o `pathname`, sem a query.
+> O token do Supabase **não** viaja na query string. O upgrade do Bun não recebe headers, e um JWT na query string é registrado por qualquer proxy ou balanceador à frente do servidor. O cliente pede `POST /api/ws-ticket`, que devolve um ticket opaco, de uso único, válido por 30 s, com a identidade e o token dentro. O upgrade consome o ticket e revalida o token no Auth server: token inválido ou expirado recusa o upgrade com `401`, e o handshake falha. O ticket nunca é logado.
+
+**A revisão do estado.** O `PlayerState` carrega `rev`, `epoch` e `serverNow`. O `rev` é monotônico **por conta**, dentro de um `epoch`, que é o identificador do boot do processo. O `epoch` existe porque o contador vive na memória: um restart do servidor zera o contador, e um cliente que comparasse só a revisão recusaria todo snapshot novo e ficaria congelado num estado obsoleto. O `state_snapshot` carrega os três.
+
+**O fallback.** `GET /api/player/state?sinceRev=<n>` devolve o estado completo quando o estado atual é mais novo que `n`, e **204** quando o estado atual já está na revisão pedida.
+
+**Os códigos de fechamento.**
+
+| Código | Significado |
+| --- | --- |
+| `1000` | Encerramento normal, inclusive a desconexão do treinador, que o `DELETE /api/session/trainer` dispara fechando o canal |
+| `4001` | A conexão foi substituída por outra mais recente |
+
+> A entrada num treinador (`POST /api/session/trainer`) derruba a conexão anterior da conta com o `4001`, e a saída (`DELETE /api/session/trainer`) fecha o canal com o `1000`.
+
+**A vivacidade é do servidor.** O Bun manda ping de protocolo (`sendPings`), e o `idleTimeout` de 120 s fecha a conexão que ficou ociosa. O `pong` de protocolo do Bun não chega no evento `message` do browser — ele tem o seu próprio handler, e é lá que o servidor marca a conexão como viva. Uma varredura a cada 30 s fecha as conexões silenciosas há mais de 120 s: o servidor não confia só no timer do runtime.
+
+**A idempotência.** `POST /api/store/buy` e `POST /api/store/sell` aceitam o header `Idempotency-Key`. A chave é **reservada** antes de a operação rodar, de modo que dois pedidos da mesma chave em voo não cobrem duas vezes: o segundo recebe `409` com `store_request_in_flight`. A chave é liberada quando o pedido é recusado **sem ter rodado** — corpo inválido, ausência da sessão do treinador, ou recusa do banco —, para que uma retentativa possa tentar de novo.
+
+> A chave **não** é liberada quando a operação **lança** exceção: pode ter havido cobrança no banco, e liberar a chave ali abriria a cobrança dupla. Nesse caso a chave sai pela janela de dez minutos, e uma retentativa com a mesma chave recebe o mesmo resultado.
 
 O estado de um jogador fica no processo que atendeu a conexão dele.
 
 > Isso é o que torna a regra da conexão única simples de cumprir: o servidor mantém o registro de quem está conectado, e uma nova conexão para o mesmo jogador encontra e fecha a anterior. A origem dessa regra está na [tela do jogo](../../game/PLAY_SCREEN.md).
+
+> Isso vai mudar: a caçada sobrevive à conexão, e o estado do jogador vai virar um estado em memória com checkpoint no banco. É a pendência registrada abaixo.
 
 O servidor distingue o que é comando, que vem do cliente, do que é atualização de estado, que ele mesmo produz.
 
@@ -138,6 +161,7 @@ O que já roda contra o Postgres de verdade é a suíte de integração, em `app
 Os pontos abaixo dizem respeito à stack e ainda estão em aberto:
 
 - **O estado de jogo não existe.** O que o servidor persiste hoje é a conta e o treinador, no Postgres, em tempo real. O que o ciclo de simulação vai persistir — e com que frequência — depende do desenho do ciclo, que ainda não foi feito.
+- **O estado do jogador é reconstruído do banco a cada push.** A caçada vai sobreviver à conexão, e o estado do jogador vai virar um estado **em memória com checkpoint no banco**, retomado no boot do servidor. É a Fase 2 do [plano da camada de tempo real](../../../plans/PLAN.md). Hoje o `rev`, o registro das conexões e a sessão do treinador são mapas na memória do processo: um restart zera o contador de revisões, e é por isso que o `epoch` existe.
 - **O rate limit é por processo.** O contador das tentativas falhas mora na memória do processo, como a sessão do treinador e o registro das conexões. Com mais de uma instância, cada uma conta só as tentativas que ela viu, e o limite enfraquece na proporção do número de instâncias. A regra está em [Rate Limit](TRAINERS.md#rate-limit).
 
 Decisões que afetam a estrutura do servidor e ainda não foram tomadas:

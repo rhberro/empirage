@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import type { PlayerState } from '@creatures/contracts/player';
 import type { EquippedAbility } from '@creatures/contracts/skill';
 
+import { buildPlayerStateFixture } from '~/entities/team';
 import type { PanelCardEntry } from '~/features/skill-panel/model/skillPanel.types';
 import { buildAbilitySlotPayloadFrom } from '~/features/skill-panel/model/skillPanelCommands';
 import {
@@ -65,33 +66,16 @@ function buildAbilities(): PlayerState['activeAbilities'] {
 }
 
 function buildState(): PlayerState {
-  return {
+  return buildPlayerStateFixture({
     activeAbilities: buildAbilities(),
     activeCreatureId: 'creature-1',
     activeVitals: { currentHp: 12, maxHp: 24 },
-    backpack: [],
-    diamonds: 0,
     equippedAbilities: [
       buildEquippedAbility(BRASA_ID, 0),
       buildEquippedAbility(IGNEA_ID, 1),
       buildEquippedAbility(GARRA_ID, 2),
     ],
-    equippedConsumables: [],
-    equippedDevice: null,
-    gold: 0,
-    maxStaminaMinutes: 720,
-    staminaMinutes: 720,
-    storage: [],
-    team: [],
-    trainer: {
-      createdAt: '2026-01-01T00:00:00.000Z',
-      gender: 'male',
-      id: 'trainer-1',
-      level: 1,
-      name: 'Time de Teste',
-      starterSpeciesId: 'species-1',
-    },
-  };
+  });
 }
 
 function findById(entries: PanelCardEntry[], id: string): PanelCardEntry | undefined {

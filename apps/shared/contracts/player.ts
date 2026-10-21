@@ -33,8 +33,30 @@ export type PlayerState = {
   equippedConsumables: EquippedConsumable[];
   /** The capture device equipped in the device slot of the trainer. */
   equippedDevice: EquippedDevice | null;
+  /**
+   * The identifier of the boot of the server that produced this state.
+   *
+   * The revision is only comparable inside the same epoch: the server keeps the
+   * counter in memory, so a restart resets it. The client compares the pair, and
+   * a different epoch means a full resync.
+   */
+  epoch: string;
   gold: number;
   maxStaminaMinutes: number;
+  /**
+   * The revision of the state, monotonic inside the epoch.
+   *
+   * The client applies a state only when its revision is newer, and asks for a
+   * resync when it finds a gap.
+   */
+  rev: number;
+  /**
+   * The clock of the server when the state was built.
+   *
+   * The client uses it to correct the drift between its own clock and the
+   * server's, so that a countdown derived from a timestamp is right.
+   */
+  serverNow: number;
   staminaMinutes: number;
   storage: Creature[];
   team: TeamSlot[];

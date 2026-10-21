@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Logger } from 'pino';
 
 import { loadPlayerState } from '~/state/playerState';
+import type { RevCounter } from '~/state/rev';
 import type { ConnectionRegistry } from '~/ws/connections';
 import { buildStateSnapshot, sendMessage } from '~/ws/protocol';
 
@@ -11,9 +12,12 @@ import { buildStateSnapshot, sendMessage } from '~/ws/protocol';
  *
  * The push is the same snapshot the client asks for in `select_trainer`, so
  * the client applies it the same way and reconciles.
+ *
+ * The push answers the revision it produced: the caller tells the client which
+ * revision is on its way.
  */
 export type StateBroadcaster = {
-  pushState(userId: string, trainerId: string): void;
+  pushState(userId: string, trainerId: string): number;
 };
 
 /**
@@ -26,17 +30,24 @@ export function createStateBroadcaster(
   admin: SupabaseClient,
   connections: ConnectionRegistry,
   logger: Logger,
+  revs: RevCounter,
 ): StateBroadcaster {
   const queues = new Map<string, Promise<void>>();
 
-  function pushState(userId: string, trainerId: string): void {
+  /**
+   * The revision is taken when the push is enqueued, not when the snapshot is
+   * built: the state of the account changed at the moment of the command, and
+   * the revision has to say so even if the snapshot takes a while to be read.
+   */
+  function pushState(userId: string, trainerId: string): number {
+    const rev = revs.next(userId);
     if (connections.get(userId) === undefined) {
-      return;
+      return rev;
     }
     const previous = queues.get(userId) ?? Promise.resolve();
     const next = previous
       .then(function load(): Promise<void> {
-        return loadAndSend(admin, connections, userId, trainerId);
+        return loadAndSend(admin, connections, revs, userId, trainerId, rev);
       })
       .catch(function report(error: unknown): void {
         logger.error({ err: error, userId }, 'state push failure');
@@ -47,6 +58,7 @@ export function createStateBroadcaster(
         }
       });
     queues.set(userId, next);
+    return rev;
   }
 
   return { pushState };
@@ -62,10 +74,13 @@ export function createStateBroadcaster(
 function loadAndSend(
   admin: SupabaseClient,
   connections: ConnectionRegistry,
+  revs: RevCounter,
   userId: string,
   trainerId: string,
+  rev: number,
 ): Promise<void> {
-  return loadPlayerState(admin, trainerId, userId).then(function send(
+  const revision = { epoch: revs.epoch, rev };
+  return loadPlayerState(admin, trainerId, userId, revision).then(function send(
     state: PlayerState | null,
   ): void {
     const ws = connections.get(userId);

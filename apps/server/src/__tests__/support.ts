@@ -1,10 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { ServerWebSocket } from 'bun';
 import pino from 'pino';
 
 import type { ServerDependencies } from '~/dependencies';
 import { createCorsMiddleware } from '~/middleware/cors';
 import { createLoggingMiddleware } from '~/middleware/logging';
 import { createAttemptLimiter } from '~/ratelimit/attemptLimiter';
+import { createPublicLimiter } from '~/ratelimit/publicLimiter';
 import { buildHttpHandler, composeMiddleware, createRequestContext } from '~/router';
 import type { RouteHandler } from '~/router';
 import { createAuthRoutes } from '~/routes/auth';
@@ -17,9 +19,17 @@ import { createStarterRoutes } from '~/routes/starters';
 import { createStoreRoutes } from '~/routes/store';
 import { createTeamRoutes } from '~/routes/team';
 import { createTrainerRoutes } from '~/routes/trainers';
+import { createWsTicketRoutes } from '~/routes/wsTicket';
 import { createTrainerSessionStore } from '~/session/trainerSession';
+import { createIdempotencyStore } from '~/state/idempotency';
+import { createRevCounter } from '~/state/rev';
 import type { AuthClaims, ClaimsReader, UserReader } from '~/supabase';
+import { createConnectionRegistry } from '~/ws/connections';
+import type { SocketData } from '~/ws/connections';
 import type { StateBroadcaster } from '~/ws/stateBroadcaster';
+import { createTicketStore } from '~/ws/tickets';
+
+export { buildEmptyAdmin, buildTrainerAdmin } from './fakeAdmin';
 
 export const BASE_URL = 'http://localhost';
 export const TRAINERS_PATH = '/api/trainers';
@@ -36,7 +46,9 @@ export const HUNT_AREA_PATH = '/api/hunt-areas/:id';
 export const STORE_PATH = '/api/store';
 export const STORE_BUY_PATH = '/api/store/buy';
 export const STORE_SELL_PATH = '/api/store/sell';
+export const WS_TICKET_PATH = '/api/ws-ticket';
 export const HEALTH_PATH = '/api/health';
+export const TRAINER_ID = '11111111-1111-4111-8111-111111111111';
 export const USER_ID = 'user-1';
 export const OTHER_USER_ID = 'user-2';
 export const USER_TOKEN = 'token-1';
@@ -100,10 +112,13 @@ export type BroadcastRecorder = {
  */
 export function buildRecordingBroadcaster(): BroadcastRecorder {
   const pushes: RecordedPush[] = [];
+  let rev = 0;
   return {
     broadcaster: {
-      pushState: function pushState(userId: string, trainerId: string): void {
+      pushState: function pushState(userId: string, trainerId: string): number {
         pushes.push({ trainerId, userId });
+        rev += 1;
+        return rev;
       },
     },
     pushes,
@@ -114,16 +129,49 @@ export function buildRecordingBroadcaster(): BroadcastRecorder {
  * The unit tests never reach the database: the repositories are only used by
  * the routes that require a real Postgres, covered by the integration suite.
  */
-export function buildDependencies(): ServerDependencies {
-  return {
+export function buildDependencies(overrides?: Partial<ServerDependencies>): ServerDependencies {
+  const dependencies: ServerDependencies = {
     admin: {} as unknown as SupabaseClient,
     broadcaster: buildRecordingBroadcaster().broadcaster,
     claims: CLAIMS,
+    connections: createConnectionRegistry(),
+    idempotency: createIdempotencyStore(),
     limiter: createAttemptLimiter(),
     logger: pino({ level: 'silent' }),
+    publicLimiter: createPublicLimiter(),
+    revs: createRevCounter(),
     sessions: createTrainerSessionStore(),
+    tickets: createTicketStore(),
     users: USERS,
   };
+  return { ...dependencies, ...overrides };
+}
+
+/**
+ * A connection of the registry, as the test sees it.
+ */
+export type FakeConnection = {
+  closed: { code: number; reason: string } | null;
+  data: SocketData;
+};
+
+/**
+ * Registers a connection of the account in the registry, so the test can see
+ * the server closing it.
+ */
+export function registerFakeConnection(deps: ServerDependencies, userId: string): FakeConnection {
+  const connection: FakeConnection = {
+    closed: null,
+    data: { userId },
+  };
+  const socket = {
+    close: function close(code: number, reason: string): void {
+      connection.closed = { code, reason };
+    },
+    data: connection.data,
+  } as unknown as ServerWebSocket<SocketData>;
+  deps.connections.open(socket);
+  return connection;
 }
 
 export function buildHandler(deps: ServerDependencies = buildDependencies()): RouteHandler {
@@ -136,6 +184,7 @@ export function buildHandler(deps: ServerDependencies = buildDependencies()): Ro
     .concat(createLoadoutRoutes(deps))
     .concat(createGearSlotRoutes(deps))
     .concat(createStoreRoutes(deps))
+    .concat(createWsTicketRoutes(deps))
     .concat(createHealthRoutes());
   const middlewares = [createLoggingMiddleware(deps.logger), createCorsMiddleware()];
   return composeMiddleware(middlewares, buildHttpHandler(routes));
@@ -162,6 +211,20 @@ export function buildRequest(method: string, path: string, token: string | null)
 export function send(handler: RouteHandler, request: Request): Promise<Response> {
   const params: Record<string, string> = {};
   return handler(request, params, createRequestContext());
+}
+
+/**
+ * Sends a request as if it came from the address.
+ */
+export function sendFrom(
+  handler: RouteHandler,
+  request: Request,
+  clientIp: string,
+): Promise<Response> {
+  const params: Record<string, string> = {};
+  const ctx = createRequestContext();
+  ctx.clientIp = clientIp;
+  return handler(request, params, ctx);
 }
 
 export function readJson(response: Response): Promise<unknown> {

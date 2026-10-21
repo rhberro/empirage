@@ -5,7 +5,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 import { TrainersPanel, useTrainers } from '~/entities/trainer';
-import { TrainerDeleteDialog } from '~/features/delete-trainer';
+import { useEmptyTrainersRedirect } from '~/pages/trainers/model/emptyTrainersRedirect';
 import { requestEnterTrainer } from '~/pages/trainers/model/enterTrainer';
 import { findTrainerName as resolveTrainerName } from '~/pages/trainers/model/trainerSelection';
 import type {
@@ -17,6 +17,7 @@ import { useAuth } from '~/shared/auth';
 import { BrandLayout } from '~/shared/ui/brand';
 
 import { PageError } from './PageError';
+import { TrainerDeleteSection } from './TrainerDeleteSection';
 
 const SIGNIN_PATH = '/signin';
 const GAME_PATH = '/game';
@@ -25,23 +26,24 @@ const NEW_TRAINER_PATH = '/trainers/new';
 export function TrainersPage(): ReactElement {
   const auth = useAuth();
   const navigate = useNavigate();
-  const { trainers, isLoading, error, remove } = useTrainers();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { trainers, isLoading, error, isLoaded, remove, selectedTrainerId, selectTrainer } =
+    useTrainers();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [enterError, setEnterError] = useState<TrainerClientErrorCode | null>(null);
   const isEntering = useRef(false);
+  useEmptyTrainersRedirect(isLoaded, trainers.length, navigate);
   const handlers = buildPageHandlers({
     enterTrainer: requestEnterTrainer,
     isEntering,
     navigate,
     pendingDeleteId,
     remove,
-    selectedId,
+    selectTrainer,
+    selectedId: selectedTrainerId,
     setEnterError,
     setIsDeleting,
     setPendingDeleteId,
-    setSelectedId,
     signOut: auth.signOut,
   });
   const isDeleteOpen = pendingDeleteId !== null;
@@ -56,7 +58,7 @@ export function TrainersPage(): ReactElement {
         isDeleteOpen={isDeleteOpen}
         isLoading={isLoading}
         pendingDeleteId={pendingDeleteId}
-        selectedId={selectedId}
+        selectedId={selectedTrainerId}
         trainers={trainers}
       />
     </BrandLayout>
@@ -103,27 +105,6 @@ function TrainersCard(props: TrainersCardProps): ReactElement {
   );
 }
 
-type TrainerDeleteSectionProps = {
-  isDeleting: boolean;
-  isOpen: boolean;
-  trainerName: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-};
-
-function TrainerDeleteSection(props: TrainerDeleteSectionProps): ReactElement {
-  const { isDeleting, isOpen, trainerName, onCancel, onConfirm } = props;
-  return (
-    <TrainerDeleteDialog
-      isDeleting={isDeleting}
-      isOpen={isOpen}
-      trainerName={trainerName}
-      onCancel={onCancel}
-      onConfirm={onConfirm}
-    />
-  );
-}
-
 type TrainersCardProps = {
   enterError: TrainerClientErrorCode | null;
   error: TrainerClientErrorCode | null;
@@ -153,9 +134,9 @@ type PageHandlerDeps = {
   pendingDeleteId: string | null;
   remove: (id: string) => Promise<DeleteTrainerResult>;
   selectedId: string | null;
+  selectTrainer: (id: string | null) => void;
   setEnterError: (code: TrainerClientErrorCode | null) => void;
   setPendingDeleteId: (id: string | null) => void;
-  setSelectedId: (updater: (current: string | null) => string | null) => void;
   setIsDeleting: (value: boolean) => void;
   signOut: () => Promise<void>;
 };
@@ -167,7 +148,7 @@ function buildPageHandlers(deps: PageHandlerDeps): PageHandlers {
     handleCreate: buildNavigateHandler(deps.navigate, NEW_TRAINER_PATH),
     handleEnter: buildEnterHandler(deps),
     handleRequestDelete: buildRequestDeleteHandler(deps.setPendingDeleteId),
-    handleSelect: buildSelectHandler(deps.setSelectedId, deps.setEnterError),
+    handleSelect: buildSelectHandler(deps.selectTrainer, deps.selectedId, deps.setEnterError),
     handleSignOut: buildSignOutHandler(deps.navigate, deps.signOut),
   };
 }
@@ -233,17 +214,18 @@ function buildDeleteSettler(deps: PageHandlerDeps): (result: DeleteTrainerResult
     const id = deps.pendingDeleteId;
     deps.setIsDeleting(false);
     deps.setPendingDeleteId(null);
-    deps.setSelectedId(buildSelectionClearer(id));
+    deps.selectTrainer(buildSelectionClearer(id)(deps.selectedId));
   };
 }
 
 function buildSelectHandler(
-  setSelectedId: (updater: (current: string | null) => string | null) => void,
+  selectTrainer: (id: string | null) => void,
+  selectedId: string | null,
   setEnterError: (code: TrainerClientErrorCode | null) => void,
 ): (id: string) => void {
   return function handleSelect(id: string): void {
     setEnterError(null);
-    setSelectedId(buildSelectionToggler(id));
+    selectTrainer(buildSelectionToggler(id)(selectedId));
   };
 }
 

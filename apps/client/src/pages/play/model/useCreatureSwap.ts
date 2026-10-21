@@ -1,9 +1,8 @@
 import { useState } from 'react';
 
-import { createApiDeps } from '~/shared/api/client';
-import { requestSwapCreature } from '~/shared/api/endpoints/skill';
-import type { SkillCommandResult } from '~/shared/api/endpoints/skill';
-import type { TrainerClientErrorCode } from '~/shared/api/http';
+import { awaitStateAfterCommand, readAppliedRevision } from '~/entities/team';
+import { createApiDeps, requestSwapCreature } from '~/shared/api';
+import type { SkillCommandResult, TrainerClientErrorCode } from '~/shared/api';
 import { getAccessToken } from '~/shared/auth';
 
 import { useSwapCooldown } from './useSwapCooldown';
@@ -17,8 +16,6 @@ const SWAP_FAILURE_MESSAGE = 'Não foi possível trocar a criatura.';
 export type CreatureSwapOptions = {
   /** Called when the server refuses the swap. */
   onFailed: (message: string) => void;
-  /** Called after a swap the server accepted. */
-  onSwapped: () => void;
 };
 
 export type CreatureSwapView = {
@@ -38,7 +35,7 @@ export type CreatureSwapView = {
  * what the player sees while the tabs wait.
  */
 export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView {
-  const { onFailed, onSwapped } = options;
+  const { onFailed } = options;
   const [isSwapping, setSwapping] = useState<boolean>(false);
   const cooldown = useSwapCooldown(SWAP_COOLDOWN_MS);
 
@@ -47,6 +44,9 @@ export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView 
       return;
     }
     setSwapping(true);
+    // The revision the client has is the one the swap is built on: the state
+    // that confirms the swap is the one that is newer than it.
+    const expectedRev = readAppliedRevision();
     requestSwapCreature(createApiDeps(getAccessToken), creatureId).then(
       function handleSwap(result: SkillCommandResult): void {
         setSwapping(false);
@@ -56,7 +56,7 @@ export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView 
           return;
         }
         cooldown.start();
-        onSwapped();
+        void awaitStateAfterCommand(expectedRev);
       },
       function handleFailure(): void {
         setSwapping(false);

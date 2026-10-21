@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 
+import { buildPlayerStateFixture, FIXTURE_REV } from '~/entities/team';
 import { createPlayerStateStore } from '~/pages/play/model/usePlayerState';
 import type { PlayerStateResult } from '~/shared/api';
 
@@ -35,3 +36,36 @@ function loadingStateBecomesTheLostConnection(): Promise<void> {
 }
 
 test('a request that never answers leaves the loading state', loadingStateBecomesTheLostConnection);
+
+/**
+ * A state that is newer than the one the client has is applied.
+ */
+test('a newer state is applied', function appliesNewer(): void {
+  const store = createPlayerStateStore();
+  store.getState().applySnapshot(buildPlayerStateFixture({ rev: FIXTURE_REV }));
+  store.getState().applySnapshot(buildPlayerStateFixture({ rev: FIXTURE_REV + 1 }));
+  expect(store.getState().rev).toBe(FIXTURE_REV + 1);
+});
+
+/**
+ * A state that is not newer is ignored: a push that arrives late does not put
+ * the client back in the past.
+ */
+test('a state that is not newer is ignored', function ignoresOlder(): void {
+  const store = createPlayerStateStore();
+  store.getState().applySnapshot(buildPlayerStateFixture({ rev: FIXTURE_REV }));
+  store.getState().applySnapshot(buildPlayerStateFixture({ rev: FIXTURE_REV - 1 }));
+  expect(store.getState().rev).toBe(FIXTURE_REV);
+});
+
+/**
+ * A server that restarted has a counter that starts over: the state of the
+ * new server is taken.
+ */
+test('a state of another epoch is taken', function takesResync(): void {
+  const store = createPlayerStateStore();
+  store.getState().applySnapshot(buildPlayerStateFixture({ rev: FIXTURE_REV }));
+  store.getState().applySnapshot(buildPlayerStateFixture({ epoch: 'another-epoch', rev: 1 }));
+  expect(store.getState().epoch).toBe('another-epoch');
+  expect(store.getState().rev).toBe(1);
+});

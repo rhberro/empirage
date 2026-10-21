@@ -7,16 +7,6 @@ import { readPendingLoadout } from './skillPanelQueue';
 import { skillPanelStore } from './skillPanelStore';
 
 /**
- * How long the client waits for the state of the server before asking for it
- * again over REST.
- *
- * The channel of the game is the normal path: the server pushes the state it
- * changed. The request over REST is the reserve of the moments in which the
- * channel is not there — and it only happens when the push did not arrive.
- */
-const FALLBACK_REFRESH_DELAY_MS = 600;
-
-/**
  * How long a local change waits for the confirmation of the server.
  *
  * A change that is never confirmed is a change the server did not accept: the
@@ -29,16 +19,14 @@ const PENDING_EXPIRY_MS = 8000;
  *
  * The push of the server is the truth: when the state it carries is the
  * change the client predicted, the prediction has nothing left to say. The
- * request over REST is the reserve of the moments in which the push does not
- * come.
+ * client never asks for the state on its own: the command waits for the state
+ * that confirms it, and asks for it only when the state does not come.
  */
 export function useSkillPanelReconciliation(
   state: PlayerState | null,
   pending: PendingLoadout | null,
-  refresh: () => void,
 ): void {
   useReconciliation(state);
-  useFallbackRefresh(pending, refresh);
   usePendingExpiry(pending);
   useResetOnUnmount();
 }
@@ -63,26 +51,6 @@ function useReconciliation(state: PlayerState | null): void {
       }
     },
     [state],
-  );
-}
-
-/**
- * The reserve of the state: the request over REST when the push does not come.
- */
-function useFallbackRefresh(pending: PendingLoadout | null, refresh: () => void): void {
-  useEffect(
-    function schedule(): () => void {
-      if (pending === null) {
-        return noop;
-      }
-      const timer = setTimeout(function askForState(): void {
-        refresh();
-      }, FALLBACK_REFRESH_DELAY_MS);
-      return function cancel(): void {
-        clearTimeout(timer);
-      };
-    },
-    [pending, refresh],
   );
 }
 

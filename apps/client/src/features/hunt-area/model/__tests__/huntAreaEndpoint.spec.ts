@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
 
-import type { ApiDeps } from '~/shared/api/client';
-import { requestHuntArea, requestHuntAreaList } from '~/shared/api/endpoints/hunt';
+import type { ApiDeps } from '~/shared/api';
+import { requestHuntArea, requestHuntAreaList } from '~/shared/api';
 
 const BASE_URL = 'http://localhost:3001';
 const AREA_ID = '7a1c9e20-4b31-4d52-8e63-0f1a2b3c4d01';

@@ -156,7 +156,11 @@ Quando o jogador não consegue ver o jogo, é exibida uma tela cheia com fundo p
 
 > A tela de **carregando** é exibida sempre que uma área precisa ser carregada: ao entrar no jogo, até que o estado do treinador seja recebido do serviço e esteja pronto para ser renderizado, e também ao entrar em uma caçada, ao voltar para a cidade e em qualquer outra troca de área. Se não for possível carregar, é exibida a tela de conexão perdida.
 
-> A tela de **conexão perdida** cobre qualquer motivo que impeça o jogo de continuar: a conexão caiu, o servidor ficou fora do ar, a sessão foi perdida ou qualquer outro problema. Não existe tentativa automática de reconexão: é o botão que dispara a nova tentativa.
+> A tela de **conexão perdida** cobre qualquer motivo que impeça o jogo de continuar: a conexão caiu, o servidor ficou fora do ar, a sessão foi perdida ou qualquer outro problema.
+
+> **Existe tentativa automática de reconexão.** Quando o canal cai, o cliente tenta abri-lo de novo sozinho, com espera crescente entre as tentativas e um limite de tentativas. Depois que o limite é atingido, a tela de conexão perdida aparece. O motivo é o jogo: em um jogo idle a aba fica aberta por horas e o notebook dorme, e uma queda de conexão é comum demais para devolver o jogador a uma tela.
+
+> A conexão **substituída** por outra mais recente não reconecta: o jogador vai para a tela de conexão perdida, e é a outra aba que fica valendo.
 
 > Ao clicar em "Reconectar", o cliente tenta restabelecer a conexão. Se conseguir, o jogador volta direto para o jogo, já com o estado atualizado. Se não conseguir, permanece na tela e pode clicar de novo.
 

@@ -11,6 +11,5 @@ export { useTrainers } from './model/useTrainers';
 export type { TrainersHook } from './model/useTrainers';
 export { newTrainerSchema } from './model/trainer.schema';
 export type { StarterEntry } from './model/trainer.types';
-export type { TrainersController, TrainersSnapshot } from './model/trainersController';
 export { getTrainersStore } from './model/trainersStore';
 export type { TrainersStore, TrainersStoreState } from './model/trainersStore';

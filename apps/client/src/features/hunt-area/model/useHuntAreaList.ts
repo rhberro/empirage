@@ -1,8 +1,10 @@
 import type { HuntArea } from '@creatures/contracts/hunt';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import { fetchHuntAreas } from '~/features/hunt-area/api/huntAreaApi';
-import type { HuntAreaListResult } from '~/features/hunt-area/api/huntAreaApi';
+import type { ApiDeps } from '~/shared/api';
+import { createApiDeps, huntAreaListQueryOptions } from '~/shared/api';
+import { getAccessToken } from '~/shared/auth';
 
 export type HuntAreaStatus = 'error' | 'loading' | 'ready';
 
@@ -18,39 +20,39 @@ const LOAD_ERROR = 'Não foi possível carregar os locais de caça.';
 /**
  * The list of hunt areas.
  *
- * The list is loaded when the modal opens, and the order of the areas is the
- * one of the server: the client never reorders it.
+ * The list is content: it changes with a deploy and not with the session, so
+ * the cache of the query keeps it and opening the modal again does not ask
+ * the server for it.
  */
 export function useHuntAreaList(isOpen: boolean): HuntAreaListState {
-  const [areas, setAreas] = useState<HuntArea[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<HuntAreaStatus>('loading');
-  const [attempt, setAttempt] = useState(0);
+  const deps = useMemo(buildDeps, []);
+  const query = useQuery({ ...huntAreaListQueryOptions(deps), enabled: isOpen });
+  const status = readStatus(query.isPending, query.isError);
 
-  useEffect(loadAreas, [isOpen, attempt]);
+  return {
+    areas: query.data ?? [],
+    error: status === 'error' ? LOAD_ERROR : null,
+    reload: buildReload(query.refetch),
+    status,
+  };
+}
 
-  function loadAreas(): void {
-    if (!isOpen) {
-      return;
-    }
-    setStatus('loading');
-    setError(null);
-    fetchHuntAreas().then(handleResult);
+function buildDeps(): ApiDeps {
+  return createApiDeps(getAccessToken);
+}
+
+function readStatus(isPending: boolean, isError: boolean): HuntAreaStatus {
+  if (isError) {
+    return 'error';
   }
-
-  function handleResult(result: HuntAreaListResult): void {
-    if (result.ok) {
-      setAreas(result.areas);
-      setStatus('ready');
-      return;
-    }
-    setError(LOAD_ERROR);
-    setStatus('error');
+  if (isPending) {
+    return 'loading';
   }
+  return 'ready';
+}
 
-  function reload(): void {
-    setAttempt(attempt + 1);
-  }
-
-  return { areas, error, reload, status };
+function buildReload(refetch: () => Promise<unknown>): () => void {
+  return function reload(): void {
+    void refetch();
+  };
 }

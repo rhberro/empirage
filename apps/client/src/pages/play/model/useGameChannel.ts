@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 
 import { openGameChannel } from '~/pages/play/model/gameChannel';
+import type { GameChannelController } from '~/pages/play/model/gameChannel';
 import type { PlayerStateLoadResult } from '~/pages/play/model/usePlayerState';
 
 const CONNECTION_WARNING = 'A conexão com o servidor está indisponível.';
 const TRAINERS_PATH = '/trainers';
 
 export type GameChannel = {
+  cancelExpectedClose: () => void;
   connectionLost: boolean;
+  expectServerClose: () => void;
   onReconnect: () => void;
 };
 
@@ -24,6 +27,8 @@ export type GameChannelOptions = {
 
 type ChannelHandlers = {
   applySnapshot: (state: PlayerState) => void;
+  onLost: () => void;
+  onOpen: () => void;
   onWarning: (message: string) => void;
 };
 
@@ -31,44 +36,120 @@ type ChannelHandlers = {
  * The channel of updates of the game.
  *
  * The channel opens with the trainer of the player and closes with the screen.
- * It never reconnects by itself: the button of the screen is the one that
- * opens it again.
+ * When it falls, the channel opens itself again with a backoff: the player
+ * leaves the tab open for hours, and the game cannot ask for a click to come
+ * back. The button of the screen opens it right away.
  */
 export function useGameChannel(options: GameChannelOptions): GameChannel {
   const { applySnapshot, navigate, onWarning, refresh, state } = options;
   const [connectionLost, setConnectionLost] = useState(false);
-  const [attempt, setAttempt] = useState(0);
+  const controllerRef = useRef<GameChannelController | null>(null);
+  const openedRef = useRef(false);
   const trainerId = state === null ? null : state.trainer.id;
-  const handlers = useLatestHandlers({ applySnapshot, onWarning });
-
-  useEffect(
-    openGameChannel({
-      applySnapshot: handlers.applySnapshot,
-      onLost: handleChannelLost,
-      onOpen: handleChannelOpen,
-      onWarning: handlers.onWarning,
-      trainerId,
-    }),
-    // The handlers are read through a ref, so their identity never opens the
-    // channel again: the screen recreates them on every render, and the
-    // channel cannot be torn down and rebuilt for that.
-    [attempt, handlers, trainerId],
+  const handlers = useLatestHandlers(
+    buildChannelHandlers(applySnapshot, navigate, onWarning, refresh, setConnectionLost, openedRef),
   );
 
-  function handleChannelOpen(): void {
-    setConnectionLost(false);
-  }
+  useEffect(openChannel(handlers, trainerId, controllerRef), [handlers, trainerId]);
 
-  function handleChannelLost(): void {
-    setConnectionLost(true);
-  }
+  return {
+    cancelExpectedClose: buildExpectation(controllerRef, false),
+    connectionLost,
+    expectServerClose: buildExpectation(controllerRef, true),
+    onReconnect: buildReconnect(controllerRef, refresh, navigate, onWarning),
+  };
+}
 
-  function handleReconnect(): void {
-    setAttempt(incrementAttempt);
+/**
+ * The handlers of the channel, with the life of the connection.
+ */
+function buildChannelHandlers(
+  applySnapshot: (state: PlayerState) => void,
+  navigate: NavigateFunction,
+  onWarning: (message: string) => void,
+  refresh: () => Promise<PlayerStateLoadResult>,
+  setConnectionLost: (lost: boolean) => void,
+  openedRef: RefObject<boolean>,
+): ChannelHandlers {
+  return {
+    applySnapshot,
+    onLost: function onLost(): void {
+      setConnectionLost(true);
+    },
+    onOpen: function onOpen(): void {
+      setConnectionLost(false);
+      if (!openedRef.current) {
+        openedRef.current = true;
+        return;
+      }
+      // The channel opened again: the state that the player had is old, and
+      // the server has the truth.
+      refresh().then(handleRefreshResult(navigate, onWarning));
+    },
+    onWarning,
+  };
+}
+
+/**
+ * Opens the channel and hands its controller over to the screen.
+ */
+function openChannel(
+  handlers: ChannelHandlers,
+  trainerId: string | null,
+  controllerRef: RefObject<GameChannelController | null>,
+): () => void {
+  return function open(): () => void {
+    const controller = openGameChannel({
+      applySnapshot: handlers.applySnapshot,
+      onLost: handlers.onLost,
+      onOpen: handlers.onOpen,
+      onWarning: handlers.onWarning,
+      trainerId,
+    });
+    controllerRef.current = controller;
+    return function close(): void {
+      controller.close();
+      controllerRef.current = null;
+    };
+  };
+}
+
+/**
+ * The button of the screen: it opens the channel right away, without waiting
+ * for the backoff, and asks for the state that the player is missing.
+ */
+function buildReconnect(
+  controllerRef: RefObject<GameChannelController | null>,
+  refresh: () => Promise<PlayerStateLoadResult>,
+  navigate: NavigateFunction,
+  onWarning: (message: string) => void,
+): () => void {
+  return function onReconnect(): void {
+    const controller = controllerRef.current;
+    controller?.reconnectNow();
     refresh().then(handleRefreshResult(navigate, onWarning));
-  }
+  };
+}
 
-  return { connectionLost, onReconnect: handleReconnect };
+/**
+ * The close of the server that the player asked for, and the one that the
+ * player did not.
+ */
+function buildExpectation(
+  controllerRef: RefObject<GameChannelController | null>,
+  expected: boolean,
+): () => void {
+  return function expect(): void {
+    const controller = controllerRef.current;
+    if (controller === null) {
+      return;
+    }
+    if (expected) {
+      controller.expectServerClose();
+      return;
+    }
+    controller.cancelExpectedClose();
+  };
 }
 
 /**
@@ -100,14 +181,16 @@ function buildRefHandlers(ref: RefObject<ChannelHandlers>): ChannelHandlers {
     applySnapshot: function applyThroughRef(state: PlayerState): void {
       ref.current.applySnapshot(state);
     },
+    onLost: function loseThroughRef(): void {
+      ref.current.onLost();
+    },
+    onOpen: function openThroughRef(): void {
+      ref.current.onOpen();
+    },
     onWarning: function warnThroughRef(message: string): void {
       ref.current.onWarning(message);
     },
   };
-}
-
-function incrementAttempt(current: number): number {
-  return current + 1;
 }
 
 function handleRefreshResult(
