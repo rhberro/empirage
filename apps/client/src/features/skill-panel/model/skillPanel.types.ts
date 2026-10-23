@@ -24,8 +24,14 @@ export type PanelCardKind = SkillSlotKind;
 export type PanelCardEntry = {
   /** The text under the name. It is null when the item has no description. */
   description: string | null;
+  /** The cooldown of an ability, in milliseconds. */
+  cooldownMs?: number;
+  /** The damage of an ability. */
+  damage?: number;
   /** The item that cannot be used: without quantity in the backpack. */
   disabled: boolean;
+  /** The element of an ability. */
+  element?: import('@creatures/contracts/species').Element;
   /** The identifier the command of the panel uses. */
   id: string;
   kind: PanelCardKind;

@@ -20,7 +20,7 @@ export function CreatureDetail(): ReactElement {
   const attributes = ATTRIBUTES.map(renderAttribute);
   const abilities = ABILITIES.map(renderAbility);
   return (
-    <Box width="280px">
+    <Box width="17.5rem">
       <Box
         bg="bg.panel"
         borderColor="border.emphasized"
@@ -29,23 +29,7 @@ export function CreatureDetail(): ReactElement {
         boxShadow="overlay"
         overflow="hidden"
       >
-        <Box
-          alignItems="center"
-          bg="bg.sunken"
-          borderBottom="1px solid"
-          borderColor="border"
-          display="flex"
-          flexDirection="column"
-          padding="4"
-        >
-          <Box bg="ember.500" borderRadius="full" boxShadow="inner" height="52px" width="52px" />
-          <Text color="fg" marginBlockStart="2" variant="name">
-            Cinzarra
-          </Text>
-          <Text color="fg.subtle" variant="numeric">
-            Nível 9 · Fogo
-          </Text>
-        </Box>
+        <CreatureDetailHeader />
         <Box padding="3">
           <Text color="fg.muted" marginBlockEnd="2" variant="meta">
             Atributos
@@ -61,6 +45,31 @@ export function CreatureDetail(): ReactElement {
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+/**
+ * A cabecalho da ficha: a imagem, o nome e o nivel.
+ */
+function CreatureDetailHeader(): ReactElement {
+  return (
+    <Box
+      alignItems="center"
+      bg="bg.sunken"
+      borderBottom="1px solid"
+      borderColor="border"
+      display="flex"
+      flexDirection="column"
+      padding="4"
+    >
+      <Box bg="ember.500" borderRadius="full" boxShadow="inner" height="3.25rem" width="3.25rem" />
+      <Text color="fg" marginBlockStart="2" variant="name">
+        Cinzarra
+      </Text>
+      <Text color="fg.subtle" variant="numeric">
+        Nível 9 · Fogo
+      </Text>
     </Box>
   );
 }
@@ -81,7 +90,7 @@ function renderAttribute(attribute: { label: string; value: string }): ReactElem
 function renderAbility(ability: { cooldown: string; element: string; name: string }): ReactElement {
   return (
     <Box alignItems="center" display="flex" gap="2" key={ability.name}>
-      <Box bg={ability.element} borderRadius="xs" height="10px" width="10px" />
+      <Box bg={ability.element} borderRadius="xs" height="0.625rem" width="0.625rem" />
       <Text color="fg.muted" variant="body">
         {ability.name}
       </Text>

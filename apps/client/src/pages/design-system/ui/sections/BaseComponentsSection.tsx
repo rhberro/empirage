@@ -33,7 +33,7 @@ function SurfacesBlock(): ReactElement {
         <Text color="fg" marginBlockEnd="3" variant="section">
           Cooldown
         </Text>
-        <Box height="56px" position="relative" width="56px">
+        <Box height="3.5rem" position="relative" width="3.5rem">
           <Slot>
             <Box alignItems="center" display="flex" height="100%" justifyContent="center">
               <Text color="ember.400" variant="numeric">
@@ -48,7 +48,7 @@ function SurfacesBlock(): ReactElement {
         <Text color="fg" marginBlockEnd="3" variant="section">
           Popup
         </Text>
-        <PopupCard width="200px">
+        <PopupCard width="12.5rem">
           <Text variant="name">Poção de Cura</Text>
           <Text color="fg.muted" variant="body">
             Restaura 40 pontos de vida.
@@ -65,41 +65,68 @@ function LayersBlock(): ReactElement {
       <Text color="fg" marginBlockEnd="1" variant="section">
         Superfícies e camadas
       </Text>
-      <Text color="fg.muted" marginBlockEnd="5" maxW="70ch" variant="body">
-        O <strong>painel</strong> é uma superfície dentro da página: ele ocupa o lugar dele no
-        layout e não toma a tela. O <strong>modal</strong> e o <strong>drawer</strong> são camadas
-        acima de tudo: eles cobrem a tela, escurecem o fundo e fecham sozinhos. Os três usam a mesma
-        anatomia — cabeçalho, corpo e rodapé — e por isso andam juntos.
-      </Text>
+      <LayersDescription />
       <Box display="flex" flexWrap="wrap" gap="5">
         <LayerSample description="Uma superfície dentro da página." label="Painel">
           <PanelSample />
         </LayerSample>
         <LayerSample description="Camada centrada sobre a tela." label="Modal">
-          <Box height="280px" overflow="hidden" padding="16px" position="relative" width="392px">
-            <Modal contained isOpen onClose={noop} width="280px">
-              <ModalHeader>Loja</ModalHeader>
-              <Box padding="4">
-                <Text color="fg.muted" variant="body">
-                  Cobre a tela, escurece o fundo e fecha por ESC ou pelo botão.
-                </Text>
-              </Box>
-            </Modal>
-          </Box>
+          <ModalSample />
         </LayerSample>
         <LayerSample description="Camada pela lateral da tela." label="Drawer">
-          <Box height="280px" overflow="hidden" padding="16px" position="relative" width="392px">
-            <Drawer contained isOpen onClose={noop}>
-              <DrawerHeader>Detalhes da área</DrawerHeader>
-              <Box padding="4">
-                <Text color="fg.muted" variant="body">
-                  Entra pela lateral e fecha também pelo clique no fundo.
-                </Text>
-              </Box>
-            </Drawer>
-          </Box>
+          <DrawerSample />
         </LayerSample>
       </Box>
+    </Box>
+  );
+}
+
+/**
+ * A descricao das camadas.
+ */
+function LayersDescription(): ReactElement {
+  return (
+    <Text color="fg.muted" marginBlockEnd="5" maxW="70ch" variant="body">
+      O <strong>painel</strong> é uma superfície dentro da página: ele ocupa o lugar dele no layout
+      e não toma a tela. O <strong>modal</strong> e o <strong>drawer</strong> são camadas acima de
+      tudo: eles cobrem a tela, escurecem o fundo e fecham sozinhos. Os três usam a mesma anatomia —
+      cabeçalho, corpo e rodapé — e por isso andam juntos.
+    </Text>
+  );
+}
+
+/**
+ * A amostra do modal: uma camada centrada sobre a tela.
+ */
+function ModalSample(): ReactElement {
+  return (
+    <Box height="17.5rem" overflow="hidden" padding="1rem" position="relative" width="24.5rem">
+      <Modal contained isOpen onClose={noop} width="17.5rem">
+        <ModalHeader>Loja</ModalHeader>
+        <Box padding="4">
+          <Text color="fg.muted" variant="body">
+            Cobre a tela, escurece o fundo e fecha por ESC ou pelo botão.
+          </Text>
+        </Box>
+      </Modal>
+    </Box>
+  );
+}
+
+/**
+ * A amostra do drawer: uma camada pela lateral da tela.
+ */
+function DrawerSample(): ReactElement {
+  return (
+    <Box height="17.5rem" overflow="hidden" padding="1rem" position="relative" width="24.5rem">
+      <Drawer contained isOpen onClose={noop}>
+        <DrawerHeader>Detalhes da área</DrawerHeader>
+        <Box padding="4">
+          <Text color="fg.muted" variant="body">
+            Entra pela lateral e fecha também pelo clique no fundo.
+          </Text>
+        </Box>
+      </Drawer>
     </Box>
   );
 }

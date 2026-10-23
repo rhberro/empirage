@@ -40,6 +40,11 @@ const CREATURE_ROW: CreatureRow = {
     vitality: 50,
   },
   species: {
+    base_magic_attack: 4,
+    base_magic_defense: 2,
+    base_physical_attack: 8,
+    base_physical_defense: 7,
+    base_vitality: 22,
     element: 'fire',
     id: '33333333-3333-4333-8333-333333333333',
     name: 'Brasa',

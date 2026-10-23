@@ -21,28 +21,25 @@ export type BackpackState = {
   filter: BagFilter;
   handleSearchChange(event: ChangeEvent<HTMLInputElement>): void;
   isSearching: boolean;
+  /** Returns the backpack to the first open: aba Todos, busca vazia. */
+  reset: () => void;
   search: string;
-  /** The item the player clicked, the one whose slot is marked. */
-  selectedId: string | null;
-  /** Selects an item of the grid. */
-  select(itemId: string): void;
   setFilter(filter: BagFilter): void;
 };
 
 /**
- * The filter, the search and the selection of the backpack.
+ * The filter and the search of the backpack.
  *
  * The search always wins over the filter: typing resets the filter to Todos,
  * so the player never stays stuck in a tab without a result.
  *
- * The selection is the item the player clicked: the slot stays marked while
- * the cursor goes away, because the mark is the choice and not the hover of
- * the popup.
+ * A mochila nao tem selecao: o clique nao marca slot, porque slot de mochila
+ * nao e alvo de acao nenhuma. Marcar slot e da loja e do armazenamento, onde
+ * o slot escolhido entra na acao.
  */
 export function useBackpack(): BackpackState {
   const [filter, setFilter] = useState<BagFilter>('Todos');
   const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleSearchChange = useCallback(function handleSearchChange(
     event: ChangeEvent<HTMLInputElement>,
@@ -51,17 +48,17 @@ export function useBackpack(): BackpackState {
     setFilter('Todos');
   }, []);
 
-  const select = useCallback(function selectItem(itemId: string): void {
-    setSelectedId(itemId);
+  const reset = useCallback(function resetBackpack(): void {
+    setSearch('');
+    setFilter('Todos');
   }, []);
 
   return {
     filter,
     handleSearchChange,
     isSearching: search.trim() !== '',
+    reset,
     search,
-    select,
-    selectedId,
     setFilter,
   };
 }

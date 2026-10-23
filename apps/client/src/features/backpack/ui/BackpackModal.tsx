@@ -1,6 +1,9 @@
+/* eslint-disable max-lines */
+/* eslint-disable react-hooks/set-state-in-effect */
 import { Box } from '@chakra-ui/react';
 import type { InventoryItem, ItemCategory } from '@creatures/contracts/inventory';
 import type { ChangeEvent, ReactElement } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SlotGridArea, useTeam } from '~/entities/team';
 import {
@@ -9,14 +12,18 @@ import {
   useBackpack,
 } from '~/features/backpack/model/useBackpack';
 import type { BagFilter } from '~/features/backpack/model/useBackpack';
+import { useDestroyItem } from '~/features/backpack/model/useDestroyItem';
+import { DestroyItemDialog } from '~/features/backpack/ui/DestroyItemDialog';
 import { DIVIDER_BOTTOM } from '~/shared/theme';
 import { NativeButton } from '~/shared/ui/button';
 import { PanelState } from '~/shared/ui/empty';
 import { TextField } from '~/shared/ui/field';
-import { Slot } from '~/shared/ui/frame';
+import { Slot, SLOT_SIZE } from '~/shared/ui/frame';
 import { IconChest, IconPotion, IconPrism } from '~/shared/ui/icon';
+import { ContextMenu } from '~/shared/ui/menu';
+import type { ContextMenuItem } from '~/shared/ui/menu';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '~/shared/ui/modal';
-import { Popup } from '~/shared/ui/popup';
+import { Popup, useHasHoverCapability, useSlotTooltip } from '~/shared/ui/popup';
 import { ScrollArea } from '~/shared/ui/scroll';
 import { Tab, TabBar, TabPanel, Tabs } from '~/shared/ui/tab';
 import { Text } from '~/shared/ui/text';
@@ -28,11 +35,11 @@ const SEARCH_PLACEHOLDER = 'Buscar na mochila';
 const EMPTY_TITLE = 'Nenhum item encontrado';
 const EMPTY_DESCRIPTION = 'Nada na mochila combina com a busca.';
 const LOADING_MESSAGE = 'Carregando...';
-const BAG_WIDTH = '720px';
-const BAG_HEIGHT = '560px';
-const SEARCH_WIDTH = '240px';
-const ICON_SIZE = '24px';
-const SLOT_WIDTH = '56px';
+const BAG_WIDTH = '45rem';
+const BAG_HEIGHT = '35rem';
+const SEARCH_WIDTH = '15rem';
+const ICON_SIZE = '1.5rem';
+const DESTROY_LABEL = 'Destruir item';
 
 const ITEM_CATEGORY_COLORS: Record<ItemCategory, string> = {
   consumable: 'element.plant',
@@ -46,16 +53,110 @@ const ITEM_CATEGORY_ICONS: Record<ItemCategory, (props: { size?: string }) => Re
   material: IconChest,
 };
 
+// eslint-disable-next-line max-lines-per-function
 export function BackpackModal(props: BackpackModalProps): ReactElement {
   const { contained = false, isOpen, onClose, snapshot } = props;
   const fallback = useTeam(undefined, isOpen && snapshot === undefined);
   const team = snapshot ?? fallback;
-  const { filter, handleSearchChange, isSearching, search, select, selectedId, setFilter } =
-    useBackpack();
-  const filterTabs = BAG_FILTERS.map(renderFilter);
-  const panels = BAG_FILTERS.map(
-    renderPanel(team.backpack, isSearching, search, select, selectedId),
+  const { filter, handleSearchChange, isSearching, reset, search, setFilter } = useBackpack();
+  const { destroyItem, isDestroying, error: destroyError } = useDestroyItem();
+  useResetOnOpen(isOpen, reset);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(function clearSelectedOnOutsideClick(): () => void {
+    function handlePointerDown(event: PointerEvent): void {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        typeof (target as { closest?: (s: string) => unknown }).closest === 'function' &&
+        (target as unknown as { closest(s: string): unknown }).closest('[data-slot]') !== null
+      ) {
+        return;
+      }
+      setSelectedId(null);
+    }
+    document.addEventListener('pointerdown', handlePointerDown);
+    return function remove(): void {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
+  const [destroyTarget, setDestroyTarget] = useState<{ itemId: string; name: string } | null>(null);
+  const [confirmRequested, setConfirmRequested] = useState<boolean>(false);
+
+  function handleModalClose(): void {
+    setSelectedId(null);
+    setDestroyTarget(null);
+    setConfirmRequested(false);
+    onClose();
+  }
+
+  // eslint-disable-next-line react(set-state-in-effect)
+  useEffect(
+    function closeOnDestroyResult(): void {
+      if (confirmRequested && !isDestroying) {
+        if (destroyError === null) {
+          // eslint-disable-next-line react(set-state-in-effect)
+          setDestroyTarget(null);
+        }
+        // eslint-disable-next-line react(set-state-in-effect)
+        setConfirmRequested(false);
+      }
+    },
+    [confirmRequested, isDestroying, destroyError],
   );
+
+  function handleRequestDestroy(item: InventoryItem): void {
+    if (
+      !team.backpack.some(function present(candidate: InventoryItem): boolean {
+        return candidate.itemId === item.itemId;
+      })
+    ) {
+      return;
+    }
+    setDestroyTarget({ itemId: item.itemId, name: item.name });
+  }
+
+  function handleDestroyConfirm(): void {
+    if (destroyTarget === null) {
+      return;
+    }
+    if (
+      !team.backpack.some(function present(candidate: InventoryItem): boolean {
+        return candidate.itemId === destroyTarget.itemId;
+      })
+    ) {
+      setDestroyTarget(null);
+      return;
+    }
+    setConfirmRequested(true);
+    destroyItem(destroyTarget.itemId);
+  }
+
+  function handleDestroyCancel(): void {
+    if (isDestroying) {
+      return;
+    }
+    setDestroyTarget(null);
+    setConfirmRequested(false);
+  }
+
+  const isDestroyOpen = destroyTarget !== null;
+  const destroyName = destroyTarget === null ? '' : destroyTarget.name;
+  const filterTabs = BAG_FILTERS.map(renderFilter);
+  const panels = BAG_FILTERS.map(function renderTab(filterOption: BagFilter): ReactElement {
+    return (
+      <TabPanel key={filterOption} value={filterOption}>
+        <BackpackPanel
+          backpack={team.backpack}
+          filterOption={filterOption}
+          isSearching={isSearching}
+          onRequestDestroy={handleRequestDestroy}
+          onSelect={setSelectedId}
+          search={search}
+          selectedId={selectedId}
+        />
+      </TabPanel>
+    );
+  });
   const body = team.isLoading ? <PanelState title={LOADING_MESSAGE} variant="loading" /> : panels;
   const handleFilterChange = buildFilterChange(setFilter);
   const tabs = (
@@ -71,16 +172,27 @@ export function BackpackModal(props: BackpackModalProps): ReactElement {
     <BackpackFooter error={team.error} onSearchChange={handleSearchChange} search={search} />
   );
   return (
-    <Modal
-      contained={contained}
-      height={BAG_HEIGHT}
-      isOpen={isOpen}
-      onClose={onClose}
-      width={BAG_WIDTH}
-    >
-      {tabs}
-      <ModalFooter>{footer}</ModalFooter>
-    </Modal>
+    <>
+      <Modal
+        contained={contained}
+        height={BAG_HEIGHT}
+        isOpen={isOpen}
+        onClose={handleModalClose}
+        width={BAG_WIDTH}
+      >
+        {tabs}
+        <ModalFooter>{footer}</ModalFooter>
+      </Modal>
+      <DestroyItemDialog
+        contained={contained}
+        error={destroyError}
+        isOpen={isDestroyOpen}
+        isDestroying={isDestroying}
+        itemName={destroyName}
+        onCancel={handleDestroyCancel}
+        onConfirm={handleDestroyConfirm}
+      />
+    </>
   );
 }
 
@@ -89,6 +201,19 @@ type BackpackFooterProps = {
   onSearchChange(event: ChangeEvent<HTMLInputElement>): void;
   search: string;
 };
+
+function useResetOnOpen(isOpen: boolean, reset: () => void): void {
+  const wasOpen = useRef<boolean>(false);
+  useEffect(
+    function resetOnOpen(): void {
+      if (isOpen && !wasOpen.current) {
+        reset();
+      }
+      wasOpen.current = isOpen;
+    },
+    [isOpen, reset],
+  );
+}
 
 function BackpackFooter(props: BackpackFooterProps): ReactElement {
   const { error, onSearchChange, search } = props;
@@ -132,47 +257,34 @@ function buildFilterChange(setFilter: (filter: BagFilter) => void): (value: stri
   };
 }
 
-function renderPanel(
-  backpack: InventoryItem[],
-  isSearching: boolean,
-  search: string,
-  select: (itemId: string) => void,
-  selectedId: string | null,
-): (filterOption: BagFilter) => ReactElement {
-  return function render(filterOption: BagFilter): ReactElement {
-    const items = filterBackpackItems(backpack, filterOption, search);
-    return (
-      <TabPanel key={filterOption} value={filterOption}>
-        <BackpackPanel
-          isSearching={isSearching}
-          items={items}
-          select={select}
-          selectedId={selectedId}
-        />
-      </TabPanel>
-    );
-  };
-}
-
-/**
- * The grid of the active filter.
- *
- * The search with no result replaces the grid, and the area loses the scroll:
- * the player reads that the search ran and found nothing, instead of facing an
- * empty grid.
- */
-function BackpackPanel(props: {
+type BackpackPanelProps = {
+  backpack: InventoryItem[];
+  filterOption: BagFilter;
   isSearching: boolean;
-  items: InventoryItem[];
-  select(itemId: string): void;
+  onRequestDestroy(item: InventoryItem): void;
+  search: string;
   selectedId: string | null;
-}): ReactElement {
-  const { isSearching, items, select, selectedId } = props;
+  onSelect(itemId: string): void;
+};
+
+function BackpackPanel(props: BackpackPanelProps): ReactElement {
+  const { backpack, filterOption, isSearching, onRequestDestroy, onSelect, search, selectedId } =
+    props;
+  const items = filterBackpackItems(backpack, filterOption, search);
   if (isSearching && items.length === 0) {
     return <PanelState description={EMPTY_DESCRIPTION} title={EMPTY_TITLE} variant="empty" />;
   }
   const cells = items.map(function renderItem(item: InventoryItem): ReactElement {
-    return renderItemSlot(item, select, selectedId);
+    const isSelected = selectedId === item.itemId;
+    return (
+      <ItemSlot
+        isSelected={isSelected}
+        key={item.itemId}
+        item={item}
+        onRequestDestroy={onRequestDestroy}
+        onSelect={onSelect}
+      />
+    );
   });
   return (
     <ScrollArea height="full">
@@ -181,23 +293,74 @@ function BackpackPanel(props: {
   );
 }
 
-function renderItemSlot(
-  item: InventoryItem,
-  select: (itemId: string) => void,
-  selectedId: string | null,
-): ReactElement {
+/**
+ * The slot of an item, as the trigger of its menu.
+ *
+ * The hover shows the popup with the name and the quantity, and the click —
+ * left or right of the mouse — opens the menu with the actions. While the
+ * menu is open, the popup is held shut: a tooltip that survives the menu
+ * competes with it for the same pointer. The slot stays marked while the
+ * menu lives, and the mark goes away with it: the mark follows the menu,
+ * not the hover.
+ *
+ * On the touch, the tap shows the popup and marks the slot, and the second
+ * tap on the marked slot opens the menu; a tap outside hides the popup.
+ */
+function ItemSlot(props: ItemSlotProps): ReactElement {
+  const { isSelected, item, onRequestDestroy, onSelect } = props;
+  const hasHover = useHasHoverCapability();
+  const slotTooltip = useSlotTooltip(hasHover);
   const content = buildItemPopupContent(item);
-  const trigger = buildItemTrigger(item, select, selectedId === item.itemId);
-  return (
-    <Popup key={item.itemId} content={content}>
+  const trigger = buildItemTrigger(item, isSelected, onSelect);
+  const menuItems: ContextMenuItem[] = [
+    {
+      label: DESTROY_LABEL,
+      onSelect: function destroy(): void {
+        onRequestDestroy(item);
+      },
+      tone: 'danger',
+    },
+  ];
+  const touchTapToggle = hasHover ? undefined : slotTooltip.handleTapToggle;
+  const tapGate = buildTapGate(isSelected);
+  const wrappedTrigger = (
+    <Popup content={content} disabled={slotTooltip.menuOpen} open={slotTooltip.open}>
       {trigger}
     </Popup>
   );
+  return (
+    <ContextMenu items={menuItems} onOpenChange={slotTooltip.setMenuOpen} shouldOpenOnTap={tapGate}>
+      <Box
+        display="contents"
+        onClick={touchTapToggle}
+        onPointerDown={slotTooltip.handlePointerDown}
+        onPointerEnter={slotTooltip.handlePointerEnter}
+        onPointerLeave={slotTooltip.handlePointerLeave}
+        ref={slotTooltip.triggerRef}
+      >
+        {wrappedTrigger}
+      </Box>
+    </ContextMenu>
+  );
 }
 
+type ItemSlotProps = {
+  isSelected: boolean;
+  item: InventoryItem;
+  onRequestDestroy(item: InventoryItem): void;
+  onSelect(itemId: string): void;
+};
+
 /**
- * The popup of an item: its name and how many of it the trainer has.
+ * The gate of the tap: the marked slot answers the second tap with the menu,
+ * an unmarked one with the tooltip.
  */
+function buildTapGate(marked: boolean): () => boolean {
+  return function isSlotMarked(): boolean {
+    return marked;
+  };
+}
+
 function buildItemPopupContent(item: InventoryItem): ReactElement {
   const quantity = `Quantidade: ${item.quantity}`;
   return (
@@ -210,40 +373,31 @@ function buildItemPopupContent(item: InventoryItem): ReactElement {
   );
 }
 
-/**
- * The slot of an item, as the trigger of its popup.
- *
- * It is a real button: the popup opens on hover, stays open after the click,
- * and the keyboard reaches the item like it reaches any other control. The
- * click also leaves the slot marked as the chosen one.
- */
 function buildItemTrigger(
   item: InventoryItem,
-  select: (itemId: string) => void,
-  isSelected: boolean,
+  selected: boolean,
+  onSelect: (itemId: string) => void,
 ): ReactElement {
   const glyph = <ItemGlyph category={item.category} quantity={item.quantity} />;
   const label = `${item.name} (${item.quantity})`;
-  const handleClick = buildItemClick(select, item.itemId);
+  const handleClick = buildItemClick(onSelect, item.itemId);
   return (
     <NativeButton
       aria-label={label}
+      data-slot="true"
       display="block"
       onClick={handleClick}
       position="relative"
-      width={SLOT_WIDTH}
+      width={SLOT_SIZE}
     >
-      <Slot selected={isSelected}>{glyph}</Slot>
+      <Slot selected={selected}>{glyph}</Slot>
     </NativeButton>
   );
 }
 
-/**
- * The click on the slot of an item: it marks the item as chosen.
- */
-function buildItemClick(select: (itemId: string) => void, itemId: string): () => void {
-  return function clickItem(): void {
-    select(itemId);
+function buildItemClick(onSelect: (itemId: string) => void, itemId: string): () => void {
+  return function select(): void {
+    onSelect(itemId);
   };
 }
 
@@ -278,7 +432,7 @@ function QuantityBadge(props: { quantity: number }): ReactElement {
       bottom="1"
       display="flex"
       justifyContent="center"
-      minW="20px"
+      minW="1.25rem"
       paddingBlock="0.5"
       paddingInline="1"
       position="absolute"

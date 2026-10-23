@@ -3,10 +3,10 @@ import type { ReactElement } from 'react';
 
 export function CanvasArea(): ReactElement {
   return (
-    <Box bg="bg.sunken" flex="1" minH="320px" overflow="hidden" position="relative">
+    <Box bg="bg.sunken" flex="1" minH="20rem" overflow="hidden" position="relative">
       <Box
         bgImage="linear-gradient(color-mix(in srgb, var(--chakra-colors-frost-700) 9%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--chakra-colors-frost-700) 9%, transparent) 1px, transparent 1px)"
-        bgSize="32px 32px"
+        bgSize="2rem 2rem"
         height="100%"
         width="100%"
       />
@@ -31,12 +31,12 @@ function CanvasBlock(props: CanvasBlockProps): ReactElement {
       bg={bg}
       border="1px solid"
       borderColor={borderColor}
-      height="28px"
+      height="1.75rem"
       left={left}
       opacity="0.55"
       position="absolute"
       top={top}
-      width="28px"
+      width="1.75rem"
     />
   );
 }

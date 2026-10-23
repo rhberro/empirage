@@ -30,7 +30,7 @@ export function AlertSample(): ReactElement {
   useEffect(showSample, EMPTY_DEPS);
 
   return (
-    <Box width="320px">
+    <Box width="20rem">
       <Text color="fg.muted" variant="body">
         O aviso aparece no canto superior direito, com regiao aria-live e barra de tempo.
       </Text>

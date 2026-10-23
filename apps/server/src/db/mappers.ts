@@ -1,8 +1,8 @@
 import type {
   Creature,
   CreatureAbility,
+  CreatureSpecies,
   Potential,
-  SpeciesSummary,
 } from '@creatures/contracts/creature';
 import type { InventoryItem } from '@creatures/contracts/inventory';
 import type { TeamSlot } from '@creatures/contracts/player';
@@ -14,9 +14,9 @@ import type {
   AbilityFields,
   CreatureAbilityRow,
   CreatureRow,
+  CreatureSpeciesRow,
   SpeciesAbilityRow,
   SpeciesRow,
-  SpeciesSummaryRow,
   TrainerItemRow,
   TrainerRow,
 } from '~/db/types';
@@ -61,14 +61,34 @@ export function mapCreatureRow(row: CreatureRow): Creature {
  * always there; the fallback only exists to keep the mapper total.
  */
 export function mapSpeciesSummary(
-  row: SpeciesSummaryRow | SpeciesSummaryRow[] | null,
+  row: CreatureSpeciesRow | CreatureSpeciesRow[] | null,
   speciesId: string,
-): SpeciesSummary {
+): CreatureSpecies {
   const species = readEmbedded(row);
   if (species === null) {
-    return { element: 'neutral', id: speciesId, name: '', slug: '' };
+    return {
+      baseMagicAttack: 0,
+      baseMagicDefense: 0,
+      basePhysicalAttack: 0,
+      basePhysicalDefense: 0,
+      baseVitality: 0,
+      element: 'neutral',
+      id: speciesId,
+      name: '',
+      slug: '',
+    };
   }
-  return { element: species.element, id: species.id, name: species.name, slug: species.slug };
+  return {
+    baseMagicAttack: species.base_magic_attack,
+    baseMagicDefense: species.base_magic_defense,
+    basePhysicalAttack: species.base_physical_attack,
+    basePhysicalDefense: species.base_physical_defense,
+    baseVitality: species.base_vitality,
+    element: species.element,
+    id: species.id,
+    name: species.name,
+    slug: species.slug,
+  };
 }
 
 export function mapInventoryItem(row: TrainerItemRow): InventoryItem | null {
@@ -79,8 +99,10 @@ export function mapInventoryItem(row: TrainerItemRow): InventoryItem | null {
   return {
     category: item.category,
     description: item.description,
+    isStoreItem: item.is_store_item,
     itemId: item.id,
     name: item.name,
+    price: item.price,
     quantity: row.quantity,
     slug: item.slug,
   };
@@ -98,6 +120,7 @@ export function mapCreatureAbilities(rows: CreatureAbilityRow[]): CreatureAbilit
       abilityId: fields.id,
       cooldownMs: fields.cooldown_ms,
       damage: fields.damage,
+      description: fields.description,
       element: fields.element,
       name: fields.name,
       slot: row.slot,

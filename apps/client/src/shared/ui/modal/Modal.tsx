@@ -4,7 +4,7 @@ import { LayerRoot } from '~/shared/ui/layer';
 
 import type { ModalProps } from './modal.types';
 
-const MODAL_WIDTH = '640px';
+const MODAL_WIDTH = '40rem';
 
 /**
  * O modal: a tela com conteudo interno.

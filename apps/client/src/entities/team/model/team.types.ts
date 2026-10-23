@@ -37,6 +37,7 @@ export type TeamRoster = {
  */
 export type TeamCommand =
   | { creatureId: string; kind: 'add' }
+  | { creatureId: string; kind: 'release' }
   | { creatureId: string; kind: 'remove' }
   | { kind: 'reorder'; order: string[] };
 
@@ -73,6 +74,8 @@ export type TeamView = {
   storage: Creature[];
   team: TeamSlot[];
   addToTeam(creatureId: string): Promise<void>;
+  /** Releases a creature: it leaves the storage for good. */
+  releaseCreature(creatureId: string): Promise<void>;
   removeFromTeam(creatureId: string): Promise<void>;
   reorderTeam(order: string[]): Promise<void>;
 };

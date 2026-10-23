@@ -4,8 +4,15 @@ import { ICON_BUTTON_TONE } from './iconButton.constants';
 import type { IconButtonProps } from './iconButton.types';
 import { NativeButton } from './NativeButton';
 
-const ICON_BUTTON_SIZE = '44px';
+const ICON_BUTTON_SIZE = '2.75rem';
 
+/**
+ * The button of an icon.
+ *
+ * O botao e um `<button>` de verdade, com o alvo minimo de toque, e as props
+ * que sobram vao para o elemento: e o que permite envolver o botao em um
+ * popup, que precisa dos gatilhos dele no mesmo elemento.
+ */
 export function IconButton(props: IconButtonProps): ReactElement {
   const {
     children,
@@ -14,6 +21,7 @@ export function IconButton(props: IconButtonProps): ReactElement {
     radius = 'sm',
     size = ICON_BUTTON_SIZE,
     tone = 'neutral',
+    ...rest
   } = props;
   const colors = ICON_BUTTON_TONE[tone];
   const hover = { bg: colors.hoverBackground, color: colors.hoverColor };
@@ -38,6 +46,7 @@ export function IconButton(props: IconButtonProps): ReactElement {
       transitionTimingFunction="ease-out"
       width={size}
       onClick={onClick}
+      {...rest}
     >
       {children}
     </NativeButton>

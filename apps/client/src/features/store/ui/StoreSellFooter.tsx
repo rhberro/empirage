@@ -28,15 +28,23 @@ export function StoreSellFooter(props: StoreSellFooterProps): ReactElement {
   const field = (
     <StoreQuantityField
       disabled={isFieldDisabled}
-      onBlur={store.commitQuantity}
+      limit={store.quantityLimit}
       onChange={store.typeQuantity}
+      onCommit={store.commitQuantity}
       quantityText={store.quantityText}
     />
   );
-  const steps = <StoreQuantitySteps onStep={store.stepQuantity} />;
+  const steps = (
+    <StoreQuantitySteps
+      disabled={isFieldDisabled}
+      limit={store.quantityLimit}
+      onMax={store.setMaxQuantity}
+      onStep={store.stepQuantity}
+    />
+  );
   const total = <StoreTotal value={store.total} />;
   const action = (
-    <Button disabled={isDisabled} onClick={store.sell} tone="primary">
+    <Button disabled={isDisabled} loading={store.isBusy} onClick={store.sell} tone="primary">
       {SELL_ACTION_LABEL}
     </Button>
   );

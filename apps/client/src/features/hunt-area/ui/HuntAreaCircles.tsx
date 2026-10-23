@@ -6,8 +6,8 @@ import { huntAreaToneFill } from '~/features/hunt-area/model/huntAreaTone';
 import { Popup } from '~/shared/ui/popup';
 import { Text } from '~/shared/ui/text';
 
-const CIRCLE_SIZE = '20px';
-const CIRCLE_OVERLAP = '-6px';
+const CIRCLE_SIZE = '1.25rem';
+const CIRCLE_OVERLAP = '-0.375rem';
 const MAX_SLOTS = 7;
 const OVERFLOW_SLOTS = 6;
 

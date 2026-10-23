@@ -4,12 +4,13 @@ import type { ReactElement } from 'react';
 
 import { HUNT_AREA_TONE_COLORS, huntAreaToneFill } from '~/features/hunt-area/model/huntAreaTone';
 import { HuntAreaCircles } from '~/features/hunt-area/ui/HuntAreaCircles';
+import { HuntAreaLevels } from '~/features/hunt-area/ui/HuntAreaLevels';
 import { DIVIDER_BOTTOM } from '~/shared/theme';
 import { Pressable } from '~/shared/ui/interactive';
 import { Popup } from '~/shared/ui/popup';
 import { Text } from '~/shared/ui/text';
 
-const PORTRAIT_SIZE = '84px';
+const PORTRAIT_SIZE = '5.25rem';
 
 type HuntAreaCardProps = {
   area: HuntArea;
@@ -31,7 +32,6 @@ export function HuntAreaCard(props: HuntAreaCardProps): ReactElement {
   const others = area.species.slice(1);
   const tone = HUNT_AREA_TONE_COLORS[area.tone];
   const portraitFill = primary === undefined ? tone.fill : huntAreaToneFill(primary.tone);
-  const levelLabel = `Recomendado ${area.recommendedLevel} - Mínimo ${area.minimumLevel}`;
   const portrait = renderPortrait(primary, portraitFill, tone.border);
 
   function handlePress(): void {
@@ -39,12 +39,15 @@ export function HuntAreaCard(props: HuntAreaCardProps): ReactElement {
   }
 
   return (
-    <Pressable onPress={handlePress} width="full">
+    <Pressable onPress={handlePress} height="full" width="full">
       <Box
         bg="bg.raised"
         borderColor="border"
         borderRadius="sm"
         borderWidth="1px"
+        display="flex"
+        flexDirection="column"
+        height="full"
         overflow="hidden"
         width="full"
       >
@@ -53,12 +56,21 @@ export function HuntAreaCard(props: HuntAreaCardProps): ReactElement {
             {area.name}
           </Text>
         </Box>
-        <Box alignItems="center" display="flex" flexDirection="column" gap="3" padding="3">
+        <Box
+          alignItems="center"
+          display="flex"
+          flex="1"
+          flexDirection="column"
+          gap="3"
+          justifyContent="center"
+          padding="3"
+        >
           {portrait}
           <HuntAreaCircles species={others} />
-          <Text color="fg.subtle" variant="meta">
-            {levelLabel}
-          </Text>
+          <HuntAreaLevels
+            minimumLevel={area.minimumLevel}
+            recommendedLevel={area.recommendedLevel}
+          />
         </Box>
       </Box>
     </Pressable>

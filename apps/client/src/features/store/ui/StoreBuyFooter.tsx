@@ -23,12 +23,20 @@ export function StoreBuyFooter(props: StoreBuyFooterProps): ReactElement {
   const field = (
     <StoreQuantityField
       disabled={isDisabled}
-      onBlur={store.commitQuantity}
+      limit={store.quantityLimit}
       onChange={store.typeQuantity}
+      onCommit={store.commitQuantity}
       quantityText={store.quantityText}
     />
   );
-  const steps = <StoreQuantitySteps onStep={store.stepQuantity} />;
+  const steps = (
+    <StoreQuantitySteps
+      disabled={isDisabled}
+      limit={store.quantityLimit}
+      onMax={store.setMaxQuantity}
+      onStep={store.stepQuantity}
+    />
+  );
   const total = <StoreTotal value={store.total} />;
   const action = <StoreBuyAction store={store} />;
   const right = (

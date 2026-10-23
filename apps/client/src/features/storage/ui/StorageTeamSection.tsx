@@ -13,7 +13,11 @@ type StorageTeamSectionProps = {
   isLocked: boolean;
   /** The command that takes a creature out of the team. */
   onRemove(creatureId: string): void;
+  /** The click on a slot of the team, that marks the creature as chosen. */
+  onSelect?(creatureId: string): void;
   reason: string | null;
+  /** The creature the player clicked, the one whose slot is marked. */
+  selectedId?: string | null;
   /** The team, with the slot of each creature. */
   slots: TeamSlot[];
 };
@@ -22,10 +26,11 @@ type StorageTeamSectionProps = {
  * The section of the team: the five slots, always, even the empty ones.
  *
  * The section has a fixed height and does not scroll: it always shows the
- * same five slots. The double click takes a creature out of the team.
+ * same five slots. The click opens the menu of the creature, and it is in the
+ * menu that it leaves the team: nothing happens by accident.
  */
 export function StorageTeamSection(props: StorageTeamSectionProps): ReactElement {
-  const { activeCreatureId, isLocked, onRemove, reason, slots } = props;
+  const { activeCreatureId, isLocked, onRemove, onSelect, reason, selectedId, slots } = props;
   const reasonText = buildReason(reason);
   const label = (
     <Box alignItems="center" display="flex" gap="3" justifyContent="space-between">
@@ -40,6 +45,8 @@ export function StorageTeamSection(props: StorageTeamSectionProps): ReactElement
       activeCreatureId={activeCreatureId}
       isLocked={isLocked}
       onRemove={onRemove}
+      onSelect={onSelect}
+      selectedId={selectedId}
       slots={slots}
     />
   );

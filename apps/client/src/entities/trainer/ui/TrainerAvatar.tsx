@@ -30,9 +30,9 @@ export function TrainerAvatar(props: TrainerAvatarProps): ReactElement {
       color="base.950"
       display="flex"
       fontSize="4xl"
-      height="88px"
+      height="5.5rem"
       justifyContent="center"
-      width="88px"
+      width="5.5rem"
     >
       {symbol}
     </Box>

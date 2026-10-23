@@ -1,6 +1,7 @@
-import type { ReactElement } from 'react';
+import type { Button as ChakraButton } from '@chakra-ui/react';
+import type { ComponentProps, ReactElement } from 'react';
 
-export type IconButtonProps = {
+export type IconButtonProps = Omit<ComponentProps<typeof ChakraButton>, 'children' | 'onClick'> & {
   children: ReactElement;
   label: string;
   onClick: () => void;

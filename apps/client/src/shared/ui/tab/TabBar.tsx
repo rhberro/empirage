@@ -8,7 +8,7 @@ type TabBarProps = {
 export function TabBar(props: TabBarProps): ReactElement {
   const { children } = props;
   return (
-    <ChakraTabs.List display="flex" gap="1">
+    <ChakraTabs.List display="flex" gap="1" overflowX="auto" scrollbarWidth="none">
       {children}
     </ChakraTabs.List>
   );

@@ -29,9 +29,9 @@ function checkFullRow(): void {
 }
 
 function checkColumnsByWidth(): void {
-  expect(computeSlotColumns(656)).toBe(11);
-  expect(computeSlotColumns(716)).toBe(12);
-  expect(computeSlotColumns(60)).toBe(1);
+  expect(computeSlotColumns(656, 56, 4)).toBe(11);
+  expect(computeSlotColumns(716, 56, 4)).toBe(12);
+  expect(computeSlotColumns(60, 56, 4)).toBe(1);
 }
 
 function checkFallbackColumns(): void {

@@ -97,7 +97,7 @@ function InputsBlock(): ReactElement {
         O campo mantém a borda, porque a borda aqui comunica estado e não profundidade. Rótulo, erro
         e ajuda andam juntos.
       </Text>
-      <Box display="flex" flexWrap="wrap" gap="4" maxW="480px">
+      <Box display="flex" flexWrap="wrap" gap="4" maxW="30rem">
         <TextField
           aria-label="Buscar item"
           autoComplete="off"
@@ -163,7 +163,7 @@ function ResourceBar(props: ResourceBarProps): ReactElement {
   const width = `${ratio * 100}%`;
   const percent = `${Math.round(ratio * 100)}%`;
   return (
-    <Box minW="200px">
+    <Box minW="12.5rem">
       <Box alignItems="center" display="flex" gap="2" marginBlockEnd="1">
         <Box color={color} display="flex">
           {icon}
@@ -175,7 +175,7 @@ function ResourceBar(props: ResourceBarProps): ReactElement {
           {percent}
         </Text>
       </Box>
-      <Box bg="bg.sunken" borderRadius="xs" boxShadow="recessed" height="8px" overflow="hidden">
+      <Box bg="bg.sunken" borderRadius="xs" boxShadow="recessed" height="0.5rem" overflow="hidden">
         <Box bg={color} height="full" transition="width 180ms ease-out" width={width} />
       </Box>
     </Box>

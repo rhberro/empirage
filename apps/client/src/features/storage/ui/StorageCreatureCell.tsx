@@ -1,11 +1,12 @@
 import type { Creature } from '@creatures/contracts/creature';
 import type { ReactElement } from 'react';
 
-import { CreatureGlyph, CreaturePopup, useCreatureActivation } from '~/entities/team';
+import { CreatureGlyph, CreatureTrigger } from '~/entities/team';
 import { NativeButton } from '~/shared/ui/button';
-import { Slot } from '~/shared/ui/frame';
+import { SLOT_SIZE, Slot } from '~/shared/ui/frame';
 
-const SLOT_WIDTH = '56px';
+const ADD_LABEL = 'Adicionar ao time';
+const RELEASE_LABEL = 'Soltar criatura';
 
 type StorageCreatureCellProps = {
   creature: Creature;
@@ -16,57 +17,62 @@ type StorageCreatureCellProps = {
   onAdd(creatureId: string): void;
   /** The click on the slot, that marks the creature as chosen. */
   onSelect(creatureId: string): void;
+  /** The action that releases the creature from the storage. */
+  onRelease(creature: Creature): void;
 };
 
 /**
  * A captured creature: the mark of the species and the command that sends it
  * to the team.
  *
- * The slot carries the mark and nothing else: the name and the level live in
- * the popup. The double click sends the creature to the team, and the click
- * leaves the slot marked as the chosen one.
+ * The slot carries the mark and nothing else: the name, the level and os
+ * atributos vivem no popup. O clique abre o menu com as acoes da criatura, e
+ * nenhuma delas acontece por acidente: o toque no slot nao coloca a criatura
+ * no time.
  */
 export function StorageCreatureCell(props: StorageCreatureCellProps): ReactElement {
-  const { creature, isLocked, isSelected, onAdd, onSelect } = props;
+  const { creature, isLocked, isSelected, onAdd, onRelease, onSelect } = props;
   const creatureId = creature.id;
 
-  function handleActivate(): void {
+  function handleAdd(): void {
     if (isLocked) {
       return;
     }
     onAdd(creatureId);
   }
 
-  const activation = useCreatureActivation(handleActivate);
+  function handleRelease(): void {
+    if (isLocked) {
+      return;
+    }
+    onRelease(creature);
+  }
+
   const cursor = isLocked ? 'not-allowed' : 'pointer';
-  const handleClick = buildClick(activation.handleClick, onSelect, creatureId);
+  const handleClick = buildClick(onSelect, creatureId);
   const trigger = (
-    <NativeButton
-      cursor={cursor}
-      onClick={handleClick}
-      onDoubleClick={activation.handleDoubleClick}
-      onPointerDown={activation.handlePointerDown}
-      width={SLOT_WIDTH}
-    >
+    <NativeButton cursor={cursor} onClick={handleClick} width={SLOT_SIZE}>
       <Slot selected={isSelected}>
         <CreatureGlyph creature={creature} />
       </Slot>
     </NativeButton>
   );
-  return <CreaturePopup creature={creature}>{trigger}</CreaturePopup>;
+  const actions = [
+    { label: ADD_LABEL, onSelect: handleAdd },
+    { label: RELEASE_LABEL, onSelect: handleRelease, tone: 'danger' as const },
+  ];
+  return (
+    <CreatureTrigger actions={actions} creature={creature} selected={isSelected}>
+      {trigger}
+    </CreatureTrigger>
+  );
 }
 
 /**
- * The click on the slot: it marks the creature as chosen and it keeps the
- * activation of the touch, that sends the creature to the team.
+ * The click on the slot: it marks the creature as chosen.
  */
-function buildClick(
-  activate: () => void,
-  onSelect: (creatureId: string) => void,
-  creatureId: string,
-): () => void {
+function buildClick(onSelect: (creatureId: string) => void, creatureId: string): () => void {
   return function click(): void {
     onSelect(creatureId);
-    activate();
   };
 }

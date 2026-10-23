@@ -10,12 +10,15 @@ import {
   useState,
 } from 'react';
 
-import { PopupGroup } from '~/shared/ui/popup';
-
 import { Slot } from './Slot';
-import { computeEmptySlotCount, computeSlotColumns, resolveSlotColumns } from './slotGridLayout';
+import { SLOT_SIZE } from './slot.constants';
+import {
+  computeEmptySlotCount,
+  computeSlotColumns,
+  readSlotMetrics,
+  resolveSlotColumns,
+} from './slotGridLayout';
 
-const SLOT_SIZE = 56;
 const EMPTY_DEPS: ReadonlyArray<unknown> = [];
 
 type SlotGridProps = {
@@ -36,8 +39,8 @@ type SlotGridProps = {
  * A grade **sem nenhum item** mostra uma linha inteira de slots vazios: o
  * jogador ve que os slots existem, em vez de uma area sem nada.
  *
- * A grade e o **grupo dos popups** dela: so um popup aberto por vez, e clicar
- * em um slot fecha o popup do outro e abre o seu.
+ * A coluna tem a largura do slot, e o slot esta em `rem`: a grade acompanha a
+ * escala da interface, do mesmo jeito que o texto acompanha.
  *
  * O slot e a unica forma de mostrar item, criatura ou habilidade: nada de
  * circulo, nada de quadrado solto.
@@ -52,10 +55,8 @@ export function SlotGrid(props: SlotGridProps): ReactElement {
 
   return (
     <Box display="grid" gap="1" gridTemplateColumns={template} justifyContent="start" ref={gridRef}>
-      <PopupGroup>
-        {children}
-        {empty}
-      </PopupGroup>
+      {children}
+      {empty}
     </Box>
   );
 }
@@ -94,7 +95,8 @@ function useSlotColumns(gridRef: RefObject<HTMLDivElement | null>): number {
       return;
     }
     // A largura do conteudo: e a mesma que o auto-fill usa para as colunas.
-    setColumns(computeSlotColumns(entry.contentRect.width));
+    const metrics = readSlotMetrics();
+    setColumns(computeSlotColumns(entry.contentRect.width, metrics.size, metrics.gap));
   }
 
   return columns;
@@ -104,11 +106,12 @@ function readColumns(element: HTMLDivElement | null): number {
   if (!element) {
     return 0;
   }
-  return computeSlotColumns(element.getBoundingClientRect().width);
+  const metrics = readSlotMetrics();
+  return computeSlotColumns(element.getBoundingClientRect().width, metrics.size, metrics.gap);
 }
 
 function buildTemplate(): string {
-  return `repeat(auto-fill, ${SLOT_SIZE}px)`;
+  return `repeat(auto-fill, ${SLOT_SIZE})`;
 }
 
 /**

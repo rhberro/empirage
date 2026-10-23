@@ -4,7 +4,7 @@ import { LayerRoot } from '~/shared/ui/layer';
 
 import type { DrawerProps } from './drawer.types';
 
-const DRAWER_WIDTH = '320px';
+const DRAWER_WIDTH = '20rem';
 
 /**
  * O drawer: a lateral.

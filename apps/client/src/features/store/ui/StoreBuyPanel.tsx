@@ -21,24 +21,38 @@ export function StoreBuyPanel(props: { store: StoreView }): ReactElement {
     return item.category === 'device';
   });
   const isSelected = buildIsSelected(store.selectedItemId);
+  const handleSelect = buildToggleSelect(store);
   return (
     <ScrollArea height="full">
       <Box display="flex" flexDirection="column" gap="5">
         <StoreSection
           isSelected={isSelected}
           items={consumables}
-          onSelect={store.select}
+          onSelect={handleSelect}
           title={CONSUMABLES_TITLE}
         />
         <StoreSection
           isSelected={isSelected}
           items={devices}
-          onSelect={store.select}
+          onSelect={handleSelect}
           title={DEVICES_TITLE}
         />
       </Box>
     </ScrollArea>
   );
+}
+
+/**
+ * Toggles the selection of an item: clicking the selected one deselects it.
+ */
+function buildToggleSelect(store: StoreView): (itemId: string) => void {
+  return function toggle(itemId: string): void {
+    if (store.selectedItemId === itemId) {
+      store.clearSelection();
+      return;
+    }
+    store.select(itemId);
+  };
 }
 
 /**

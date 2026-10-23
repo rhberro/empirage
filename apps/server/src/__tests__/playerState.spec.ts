@@ -44,6 +44,11 @@ const CREATURE: Creature = {
     vitality: 50,
   },
   species: {
+    baseMagicAttack: 4,
+    baseMagicDefense: 2,
+    basePhysicalAttack: 8,
+    basePhysicalDefense: 7,
+    baseVitality: 22,
     element: 'fire',
     id: '33333333-3333-4333-8333-333333333333',
     name: 'Brasa',
@@ -92,8 +97,10 @@ const DEVICE: EquippedDevice = {
 const BACKPACK_ITEM: InventoryItem = {
   category: 'material',
   description: 'Pata de uma criatura derrotada.',
+  isStoreItem: false,
   itemId: '66666666-6666-4666-8666-666666666666',
   name: 'Pata de Criatura',
+  price: 0,
   quantity: 3,
   slug: 'pata-de-criatura',
 };

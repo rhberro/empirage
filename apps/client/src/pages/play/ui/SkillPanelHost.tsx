@@ -28,7 +28,7 @@ export function SkillPanelHost(props: SkillPanelHostProps): ReactElement | null 
   }
   if (isAbilitySlot(slot)) {
     return (
-      <SkillPanelOverlay>
+      <SkillPanelOverlay align="left">
         <SkillSelectionPanel
           entries={panel.abilityEntries}
           onSelect={panel.selectAbility}
@@ -39,7 +39,7 @@ export function SkillPanelHost(props: SkillPanelHostProps): ReactElement | null 
   }
   if (isConsumableSlot(slot)) {
     return (
-      <SkillPanelOverlay>
+      <SkillPanelOverlay align="center">
         <ConsumableSelectionPanel
           entries={panel.consumableEntries}
           onSelect={panel.selectConsumable}
@@ -51,7 +51,7 @@ export function SkillPanelHost(props: SkillPanelHostProps): ReactElement | null 
     );
   }
   return (
-    <SkillPanelOverlay>
+    <SkillPanelOverlay align="right">
       <DeviceSelectionPanel entries={panel.deviceEntries} onSelect={panel.selectDevice} />
     </SkillPanelOverlay>
   );

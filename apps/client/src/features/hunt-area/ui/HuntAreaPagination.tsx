@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { NativeButton } from '~/shared/ui/button';
 import { Text } from '~/shared/ui/text';
 
-const PAGE_BUTTON_SIZE = '36px';
+const PAGE_BUTTON_SIZE = '2.25rem';
 
 type HuntAreaPaginationProps = {
   current: number;

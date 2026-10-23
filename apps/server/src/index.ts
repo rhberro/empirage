@@ -13,11 +13,14 @@ import {
   createRequestContext,
 } from '~/router';
 import { createAuthRoutes } from '~/routes/auth';
+import { createBackpackRoutes } from '~/routes/backpack';
+import { createCreatureRoutes } from '~/routes/creatures';
 import { createGearSlotRoutes } from '~/routes/gearSlots';
 import { createHealthRoutes } from '~/routes/health';
 import { createHuntAreaRoutes } from '~/routes/huntAreas';
 import { createLoadoutRoutes } from '~/routes/loadout';
 import { createPlayerRoutes } from '~/routes/player';
+import { createSpeciesRoutes } from '~/routes/species';
 import { createStarterRoutes } from '~/routes/starters';
 import { createStoreRoutes } from '~/routes/store';
 import { createTeamRoutes } from '~/routes/team';
@@ -84,6 +87,8 @@ const deps: ServerDependencies = {
 };
 const routes = createTrainerRoutes(deps)
   .concat(createStarterRoutes(deps))
+  .concat(createSpeciesRoutes(deps))
+  .concat(createCreatureRoutes(deps))
   .concat(createPlayerRoutes(deps))
   .concat(createTeamRoutes(deps))
   .concat(createAuthRoutes(deps))
@@ -91,6 +96,7 @@ const routes = createTrainerRoutes(deps)
   .concat(createLoadoutRoutes(deps))
   .concat(createGearSlotRoutes(deps))
   .concat(createStoreRoutes(deps))
+  .concat(createBackpackRoutes(deps))
   .concat(createWsTicketRoutes(deps))
   .concat(createHealthRoutes());
 const middlewares = [

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { CreatureAbility } from '@creatures/contracts/creature';
 import type { InventoryItem } from '@creatures/contracts/inventory';
 import type { PlayerState } from '@creatures/contracts/player';
@@ -82,9 +83,16 @@ function buildAbilityMapper(
     const requirement = readMinimumLevel(ability);
     const level = readCreatureLevel(state);
     const unavailable = requirement !== null && level < requirement;
+    const description =
+      ability.description !== undefined && ability.description.trim() !== ''
+        ? ability.description
+        : `${ability.element} · ${ability.damage} de dano`;
     return {
-      description: null,
+      cooldownMs: ability.cooldownMs,
+      damage: ability.damage,
+      description,
       disabled: unavailable,
+      element: ability.element,
       id: ability.abilityId,
       kind: 'ability',
       name: ability.name,

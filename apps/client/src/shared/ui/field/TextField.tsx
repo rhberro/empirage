@@ -38,7 +38,7 @@ function TextInput(props: TextFieldProps): ReactElement {
         color="fg"
         focusVisibleRing="outside"
         fontSize="md"
-        height="38px"
+        height="2.375rem"
         paddingInlineEnd={field.endPadding}
         ref={field.inputRefCallback}
         value={field.shownValue}

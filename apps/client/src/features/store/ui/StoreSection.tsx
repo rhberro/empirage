@@ -53,10 +53,10 @@ function StoreSlotCell(props: StoreSlotCellProps): ReactElement {
   return (
     <StoreSlot
       category={item.category}
+      description={item.description}
       isSelected={selected}
       name={item.name}
       value={item.price}
-      valueLabel="Valor de compra por unidade"
       onSelect={onSelectItem}
     />
   );

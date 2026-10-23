@@ -4,6 +4,10 @@ import { type ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { readCreatureName } from '~/entities/team';
 
 export type StorageState = {
+  /** Clears the mark: a click anywhere outside the slot removes the highlight. */
+  clearSelection(): void;
+  /** Clears the search and the selection. */
+  reset(): void;
   /** The captured creatures the search shows, in the order of the capture. */
   captured: Creature[];
   handleSearchChange(event: ChangeEvent<HTMLInputElement>): void;
@@ -40,6 +44,15 @@ export function useStorage(creatures: Creature[]): StorageState {
     setSelectedId(creatureId);
   }, []);
 
+  const clearSelection = useCallback(function clearSelectedCreature(): void {
+    setSelectedId(null);
+  }, []);
+
+  const reset = useCallback(function resetStorage(): void {
+    setSearch('');
+    setSelectedId(null);
+  }, []);
+
   const term = normalize(search);
   const captured = useMemo(
     function filterCaptured(): Creature[] {
@@ -55,8 +68,10 @@ export function useStorage(creatures: Creature[]): StorageState {
 
   return {
     captured,
+    clearSelection,
     handleSearchChange,
     isSearching: term !== '',
+    reset,
     search,
     select,
     selectedId,

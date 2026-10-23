@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import {
   requestAddToTeam,
+  requestReleaseCreature,
   requestRemoveFromTeam,
   requestReorderTeam,
 } from '~/entities/team/api/team';
@@ -67,6 +68,7 @@ export function useTeam(deps?: ApiDeps, enabled = true): TeamView {
     backpack: state?.backpack ?? [],
     error: readTeamErrorMessage(error),
     isLoading,
+    releaseCreature: teamCommands.releaseCreature,
     removeFromTeam: teamCommands.removeFromTeam,
     reorderTeam: teamCommands.reorderTeam,
     storage: roster.storage,
@@ -86,6 +88,7 @@ const CLOSED_VIEW: TeamView = {
   backpack: [],
   error: null,
   isLoading: false,
+  releaseCreature: noopCommand,
   removeFromTeam: noopCommand,
   reorderTeam: noopCommand,
   storage: [],
@@ -114,6 +117,7 @@ function useTeamExpiry(commands: TeamCommand[]): void {
 
 type TeamCommands = {
   addToTeam(creatureId: string): Promise<void>;
+  releaseCreature(creatureId: string): Promise<void>;
   removeFromTeam(creatureId: string): Promise<void>;
   reorderTeam(order: string[]): Promise<void>;
 };
@@ -159,7 +163,19 @@ function useTeamCommands(deps: ApiDeps): TeamCommands {
     [deps],
   );
 
-  return { addToTeam, removeFromTeam, reorderTeam };
+  const releaseCreature = useCallback(
+    function releaseCreature(creatureId: string): Promise<void> {
+      const command: TeamCommand = { creatureId, kind: 'release' };
+      const expectedRev = readAppliedRevision();
+      teamStore.getState().addCommand(command);
+      return requestReleaseCreature(deps, creatureId).then(
+        handleCommandResult(command, expectedRev),
+      );
+    },
+    [deps],
+  );
+
+  return { addToTeam, releaseCreature, removeFromTeam, reorderTeam };
 }
 
 /**

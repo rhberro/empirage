@@ -12,7 +12,7 @@ const TITLE = 'Lista de Treinadores';
 const ENTER_LABEL = 'Entrar';
 const SIGN_OUT_LABEL = 'Sair da conta';
 const MAX_TRAINERS = 5;
-const PANEL_WIDTH = '420px';
+const PANEL_WIDTH = '26.25rem';
 
 type TrainersPanelProps = {
   error?: ReactElement | null;

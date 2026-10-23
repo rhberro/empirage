@@ -17,6 +17,13 @@ if (!rootEl) {
 
 getAuthStore();
 
+function preventGestureStart(event: Event): void {
+  event.preventDefault();
+}
+
+// Desliga o zoom por gesto (pinch) no iOS, que às vezes escapa do touch-action.
+document.addEventListener('gesturestart', preventGestureStart);
+
 createRoot(rootEl).render(
   <StrictMode>
     <ChakraProvider value={system}>

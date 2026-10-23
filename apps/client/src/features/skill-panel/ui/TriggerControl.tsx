@@ -1,9 +1,8 @@
-import { Box } from '@chakra-ui/react';
+import { Box, NumberInput } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
+import { StoreQuantityButton } from '~/features/store/ui/StoreQuantityButton';
 import { Text } from '~/shared/ui/text';
-
-import { TriggerButton } from './TriggerButton';
 
 const TRIGGER_STEP = 5;
 const MIN_TRIGGER = 5;
@@ -14,16 +13,10 @@ type TriggerControlProps = {
   percent: number;
 };
 
-/**
- * The life that triggers the consumable of the slot.
- *
- * The percentage is what the creature watches: below it, the consumable is
- * used. The control shows the number and lets the player move it.
- */
+// eslint-disable-next-line max-lines-per-function
 export function TriggerControl(props: TriggerControlProps): ReactElement {
   const { onChange, percent } = props;
-  const percentage = `${percent}%`;
-  const fillWidth = `${percent}%`;
+  const valueText = String(percent);
 
   function decrease(): void {
     onChange(clamp(percent - TRIGGER_STEP));
@@ -33,21 +26,48 @@ export function TriggerControl(props: TriggerControlProps): ReactElement {
     onChange(clamp(percent + TRIGGER_STEP));
   }
 
+  function handleChange(details: { valueAsNumber: number }): void {
+    if (!Number.isNaN(details.valueAsNumber)) {
+      onChange(clamp(details.valueAsNumber));
+    }
+  }
+
   return (
-    <Box bg="bg.sunken" borderRadius="sm" boxShadow="recessed" padding="2">
+    <Box alignItems="center" display="flex" gap="3" justifyContent="space-between" width="full">
       <Text color="fg.muted" variant="meta">
         Usar quando a vida for menor que
       </Text>
-      <Box alignItems="center" display="flex" gap="2" marginBlockStart="1">
-        <TriggerButton label="−" onPress={decrease} />
-        <Text color="fg" minW="42px" textAlign="center" variant="numeric">
-          {percentage}
-        </Text>
-        <TriggerButton label="+" onPress={increase} />
-        <Box bg="border" flex="1" height="4px">
-          <Box bg="accent.arcane" height="100%" width={fillWidth} />
+      <NumberInput.Root
+        allowOverflow={false}
+        max={MAX_TRIGGER}
+        min={MIN_TRIGGER}
+        onValueChange={handleChange}
+        step={TRIGGER_STEP}
+        value={valueText}
+      >
+        <Box alignItems="center" display="flex" gap="1">
+          <StoreQuantityButton aria-label="Diminuir" onClick={decrease}>
+            <Text variant="label">−</Text>
+          </StoreQuantityButton>
+          <NumberInput.Input
+            aria-label="Gatilho de vida"
+            bg="bg.sunken"
+            borderColor="border"
+            borderRadius="sm"
+            borderWidth="1px"
+            color="fg"
+            focusVisibleRing="outside"
+            fontSize="sm"
+            height="2rem"
+            paddingInline="2"
+            textAlign="center"
+            width="4.5rem"
+          />
+          <StoreQuantityButton aria-label="Aumentar" onClick={increase}>
+            <Text variant="label">+</Text>
+          </StoreQuantityButton>
         </Box>
-      </Box>
+      </NumberInput.Root>
     </Box>
   );
 }

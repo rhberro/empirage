@@ -1,4 +1,5 @@
 export * from './auth';
+export * from './attributes';
 export * from './creature';
 export * from './game';
 export * from './hunt';

@@ -6,8 +6,9 @@ import type { ReactNode } from 'react';
  * - **filled**: there is content, and it takes the whole width and height of
  *   the slot;
  * - **selected**: the slot was clicked. It shows the **border** of the
- *   selected state (one pixel, inside the slot) **and** the corner bracket at
- *   the top left. The border is a real border, not an outline, so it does not
+ *   selected state (two pixels, drawn on top of the content, so the art
+ *   meets it at every corner) **and** the corner bracket at the top left.
+ *   The border is a real border, not an outline, so it does not
  *   fight the outline of the keyboard focus, which lives outside the element.
  *   It does **not** mean the creature is in the team nor that it is the active
  *   one — that is the domain, not the slot;

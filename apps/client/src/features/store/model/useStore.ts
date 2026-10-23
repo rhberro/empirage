@@ -2,11 +2,15 @@ import type { StoreCatalog } from '@creatures/contracts/store';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { StoreView } from '~/features/store/model/store.types';
+import { buildPurchaseAlert, buildSaleAlert } from '~/features/store/model/storeAlerts';
+import { computeQuantityLimit } from '~/features/store/model/storeQuantity';
 import { isItemOwned, resolveSaleTotal, type StoreSale } from '~/features/store/model/storeSale';
 import { useStoreCatalog } from '~/features/store/model/useStoreCatalog';
 import { useStoreQuantity } from '~/features/store/model/useStoreQuantity';
 import { computeStoreTotal, useStoreSelection } from '~/features/store/model/useStoreSelection';
 import type { StoreOutcome } from '~/shared/api';
+import { useAlerts } from '~/shared/ui/alert';
+import type { AlertInput } from '~/shared/ui/alert';
 
 /**
  * The state of the store modal.
@@ -26,11 +30,13 @@ export function useStore(
 ): StoreView {
   const catalog = useStoreCatalog(isOpen, snapshot);
   const selection = useStoreSelection();
-  const quantity = useStoreQuantity();
+  const limit = useStoreQuantityLimit(catalog, selection);
+  const quantity = useStoreQuantity(limit);
+  const { show } = useAlerts();
   const [sale, setSale] = useState<StoreSale | null>(null);
   const resetAfterCommand = useStoreReset(selection, quantity);
-  const buy = useStoreBuy(catalog, selection, quantity, resetAfterCommand);
-  const sell = useStoreSell(catalog, selection, quantity, setSale);
+  const buy = useStoreBuy(catalog, selection, quantity, resetAfterCommand, show);
+  const sell = useStoreSell(catalog, selection, quantity, setSale, show);
   const close = useStoreClose(selection, quantity, setSale, onClose);
   const select = useStoreSelect(selection, quantity);
   const setTab = useStoreTabChange(selection, quantity, setSale);
@@ -39,6 +45,7 @@ export function useStore(
     bag: catalog.bag,
     buy,
     catalog: catalog.catalog,
+    clearSelection: selection.clearSelection,
     close,
     commitQuantity: quantity.commitQuantity,
     error: catalog.error,
@@ -46,11 +53,13 @@ export function useStore(
     isBusy: catalog.isBusy,
     isLoading: catalog.isLoading,
     quantity: quantity.quantity,
+    quantityLimit: limit,
     quantityText: quantity.quantityText,
     select,
     selectedBagItemId: selection.selectedBagItemId,
     selectedItemId: selection.selectedItemId,
     sell,
+    setMaxQuantity: quantity.setMaxQuantity,
     setTab,
     stepQuantity: quantity.stepQuantity,
     tab: selection.tab,
@@ -64,6 +73,32 @@ type SelectionView = ReturnType<typeof useStoreSelection>;
 type QuantityView = ReturnType<typeof useStoreQuantity>;
 
 /**
+ * The limit of the quantity: what the player can afford, or what he has.
+ */
+function useStoreQuantityLimit(catalog: CatalogView, selection: SelectionView): number {
+  return useMemo(
+    function readLimit(): number {
+      return computeQuantityLimit(
+        selection.tab,
+        catalog.catalog,
+        catalog.bag,
+        selection.selectedItemId,
+        selection.selectedBagItemId,
+        catalog.gold,
+      );
+    },
+    [
+      catalog.bag,
+      catalog.catalog,
+      catalog.gold,
+      selection.selectedBagItemId,
+      selection.selectedItemId,
+      selection.tab,
+    ],
+  );
+}
+
+/**
  * The buy: the click buys the selected item, and the selection goes away.
  */
 function useStoreBuy(
@@ -71,6 +106,7 @@ function useStoreBuy(
   selection: SelectionView,
   quantity: QuantityView,
   resetAfterCommand: () => void,
+  show: (input: AlertInput) => string,
 ): () => void {
   return useCallback(
     function buySelected(): void {
@@ -78,11 +114,19 @@ function useStoreBuy(
       if (itemId === null) {
         return;
       }
-      catalog.buy(itemId, quantity.quantity, function afterBuy(): void {
+      const item = catalog.catalog.find(function matches(entry: { id: string }): boolean {
+        return entry.id === itemId;
+      });
+      if (item === undefined) {
+        return;
+      }
+      const bought = quantity.quantity;
+      catalog.buy(itemId, bought, function afterBuy(): void {
         resetAfterCommand();
+        show(buildPurchaseAlert(item.name, bought));
       });
     },
-    [catalog, quantity.quantity, resetAfterCommand, selection],
+    [catalog, quantity.quantity, resetAfterCommand, selection, show],
   );
 }
 
@@ -99,6 +143,7 @@ function useStoreSell(
   selection: SelectionView,
   quantity: QuantityView,
   onSold: (sale: StoreSale) => void,
+  show: (input: AlertInput) => string,
 ): () => void {
   return useCallback(
     function sellSelected(): void {
@@ -119,9 +164,10 @@ function useStoreSell(
           quantity.reset();
         }
         onSold({ itemId: item.itemId, quantity: sold, total: outcome.total });
+        show(buildSaleAlert(item.name, sold));
       });
     },
-    [catalog, onSold, quantity, selection],
+    [catalog, onSold, quantity, selection, show],
   );
 }
 

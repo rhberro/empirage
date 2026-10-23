@@ -7,10 +7,10 @@ import { PasswordVisibilityButton } from './PasswordVisibilityButton';
 import { usePasswordField } from './usePasswordField';
 import { useTextField } from './useTextField';
 
-const FIELD_HEIGHT = '38px';
-const PADDING_WITH_TOGGLE = '44px';
-const PADDING_WITH_CLEAR_AND_TOGGLE = '76px';
-const CLEAR_OFFSET = '48px';
+const FIELD_HEIGHT = '2.375rem';
+const PADDING_WITH_TOGGLE = '2.75rem';
+const PADDING_WITH_CLEAR_AND_TOGGLE = '4.75rem';
+const CLEAR_OFFSET = '3rem';
 
 /**
  * O campo de senha.

@@ -54,8 +54,11 @@ export function mapHuntAreaItem(row: HuntAreaItemRow): HuntAreaItem | null {
   }
   return {
     category: item.category,
+    description: item.description,
+    isStoreItem: item.is_store_item,
     itemId: item.id,
     name: item.name,
+    price: item.price,
     slug: item.slug,
     tone: itemTone(item.category),
   };

@@ -11,6 +11,13 @@ type GenderToggleProps = {
 
 const GENDER_LABEL = 'Gênero';
 
+/**
+ * Largura mínima comum aos dois itens: o rótulo mais longo (MASCULINO)
+ * precisa de ≈7.6rem com o padding atual — o 8rem iguala as pílulas em
+ * qualquer escala, porque aquí tudo (rótulo, padding e largura) é rem.
+ */
+const ITEM_MIN_WIDTH = '8rem';
+
 const ITEM_STYLE = {
   '& input': {
     ...visuallyHiddenStyle,
@@ -31,7 +38,7 @@ function renderItem(gender: Gender): ReactElement {
  * O `SegmentGroup` do Chakra cuida da parte difícil: o papel de radio, a
  * navegação pelas setas e o estado marcado. O que é do projeto — o fundo
  * afundado, o item selecionado em cima, a tipografia de rótulo e o alvo de
- * toque de 44px — continua aqui, no mesmo desenho do toggle anterior.
+ * toque de 2.75rem — continua aqui, no mesmo desenho do toggle anterior.
  */
 export function GenderToggle(props: GenderToggleProps): ReactElement {
   const { onChange, value } = props;
@@ -75,6 +82,7 @@ function GenderItem(props: GenderItemProps): ReactElement {
     <SegmentGroup.Item
       borderRadius="xs"
       css={ITEM_STYLE}
+      minW={ITEM_MIN_WIDTH}
       paddingBlock="2"
       paddingInline="5"
       value={gender}

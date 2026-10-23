@@ -6,7 +6,7 @@ import { ScrollArea } from '~/shared/ui/scroll';
 
 import { PanelCard } from './PanelCard';
 
-const LIST_MAX_HEIGHT = '300px';
+const LIST_MAX_HEIGHT = '18.75rem';
 
 type PanelListProps = {
   entries: PanelCardEntry[];

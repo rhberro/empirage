@@ -24,6 +24,8 @@ export type {
 } from './endpoints/trainer';
 export { requestStarterList } from './endpoints/starter';
 export type { StarterListResult } from './endpoints/starter';
+export { requestSpecies } from './endpoints/species';
+export type { SpeciesResult } from './endpoints/species';
 export { requestPlayerState, requestSessionTrainer } from './endpoints/player';
 export type {
   PlayerStateResult,
@@ -50,8 +52,11 @@ export type {
   StoreCommandResult,
   StoreOutcome,
 } from './endpoints/store';
+export { requestDestroyItem } from './endpoints/backpack';
+export type { DestroyItemClientErrorCode, DestroyItemCommandResult } from './endpoints/backpack';
 export { TRAINERS_QUERY_KEY, trainersQueryOptions } from './queries/trainerQueries';
 export { STARTERS_QUERY_KEY, startersQueryOptions } from './queries/starterQueries';
+export { SPECIES_QUERY_KEY, speciesQueryOptions } from './queries/speciesQueries';
 export {
   HUNT_AREAS_QUERY_KEY,
   huntAreaListQueryOptions,

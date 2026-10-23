@@ -1,6 +1,7 @@
 import type { PlayerState } from '@creatures/contracts/player';
 import type { SkillSlot } from '@creatures/contracts/skill';
 import type { ReactElement, ReactNode } from 'react';
+import { useState } from 'react';
 
 import type { CreatureSlot, StaminaGauge } from '~/widgets/game-hud';
 import { PlayButton, ShopButton, SkillBar, TeamStrip } from '~/widgets/game-hud';
@@ -43,6 +44,7 @@ export function GameHud(props: GameHudProps): ReactElement {
     state,
   } = props;
   const stamina = buildStamina(state);
+  const [skillBarCollapsed, setSkillBarCollapsed] = useState<boolean>(false);
   return (
     <>
       <TeamStrip
@@ -53,15 +55,17 @@ export function GameHud(props: GameHudProps): ReactElement {
         onSelect={onSelectCreature}
       />
       <PlayButton onClick={onStartHunt} />
-      <ShopButton onClick={onOpenStore} />
       <SkillBar
+        collapsed={skillBarCollapsed}
         equippedAbilities={state.equippedAbilities}
         equippedConsumables={state.equippedConsumables}
         equippedDevice={state.equippedDevice}
         openSlot={openSlot}
+        shopButton={<ShopButton onClick={onOpenStore} />}
         stamina={stamina}
         vitals={state.activeVitals}
         onSlotPress={onOpenSlot}
+        onToggle={setSkillBarCollapsed}
       >
         {panel}
       </SkillBar>

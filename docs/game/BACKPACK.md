@@ -79,7 +79,9 @@ Quando a busca não encontra nenhum item, o corpo do modal exibe a mensagem **Ne
 
 ### Popup do Item
 
-Ao passar o cursor sobre um item, é exibido um popup com informações dele, seguindo o comportamento padrão de [popup](INTERFACE.md#popup) da interface. Por enquanto o popup exibe apenas o **nome do item**, e exibirá mais informações no futuro.
+Ao passar o cursor sobre um item, é exibido um popup com informações dele, seguindo o comportamento padrão de [popup](INTERFACE.md#popup) da interface. O popup mostra o **nome do item**, o que ele **faz** e o **valor** dele na loja — o preço só aparece quando a loja negocia o item, porque um drop que o treinador vende na loja não tem preço de compra.
+
+O clique no item **não tem efeito nenhum**: o item da mochila é só consultado.
 
 ## Comportamento
 

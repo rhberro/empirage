@@ -33,7 +33,7 @@ function renderTypeSample(sample: TypeSample): ReactElement {
       key={sample.style}
       paddingBlock="3"
     >
-      <Box width="140px">
+      <Box width="8.75rem">
         <Text color="fg.subtle" variant="meta">
           {sample.label}
         </Text>

@@ -6,7 +6,7 @@ import { Text } from '~/shared/ui/text';
 
 export function ItemDetailPopup(): ReactElement {
   return (
-    <Box width="240px">
+    <Box width="15rem">
       <Box
         bg="bg.panel"
         borderColor="border.emphasized"

@@ -23,8 +23,13 @@ export type HuntAreaSpecies = {
  */
 export type HuntAreaItem = {
   category: ItemCategory;
+  description: string;
   itemId: string;
+  /** Whether the store of the NPC sells the item. */
+  isStoreItem: boolean;
   name: string;
+  /** The price of the item in the store of the NPC. */
+  price: number;
   slug: string;
   tone: HuntAreaTone;
 };

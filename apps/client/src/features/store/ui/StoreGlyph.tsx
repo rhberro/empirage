@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 
 import { IconChest, IconPotion, IconPrism } from '~/shared/ui/icon';
 
-const ICON_SIZE = '24px';
+const ICON_SIZE = '1.5rem';
 
 const CATEGORY_COLORS: Record<ItemCategory, string> = {
   consumable: 'element.plant',

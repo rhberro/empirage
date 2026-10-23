@@ -5,7 +5,7 @@ import { IconCoin, IconGem } from '~/shared/ui/icon';
 import { Text } from '~/shared/ui/text';
 import type { CurrencyLabel } from '~/widgets/game-hud/model/toolbar.types';
 
-const BADGE_HEIGHT = '44px';
+const BADGE_HEIGHT = '2.75rem';
 
 type CurrencyBadgeProps = {
   amount: number;

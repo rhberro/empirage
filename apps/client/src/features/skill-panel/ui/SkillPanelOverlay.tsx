@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { skillPanelStore } from '~/features/skill-panel/model/skillPanelStore';
 
 type SkillPanelOverlayProps = {
+  align?: 'left' | 'center' | 'right';
   children: ReactNode;
 };
 
@@ -19,8 +20,9 @@ type SkillPanelOverlayProps = {
  * outside and by the ESC. The click inside never closes it — the player is
  * choosing, and the choice is what the panel is for.
  */
+// eslint-disable-next-line max-lines-per-function
 export function SkillPanelOverlay(props: SkillPanelOverlayProps): ReactElement {
-  const { children } = props;
+  const { align = 'center', children } = props;
   const panelRef = useRef<HTMLDivElement | null>(null);
   const openSlotRef = useRef<SkillSlot | null>(null);
 
@@ -51,14 +53,20 @@ export function SkillPanelOverlay(props: SkillPanelOverlayProps): ReactElement {
     };
   }, []);
 
+  const horizontal =
+    align === 'left'
+      ? { left: '0', transform: 'none' }
+      : align === 'right'
+        ? { right: '0', transform: 'none' }
+        : { left: '50%', transform: 'translateX(-50%)' };
   return (
     <Box
       ref={panelRef}
-      bottom="calc(100% + 8px)"
-      left="50%"
+      bottom="calc(100% + 0.5rem)"
+      maxHeight="calc(100dvh - 8rem)"
       position="absolute"
-      transform="translateX(-50%)"
       zIndex="10"
+      {...horizontal}
     >
       {children}
     </Box>

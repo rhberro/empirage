@@ -15,7 +15,7 @@ const GENDER_LABELS = {
   male: 'Masculino',
 } as const;
 
-const AVATAR_SIZE = '36px';
+const AVATAR_SIZE = '2.25rem';
 
 type TrainerCardProps = {
   isSelected: boolean;
@@ -45,7 +45,7 @@ export function TrainerCard(props: TrainerCardProps): ReactElement {
       <Pressable onPress={handleSelect} radius="sm" width="full">
         {body}
       </Pressable>
-      <Box position="absolute" right="6px" top="50%" transform="translateY(-50%)">
+      <Box position="absolute" right="0.375rem" top="50%" transform="translateY(-50%)">
         <IconButton
           label={deleteLabel}
           onClick={handleDelete}
@@ -80,7 +80,7 @@ function TrainerCardBody(props: TrainerCardBodyProps): ReactElement {
       display="flex"
       gap="3"
       p="2"
-      paddingInlineEnd="48px"
+      paddingInlineEnd="3rem"
       position="relative"
       transitionProperty="box-shadow"
       transitionDuration="150ms"

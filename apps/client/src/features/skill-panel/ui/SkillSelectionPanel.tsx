@@ -28,7 +28,9 @@ export function SkillSelectionPanel(props: SkillSelectionPanelProps): ReactEleme
   const subtitle = `Seleciona a habilidade para o slot ${slot + 1}.`;
   const content =
     entries.length === 0 ? (
-      <PanelState title={EMPTY_MESSAGE} variant="empty" />
+      <Box height="18.75rem">
+        <PanelState title={EMPTY_MESSAGE} variant="empty" />
+      </Box>
     ) : (
       <PanelList entries={entries} onSelect={onSelect} />
     );

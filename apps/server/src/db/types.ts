@@ -38,7 +38,7 @@ export type CreatureRow = {
   level: number;
   nickname: string | null;
   potential: unknown;
-  species: SpeciesSummaryRow | SpeciesSummaryRow[] | null;
+  species: CreatureSpeciesRow | CreatureSpeciesRow[] | null;
   species_id: string;
   team_slot: number | null;
   trainer_id: string;
@@ -51,6 +51,20 @@ export type SpeciesSummaryRow = {
   slug: string;
 };
 
+/**
+ * The species of a creature, with the values of base.
+ *
+ * A creature carries the BVs of its species because the interface shows the
+ * calculated attributes, and the calculation needs the base value.
+ */
+export type CreatureSpeciesRow = SpeciesSummaryRow & {
+  base_magic_attack: number;
+  base_magic_defense: number;
+  base_physical_attack: number;
+  base_physical_defense: number;
+  base_vitality: number;
+};
+
 export type TrainerItemRow = {
   item_id: string;
   items: ItemRow | ItemRow[] | null;
@@ -61,13 +75,16 @@ export type ItemRow = {
   category: ItemCategory;
   description: string;
   id: string;
+  is_store_item: boolean;
   name: string;
+  price: number;
   slug: string;
 };
 
 export type CreatureAbilityFields = {
   cooldown_ms: number;
   damage: number;
+  description?: string;
   element: Element;
   id: string;
   name: string;

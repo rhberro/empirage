@@ -4,7 +4,7 @@ import { LayerRoot } from '~/shared/ui/layer';
 
 import type { DialogProps } from './dialog.types';
 
-const DIALOG_WIDTH = '420px';
+const DIALOG_WIDTH = '26.25rem';
 
 /**
  * O dialogo de confirmacao.

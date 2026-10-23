@@ -22,6 +22,25 @@ export type SpeciesSummary = {
 };
 
 /**
+ * The species of a creature, with the values of base (BVs).
+ *
+ * Os BVs vem junto porque a interface mostra os atributos calculados da
+ * criatura, e o calculo precisa do valor base da especie.
+ */
+export type CreatureSpecies = SpeciesSummary & {
+  /** The base value of the magic attack of the species. */
+  baseMagicAttack: number;
+  /** The base value of the magic defense of the species. */
+  baseMagicDefense: number;
+  /** The base value of the physical attack of the species. */
+  basePhysicalAttack: number;
+  /** The base value of the physical defense of the species. */
+  basePhysicalDefense: number;
+  /** The base value of the vitality of the species. */
+  baseVitality: number;
+};
+
+/**
  * A creature: one individual of a species, owned by a trainer.
  *
  * The values that change over the creature's life are the potential and the
@@ -37,7 +56,7 @@ export type Creature = {
   level: number;
   nickname: string | null;
   potential: Potential;
-  species: SpeciesSummary;
+  species: CreatureSpecies;
   speciesId: string;
   teamSlot: number | null;
   trainerId: string;
@@ -53,6 +72,7 @@ export type CreatureAbility = {
   abilityId: string;
   cooldownMs: number;
   damage: number;
+  description?: string;
   element: Element;
   name: string;
   slot: number;

@@ -30,7 +30,7 @@ const IS_MOBILE = { base: true, md: false };
  * column and let the content reflow instead of forcing a horizontal scroll.
  */
 const CONTENT_LAYOUT = {
-  '@media (max-width: 767.98px)': {
+  '@media (max-width: 47.9988rem)': {
     '& *': { maxWidth: '100%', minWidth: 0 },
   },
   padding: { base: '4', md: '10' },
@@ -64,7 +64,7 @@ export function DesignSystemPage(): ReactElement {
       <TopBar isMobile={isMobile} onOpenRail={openRail} />
       <Box alignItems="flex-start" display="flex">
         <SideRail isMobile={isMobile} isOpen={isRailOpen} onClose={closeRail} />
-        <Box css={CONTENT_LAYOUT} flex="1" marginInline="auto" maxW="1240px" minW="0" width="100%">
+        <Box css={CONTENT_LAYOUT} flex="1" marginInline="auto" maxW="77.5rem" minW="0" width="100%">
           <ColorFoundations />
           <TypeFoundations />
           <SurfacesSection />

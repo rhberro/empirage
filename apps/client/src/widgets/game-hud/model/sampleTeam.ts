@@ -1,4 +1,4 @@
-import type { Creature, SpeciesSummary } from '@creatures/contracts/creature';
+import type { Creature, CreatureSpecies } from '@creatures/contracts/creature';
 import type { CreatureAbility } from '@creatures/contracts/creature';
 import type {
   CreatureVitals,
@@ -25,21 +25,51 @@ export const TEAM_SLOTS: CreatureSlot[] = [
     level: 33,
     nickname: 'Fagulha',
     slot: 1,
-    species: { element: 'fire', id: 'species-c1', name: 'Cinzarra', slug: 'cinzarra' },
+    species: {
+      baseMagicAttack: 4,
+      baseMagicDefense: 2,
+      basePhysicalAttack: 8,
+      basePhysicalDefense: 7,
+      baseVitality: 22,
+      element: 'fire',
+      id: 'species-c1',
+      name: 'Cinzarra',
+      slug: 'cinzarra',
+    },
   }),
   buildSampleCreature({
     id: 'c2',
     level: 14,
     nickname: null,
     slot: 2,
-    species: { element: 'plant', id: 'species-c2', name: 'Brotus', slug: 'brotus' },
+    species: {
+      baseMagicAttack: 4,
+      baseMagicDefense: 2,
+      basePhysicalAttack: 8,
+      basePhysicalDefense: 7,
+      baseVitality: 22,
+      element: 'plant',
+      id: 'species-c2',
+      name: 'Brotus',
+      slug: 'brotus',
+    },
   }),
   buildSampleCreature({
     id: 'c3',
     level: 8,
     nickname: 'Gotinho',
     slot: 3,
-    species: { element: 'water', id: 'species-c3', name: 'Gotim', slug: 'gotim' },
+    species: {
+      baseMagicAttack: 4,
+      baseMagicDefense: 2,
+      basePhysicalAttack: 8,
+      basePhysicalDefense: 7,
+      baseVitality: 22,
+      element: 'water',
+      id: 'species-c3',
+      name: 'Gotim',
+      slug: 'gotim',
+    },
   }),
   null,
   null,
@@ -154,7 +184,7 @@ type SampleCreatureInput = {
   level: number;
   nickname: string | null;
   slot: number;
-  species: SpeciesSummary;
+  species: CreatureSpecies;
 };
 
 function buildSampleCreature(input: SampleCreatureInput): Creature {

@@ -1,7 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
-const BRACKET_SIZE = '14px';
+const BRACKET_SIZE = '0.875rem';
 
 /**
  * The mark of a slot that was clicked.

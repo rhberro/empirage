@@ -23,7 +23,7 @@ export function CreateTrainerCard(props: CreateTrainerCardProps): ReactElement {
       cursor="pointer"
       display="flex"
       justifyContent="center"
-      minH="76px"
+      minH="4.75rem"
       padding="2"
       transitionProperty="background-color, border-color, color"
       transitionDuration="150ms"

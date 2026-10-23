@@ -68,6 +68,8 @@ Uma área alinhada à direita. Antes dos botões ficam os totais das duas moedas
 
 > O botão da extrema direita é o de **Configurações**, e ele abre um menu com duas ações: **"Trocar treinador"**, que desconecta o treinador do serviço e leva o jogador de volta para a [tela de lista de treinadores](AUTHENTICATION.md#tela-de-lista-de-treinadores), e **"Sair da conta"**, que encerra a sessão conforme descrito na [sessão](AUTHENTICATION.md#sessão), e é a mesma ação do botão "Sair da conta" da tela de lista de treinadores. O comportamento da desconexão está em [conexão e atividade idle](#conexão-e-atividade-idle).
 
+> O menu é **centralizado na tela**, e não um menu no canto do botão: o menu de um jogo é um *pausing*, e ele centraliza. As ações são grandes e gravadas, como as de um menu de jogo clássico.
+
 > "Trocar treinador" não encerra a sessão: a conta continua autenticada, e o jogador volta apenas para a lista de treinadores. Quem quer encerrar a sessão usa "Sair da conta".
 
 ## Linguetas do Time

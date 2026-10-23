@@ -4,17 +4,15 @@ import type { TeamSlot } from '@creatures/contracts/player';
 import type { ReactElement } from 'react';
 
 import { MAX_TEAM_SIZE } from '~/entities/team/model/team.constants';
-import { useCreatureActivation } from '~/entities/team/model/useCreatureActivation';
 import { NativeButton } from '~/shared/ui/button';
-import { Slot } from '~/shared/ui/frame';
-import { PopupGroup } from '~/shared/ui/popup';
+import { SLOT_SIZE, Slot } from '~/shared/ui/frame';
 
 import { CreatureGlyph } from './CreatureGlyph';
-import { CreaturePopup } from './CreaturePopup';
+import { CreatureTrigger } from './CreatureTrigger';
 
-const SLOT_WIDTH = '56px';
-const ROW_HEIGHT = '56px';
+const ROW_HEIGHT = '3.5rem';
 const ACTIVE_STATUS = 'Em campo';
+const REMOVE_LABEL = 'Remover do time';
 
 export type TeamSlotRowProps = {
   /** The creature in the field, the one the row highlights. */
@@ -23,6 +21,10 @@ export type TeamSlotRowProps = {
   isLocked: boolean;
   /** The command that takes a creature out of the team. */
   onRemove(creatureId: string): void;
+  /** The creature the player clicked, the one whose slot is marked. */
+  selectedId?: string | null;
+  /** The click on a slot of the team, that marks the creature as chosen. */
+  onSelect?(creatureId: string): void;
   /** The team, with the slot of each creature. */
   slots: TeamSlot[];
 };
@@ -35,18 +37,14 @@ export type TeamSlotRowProps = {
  * shows the team as it is.
  *
  * The slot carries the mark of the creature and nothing else: the name, the
- * level and the status live in the popup. The double click takes the creature
- * out of the team.
- *
- * The row is the **group of its popups**: one open popup at a time, and
- * clicking a creature closes the popup of the other and opens its own.
+ * level and the attributes live in the popup.
  */
 export function TeamSlotRow(props: TeamSlotRowProps): ReactElement {
-  const { activeCreatureId, isLocked, onRemove, slots } = props;
-  const cells = buildCells(activeCreatureId, isLocked, onRemove, slots);
+  const { activeCreatureId, isLocked, onRemove, onSelect, selectedId, slots } = props;
+  const cells = buildCells(activeCreatureId, isLocked, onRemove, onSelect, selectedId, slots);
   return (
     <Box display="flex" gap="1" height={ROW_HEIGHT}>
-      <PopupGroup>{cells}</PopupGroup>
+      {cells}
     </Box>
   );
 }
@@ -55,6 +53,8 @@ function buildCells(
   activeCreatureId: string | null,
   isLocked: boolean,
   onRemove: (creatureId: string) => void,
+  onSelect: ((creatureId: string) => void) | undefined,
+  selectedId: string | null | undefined,
   slots: TeamSlot[],
 ): ReactElement[] {
   const cells: ReactElement[] = [];
@@ -71,6 +71,8 @@ function buildCells(
         isLocked={isLocked}
         key={key}
         onRemove={onRemove}
+        onSelect={onSelect}
+        selectedId={selectedId}
       />,
     );
   }
@@ -82,13 +84,15 @@ type TeamSlotCellProps = {
   creature: Creature | null;
   isLocked: boolean;
   onRemove(creatureId: string): void;
+  onSelect?: (creatureId: string) => void;
+  selectedId?: string | null;
 };
 
 function TeamSlotCell(props: TeamSlotCellProps): ReactElement {
-  const { activeCreatureId, creature, isLocked, onRemove } = props;
+  const { activeCreatureId, creature, isLocked, onRemove, onSelect, selectedId } = props;
   if (creature === null) {
     return (
-      <Box width={SLOT_WIDTH}>
+      <Box width={SLOT_SIZE}>
         <Slot empty />
       </Box>
     );
@@ -99,6 +103,8 @@ function TeamSlotCell(props: TeamSlotCellProps): ReactElement {
       creature={creature}
       isLocked={isLocked}
       onRemove={onRemove}
+      onSelect={onSelect}
+      selectedId={selectedId}
     />
   );
 }
@@ -108,45 +114,51 @@ type CreatureSlotProps = {
   creature: Creature;
   isLocked: boolean;
   onRemove(creatureId: string): void;
+  onSelect?: (creatureId: string) => void;
+  selectedId?: string | null;
 };
 
 /**
  * The slot of a creature of the team.
  *
- * The double click takes the creature out of the team, and the popup carries
- * what the slot does not show.
+ * O clique abre o menu da criatura, e o menu e onde ela sai do time: o clique
+ * no slot nunca muda o time sozinho. Sair do time vem primeiro, em tom comum,
+ * porque e o que o jogador procura ali; o destructive vem por ultimo,
+ * separado pelo divider.
  */
 function CreatureSlot(props: CreatureSlotProps): ReactElement {
-  const { activeCreatureId, creature, isLocked, onRemove } = props;
+  const { activeCreatureId, creature, isLocked, onRemove, onSelect, selectedId } = props;
   const creatureId = creature.id;
   const isActive = activeCreatureId === creatureId;
+  const isSelected = selectedId === creatureId;
+  const cursor = isLocked ? 'not-allowed' : 'pointer';
 
-  function handleActivate(): void {
+  function handleRemove(): void {
     if (isLocked) {
       return;
     }
     onRemove(creatureId);
   }
 
-  const activation = useCreatureActivation(handleActivate);
-  const cursor = isLocked ? 'not-allowed' : 'pointer';
+  function handleSelect(): void {
+    if (isLocked) {
+      return;
+    }
+    onSelect?.(creatureId);
+  }
+
   const trigger = (
-    <NativeButton
-      cursor={cursor}
-      onClick={activation.handleClick}
-      onDoubleClick={activation.handleDoubleClick}
-      onPointerDown={activation.handlePointerDown}
-      width={SLOT_WIDTH}
-    >
-      <Slot selected={isActive}>
+    <NativeButton cursor={cursor} onClick={handleSelect} width={SLOT_SIZE}>
+      <Slot selected={isSelected}>
         <CreatureGlyph creature={creature} />
       </Slot>
     </NativeButton>
   );
   const status = isActive ? ACTIVE_STATUS : null;
+  const actions = isLocked ? [] : [{ label: REMOVE_LABEL, onSelect: handleRemove }];
   return (
-    <CreaturePopup creature={creature} status={status}>
+    <CreatureTrigger actions={actions} creature={creature} selected={isSelected} status={status}>
       {trigger}
-    </CreaturePopup>
+    </CreatureTrigger>
   );
 }

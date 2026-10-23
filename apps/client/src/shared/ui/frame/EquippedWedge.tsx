@@ -1,7 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
-const WEDGE_SIZE = '12px';
+const WEDGE_SIZE = '0.75rem';
 
 /**
  * The mark of an equipped item.

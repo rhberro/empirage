@@ -3,9 +3,9 @@ import type { ReactElement } from 'react';
 import { NativeButton } from '~/shared/ui/button';
 import { IconClose } from '~/shared/ui/icon';
 
-const CLEAR_SIZE = '14px';
-const CLEAR_TARGET = '24px';
-const CLEAR_OFFSET = '7px';
+const CLEAR_SIZE = '0.875rem';
+const CLEAR_TARGET = '1.5rem';
+const CLEAR_OFFSET = '0.4375rem';
 
 type ClearControlProps = {
   /**
@@ -37,7 +37,7 @@ export function ClearControl(props: ClearControlProps): ReactElement {
       justifyContent="center"
       position="absolute"
       right={offset}
-      top="7px"
+      top="0.4375rem"
       transitionProperty="color"
       transitionDuration="150ms"
       transitionTimingFunction="ease-out"

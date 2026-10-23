@@ -1,9 +1,9 @@
 import { Box } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
-import { IconButton } from '~/shared/ui/button';
 import { IconBag, IconChest } from '~/shared/ui/icon';
 
+import { ToolbarButton } from './ToolbarButton';
 import { ToolbarIdentity } from './ToolbarIdentity';
 
 type ToolbarLeftProps = {
@@ -18,14 +18,14 @@ export function ToolbarLeft(props: ToolbarLeftProps): ReactElement {
   return (
     <Box alignItems="center" display="flex" gap="4">
       <ToolbarIdentity level={trainerLevel} name={trainerName} />
-      <Box bg="border" height="28px" width="1px" />
+      <Box bg="border" height="1.75rem" width="1px" />
       <Box alignItems="center" display="flex" gap="1">
-        <IconButton label="Mochila" onClick={onOpenBackpack}>
-          <IconBag size="20px" />
-        </IconButton>
-        <IconButton label="Armazenamento" onClick={onOpenStorage}>
-          <IconChest size="20px" />
-        </IconButton>
+        <ToolbarButton label="Mochila" onClick={onOpenBackpack}>
+          <IconBag size="1.25rem" />
+        </ToolbarButton>
+        <ToolbarButton label="Armazenamento" onClick={onOpenStorage}>
+          <IconChest size="1.25rem" />
+        </ToolbarButton>
       </Box>
     </Box>
   );

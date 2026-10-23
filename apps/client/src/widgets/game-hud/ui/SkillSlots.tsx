@@ -1,4 +1,4 @@
-import { Box } from '@chakra-ui/react';
+import { Box, Float } from '@chakra-ui/react';
 import type {
   EquippedAbility,
   EquippedConsumable,
@@ -10,7 +10,9 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { usePendingLoadout } from '~/features/skill-panel';
 import { Slot } from '~/shared/ui/frame';
+import { IconBolt, IconPotion, IconPrism } from '~/shared/ui/icon';
 import { Pressable } from '~/shared/ui/interactive';
+import { Text } from '~/shared/ui/text';
 
 import { AbilityContent, ConsumableContent, DeviceContent } from './SkillSlotContent';
 type SkillSlotsProps = {
@@ -41,9 +43,9 @@ export function SkillSlots(props: SkillSlotsProps): ReactElement {
   return (
     <Box display="flex" gap={1}>
       {abilitySlots}
-      <Box bg="border" height="56px" width="1px" />
+      <Box bg="border" height="3.5rem" marginInline="1.5rem" width="1px" />
       {consumableSlots}
-      <Box bg="border" height="56px" width="1px" />
+      <Box bg="border" height="3.5rem" marginInline="1.5rem" width="1px" />
       {deviceSlot}
     </Box>
   );
@@ -58,7 +60,13 @@ function buildAbilitySlot(
     const ability = readAbilityAt(abilities, slot);
     const content = ability === null ? null : <AbilityContent ability={ability} />;
     return (
-      <SkillSlotButton key={slot} onSlotPress={onSlotPress} openSlot={openSlot} slot={slot}>
+      <SkillSlotButton
+        badge={<IconBolt />}
+        key={slot}
+        onSlotPress={onSlotPress}
+        openSlot={openSlot}
+        slot={slot}
+      >
         {content}
       </SkillSlotButton>
     );
@@ -74,7 +82,13 @@ function buildConsumableSlot(
     const consumable = readConsumableAt(consumables, slot);
     const content = consumable === null ? null : <ConsumableContent consumable={consumable} />;
     return (
-      <SkillSlotButton key={slot} onSlotPress={onSlotPress} openSlot={openSlot} slot={slot}>
+      <SkillSlotButton
+        badge={<IconPotion />}
+        key={slot}
+        onSlotPress={onSlotPress}
+        openSlot={openSlot}
+        slot={slot}
+      >
         {content}
       </SkillSlotButton>
     );
@@ -88,7 +102,12 @@ function buildDeviceSlot(
 ): ReactElement {
   const content = device === null ? null : <DeviceContent device={device} />;
   return (
-    <SkillSlotButton onSlotPress={onSlotPress} openSlot={openSlot} slot={DEVICE_SLOT}>
+    <SkillSlotButton
+      badge={<IconPrism />}
+      onSlotPress={onSlotPress}
+      openSlot={openSlot}
+      slot={DEVICE_SLOT}
+    >
       {content}
     </SkillSlotButton>
   );
@@ -126,6 +145,7 @@ function matchesConsumableSlot(slot: SkillSlot): (consumable: EquippedConsumable
 }
 
 type SkillSlotButtonProps = {
+  badge?: ReactNode;
   children: ReactNode;
   onSlotPress: ((slot: SkillSlot) => void) | undefined;
   openSlot: SkillSlot | null;
@@ -138,8 +158,9 @@ type SkillSlotButtonProps = {
  * The slot is a real button: the player reaches it with the keyboard, and the
  * panel opens on top of the bar without pausing the game.
  */
+// eslint-disable-next-line max-lines-per-function
 function SkillSlotButton(props: SkillSlotButtonProps): ReactElement {
-  const { children, onSlotPress, openSlot, slot } = props;
+  const { badge, children, onSlotPress, openSlot, slot } = props;
   const isEmpty = children === null;
   const isSelected = openSlot === slot;
 
@@ -150,11 +171,45 @@ function SkillSlotButton(props: SkillSlotButtonProps): ReactElement {
     onSlotPress(slot);
   }
 
+  const content = isEmpty ? (
+    <Box
+      alignItems="center"
+      color="fg.subtle"
+      display="flex"
+      height="full"
+      justifyContent="center"
+      width="full"
+    >
+      <Text variant="title">+</Text>
+    </Box>
+  ) : (
+    children
+  );
+  const badgeNode =
+    badge === undefined ? null : (
+      <Float offsetX="0.25rem" offsetY="0.25rem" placement="top-start" pointerEvents="none">
+        <Box
+          alignItems="center"
+          bg="bg.panel"
+          borderColor="border.emphasized"
+          borderRadius="full"
+          borderWidth="1px"
+          color="fg.muted"
+          display="flex"
+          height="1.25rem"
+          justifyContent="center"
+          width="1.25rem"
+        >
+          {badge}
+        </Box>
+      </Float>
+    );
   return (
     <Pressable onPress={handlePress}>
-      <Slot empty={isEmpty} selected={isSelected}>
-        {children}
-      </Slot>
+      <Box position="relative">
+        <Slot selected={isSelected}>{content}</Slot>
+        {badgeNode}
+      </Box>
     </Pressable>
   );
 }

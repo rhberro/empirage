@@ -9,14 +9,11 @@ import {
 import type { ElementType, ReactElement, ReactNode } from 'react';
 
 import { layerRecipe, type LayerWeight } from '~/shared/theme';
-import { IconButton } from '~/shared/ui/button';
-import { IconClose } from '~/shared/ui/icon';
 import { Overlay } from '~/shared/ui/overlay';
 
 import type { LayerRootProps } from './layer.types';
-
-const CLOSE_ICON_SIZE = '16px';
-const CLOSE_SIZE = '44px';
+import { LayerCloseButton } from './LayerCloseButton';
+import { useOpenCycle } from './useOpenCycle';
 
 /**
  * A camada: a raiz de todo dialogo, modal e drawer.
@@ -48,6 +45,7 @@ export function LayerRoot(props: LayerRootProps): ReactElement {
   const contentHeight = computeContentHeight(weight, height);
   const maxHeight = computeMaxHeight(contained, weight);
   const positioner = resolvePositioner(weight);
+  const resetKey = useOpenCycle(isOpen);
   const surface = (
     <Portal disabled={contained}>
       <Overlay contained={contained} weight={weight} />
@@ -62,6 +60,7 @@ export function LayerRoot(props: LayerRootProps): ReactElement {
         onClose={onClose}
         positioner={positioner}
         positionerStyles={styles.positioner}
+        resetKey={resetKey}
         rootStyles={styles.root}
         width={width}
       >
@@ -137,6 +136,7 @@ type LayerSurfaceProps = {
   onClose: () => void;
   positioner: ElementType;
   positionerStyles: SystemStyleObject;
+  resetKey: number;
   rootStyles: SystemStyleObject;
   width: string | undefined;
 };
@@ -154,6 +154,7 @@ function LayerSurface(props: LayerSurfaceProps): ReactElement {
     onClose,
     positioner,
     positionerStyles,
+    resetKey,
     rootStyles,
     width,
   } = props;
@@ -175,6 +176,7 @@ function LayerSurface(props: LayerSurfaceProps): ReactElement {
         label={label}
         maxHeight={maxHeight}
         onClose={onClose}
+        resetKey={resetKey}
         styles={rootStyles}
         width={width}
       >
@@ -216,7 +218,7 @@ function computeMaxHeight(contained: boolean, weight: LayerWeight): string {
   if (contained) {
     return '100%';
   }
-  return weight === 'drawer' ? '100dvh' : 'calc(100dvh - 64px)';
+  return weight === 'drawer' ? '100dvh' : 'calc(100dvh - 4rem)';
 }
 
 /**
@@ -236,6 +238,7 @@ type LayerContentProps = {
   label: string | undefined;
   maxHeight: string;
   onClose: () => void;
+  resetKey: number;
   styles: SystemStyleObject;
   width: string | undefined;
 };
@@ -250,6 +253,7 @@ function LayerContent(props: LayerContentProps): ReactElement {
     label,
     maxHeight,
     onClose,
+    resetKey,
     styles,
     width,
   } = props;
@@ -264,27 +268,14 @@ function LayerContent(props: LayerContentProps): ReactElement {
         display="flex"
         flex="1"
         flexDirection="column"
+        key={resetKey}
         minH="0"
-        overflow="hidden"
+        overflow="visible"
       >
         {children}
       </Box>
       {closeButton}
     </Content>
-  );
-}
-
-function LayerCloseButton(props: {
-  closeStyles: SystemStyleObject;
-  onClose: () => void;
-}): ReactElement {
-  const { closeStyles, onClose } = props;
-  return (
-    <Box css={closeStyles}>
-      <IconButton label="Fechar" onClick={onClose} radius="full" size={CLOSE_SIZE} tone="neutral">
-        <IconClose size={CLOSE_ICON_SIZE} />
-      </IconButton>
-    </Box>
   );
 }
 

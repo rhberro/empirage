@@ -26,6 +26,10 @@ const scrollbar = {
 const globalCss = {
   '#root': {
     boxShadow: 'inset 0 0 180px 0 rgba(0, 0, 0, 0.4)',
+    minHeight: '100%',
+  },
+  '*': {
+    WebkitTapHighlightColor: 'transparent',
   },
   '::selection': {
     background: '{colors.gold.500}',
@@ -47,16 +51,43 @@ const globalCss = {
       transitionDuration: '0.01ms !important',
     },
   },
+  '@supports (min-height: 100dvh)': {
+    'html, body': {
+      minHeight: '100dvh',
+    },
+  },
   body: {
+    WebkitTouchCallout: 'none',
+    WebkitUserSelect: 'none',
     fontFamily: 'body',
+    minHeight: '100vh',
+    overscrollBehavior: 'none',
+    paddingBottom: 'env(safe-area-inset-bottom)',
+    paddingLeft: 'env(safe-area-inset-left)',
+    paddingRight: 'env(safe-area-inset-right)',
+    paddingTop: 'env(safe-area-inset-top)',
     textRendering: 'auto',
+    touchAction: 'manipulation',
+    userSelect: 'none',
     ...scrollbar,
+  },
+  button: {
+    touchAction: 'manipulation',
+  },
+  html: {
+    touchAction: 'manipulation',
   },
   'html, body, #root': {
     background: '{colors.base.950}',
     color: '{colors.base.50}',
     colorScheme: 'dark',
-    minHeight: '100%',
+  },
+  'input, select, textarea, .chakra-input, .chakra-select, .chakra-textarea': {
+    WebkitTextSizeAdjust: '100%',
+    WebkitUserSelect: 'text',
+    fontSize: '16px !important',
+    textSizeAdjust: '100%',
+    userSelect: 'text',
   },
 };
 

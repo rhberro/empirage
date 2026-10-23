@@ -66,8 +66,10 @@ function buildStateWithConsumable(): PlayerState {
     {
       category: 'consumable',
       description: 'Restaura a vida de uma criatura.',
+      isStoreItem: true,
       itemId: POCAO_ID,
       name: 'Poção de Cura',
+      price: 120,
       quantity: 3,
       slug: 'pocao-de-cura',
     },

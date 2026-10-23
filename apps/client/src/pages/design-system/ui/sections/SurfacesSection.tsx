@@ -33,7 +33,7 @@ function renderFrameTone(tone: (typeof FRAME_TONES)[number]): ReactElement {
   const body = `Superfície ${label.toLowerCase()}, com a mesma anatomia em toda parte.`;
   const isOverlay = tone === 'overlay';
   return (
-    <Box key={tone} width="260px">
+    <Box key={tone} width="16.25rem">
       <Frame accent={isOverlay} tone={tone}>
         <FrameHeader>{label}</FrameHeader>
         <Box padding="4">

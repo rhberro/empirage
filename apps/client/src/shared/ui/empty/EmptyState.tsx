@@ -38,9 +38,9 @@ const ICON_PATHS: Record<EmptyStateIcon, ReactElement> = {
   ),
 };
 
-const INDICATOR_SIZE = '56px';
-const INDICATOR_FONT_SIZE = '24px';
-const ICON_SIZE = '24px';
+const INDICATOR_SIZE = '3.5rem';
+const INDICATOR_FONT_SIZE = '1.5rem';
+const ICON_SIZE = '1.5rem';
 
 /**
  * The type of the project, applied over the recipe of the Chakra: the slot

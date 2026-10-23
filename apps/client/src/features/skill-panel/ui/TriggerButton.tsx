@@ -21,9 +21,9 @@ export function TriggerButton(props: TriggerButtonProps): ReactElement {
       color="fg.muted"
       cursor="pointer"
       display="flex"
-      height="26px"
+      height="1.625rem"
       justifyContent="center"
-      width="26px"
+      width="1.625rem"
       onClick={onPress}
     >
       <Text variant="numeric">{label}</Text>

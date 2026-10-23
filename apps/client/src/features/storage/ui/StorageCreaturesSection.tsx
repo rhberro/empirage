@@ -21,6 +21,8 @@ type StorageCreaturesSectionProps = {
   isLoading: boolean;
   isSearching: boolean;
   onAdd(creatureId: string): void;
+  /** The action that releases a creature from the storage. */
+  onRelease(creature: Creature): void;
   /** The click on a slot, that marks the creature as chosen. */
   onSelect(creatureId: string): void;
   /** The creature the player clicked, the one whose slot is marked. */
@@ -32,7 +34,8 @@ type StorageCreaturesSectionProps = {
  * not in the team, in the order of the capture.
  */
 export function StorageCreaturesSection(props: StorageCreaturesSectionProps): ReactElement {
-  const { captured, isLocked, isLoading, isSearching, onAdd, onSelect, selectedId } = props;
+  const { captured, isLocked, isLoading, isSearching, onAdd, onRelease, onSelect, selectedId } =
+    props;
   const label = (
     <Text color="fg.muted" variant="label">
       {CREATURES_LABEL}
@@ -44,6 +47,7 @@ export function StorageCreaturesSection(props: StorageCreaturesSectionProps): Re
     isLoading,
     isSearching,
     onAdd,
+    onRelease,
     onSelect,
     selectedId,
   );
@@ -70,6 +74,7 @@ function buildCreaturesArea(
   isLoading: boolean,
   isSearching: boolean,
   onAdd: (creatureId: string) => void,
+  onRelease: (creature: Creature) => void,
   onSelect: (creatureId: string) => void,
   selectedId: string | null,
 ): ReactElement {
@@ -79,7 +84,7 @@ function buildCreaturesArea(
   if (isSearching && captured.length === 0) {
     return <PanelState description={EMPTY_DESCRIPTION} title={EMPTY_TITLE} variant="empty" />;
   }
-  const cells = captured.map(renderCell(isLocked, onAdd, onSelect, selectedId));
+  const cells = captured.map(renderCell(isLocked, onAdd, onRelease, onSelect, selectedId));
   return (
     <ScrollArea height="full">
       <SlotGrid>{cells}</SlotGrid>
@@ -90,6 +95,7 @@ function buildCreaturesArea(
 function renderCell(
   isLocked: boolean,
   onAdd: (creatureId: string) => void,
+  onRelease: (creature: Creature) => void,
   onSelect: (creatureId: string) => void,
   selectedId: string | null,
 ): (creature: Creature) => ReactElement {
@@ -102,6 +108,7 @@ function renderCell(
         isSelected={isSelected}
         key={creature.id}
         onAdd={onAdd}
+        onRelease={onRelease}
         onSelect={onSelect}
       />
     );

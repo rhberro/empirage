@@ -14,7 +14,7 @@ const METRICS = [
 export function HuntAnalyzer(): ReactElement {
   const metrics = METRICS.map(renderMetric);
   return (
-    <Box display="flex" flexDirection="column" gap="2" width="280px">
+    <Box display="flex" flexDirection="column" gap="2" width="17.5rem">
       <SessionPanel />
       <Frame>
         <Box padding="3">
@@ -76,7 +76,7 @@ function SessionFooter(): ReactElement {
         color="blood.50"
         cursor="pointer"
         display="flex"
-        height="32px"
+        height="2rem"
         justifyContent="center"
         paddingInline="4"
         width="100%"

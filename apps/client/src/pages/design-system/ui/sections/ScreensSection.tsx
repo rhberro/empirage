@@ -152,7 +152,7 @@ function CityGroup(): ReactElement {
     <ScreenGroup title="Cidade">
       <ScreenEntry
         description="A mochila aberta, com a grade de slots e a busca."
-        frameMinHeight="640px"
+        frameMinHeight="40rem"
         id={SCREEN_ANCHORS.mochila}
         title="Mochila"
       >
@@ -160,7 +160,7 @@ function CityGroup(): ReactElement {
       </ScreenEntry>
       <ScreenEntry
         description="O armazenamento, com os mesmos slots e a ação de guardar."
-        frameMinHeight="700px"
+        frameMinHeight="43.75rem"
         id={SCREEN_ANCHORS.armazenamento}
         title="Armazenamento"
       >
@@ -175,7 +175,7 @@ function HuntGroup(): ReactElement {
     <ScreenGroup title="Caçada">
       <ScreenEntry
         description="A seleção de locais, em grade, com paginação e busca."
-        frameMinHeight="780px"
+        frameMinHeight="48.75rem"
         id={SCREEN_ANCHORS.locaisDeCaca}
         title="Locais de caça"
       >
@@ -183,7 +183,7 @@ function HuntGroup(): ReactElement {
       </ScreenEntry>
       <ScreenEntry
         description="A lateral com os detalhes do local e a ação de iniciar a caçada."
-        frameMinHeight="780px"
+        frameMinHeight="48.75rem"
         id={SCREEN_ANCHORS.detalhesDoLocal}
         title="Detalhes do local"
       >

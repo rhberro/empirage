@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
+import { useTeam } from '~/entities/team';
 import { HuntAreaFlow } from '~/features/hunt-area';
 import type { SkillPanelView } from '~/features/skill-panel';
 import { buildTeamSlots, resolveActiveId } from '~/pages/play/model/teamSlots';
@@ -26,8 +27,45 @@ import { SkillPanelHost } from './SkillPanelHost';
 
 const TRAINERS_PATH = '/trainers';
 
+function ignoreWakeLockError(): void {
+  // Ignora: nem todo navegador suporta ou permite.
+}
+
 export function PlayScreenPage(): ReactElement {
   return <PlayScreenBody />;
+}
+
+function setupWakeLock(): () => void {
+  let lock: WakeLockSentinel | null = null;
+
+  function handleGranted(granted: WakeLockSentinel): void {
+    lock = granted;
+  }
+
+  function requestLock(): void {
+    if (!('wakeLock' in window.navigator)) {
+      return;
+    }
+    window.navigator.wakeLock.request('screen').then(handleGranted, ignoreWakeLockError);
+  }
+
+  function handleVisibilityChange(): void {
+    if (document.visibilityState === 'visible') {
+      requestLock();
+    }
+  }
+
+  requestLock();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  function cleanup(): void {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    if (lock !== null) {
+      void lock.release();
+    }
+  }
+
+  return cleanup;
 }
 
 function PlayScreenBody(): ReactElement {
@@ -35,9 +73,12 @@ function PlayScreenBody(): ReactElement {
   const navigate = useNavigate();
   const { show } = useAlerts();
   const game = useGameSession({ navigate, show, signOut: auth.signOut });
-  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
+  const team = useTeamSlots();
 
   useEffect(loadInitialState(game.load, navigate), [game.load, navigate]);
+
+  // Mantém a tela acesa durante o jogo idle (Screen Wake Lock API).
+  useEffect(setupWakeLock, []);
 
   if (game.state === null) {
     return renderPendingState(game.status, game.error, game.onReconnect);
@@ -48,25 +89,20 @@ function PlayScreenBody(): ReactElement {
   }
 
   const state = game.state;
-  const slots = buildTeamSlots(state.team);
-  // The server says which creature is in the field. The local selection only
-  // takes over while the server has not answered yet.
-  const activeId = resolveActiveId(slots, state.activeCreatureId ?? selectedCreatureId);
-
   const handleSelectCreature = buildCreatureSelector(
-    setSelectedCreatureId,
+    team.select,
     game.swap.swapCreature,
-    activeId,
+    team.activeId,
   );
 
   return (
     <GameScreen
       actions={game.actions}
-      activeId={activeId}
+      activeId={team.activeId}
       cooldownRemainingMs={game.swap.cooldownRemainingMs}
       cooldownTotalMs={game.swap.cooldownTotalMs}
       panel={game.skillPanel}
-      slots={slots}
+      slots={team.slots}
       state={state}
       onOpenSlot={game.skillPanel.openPanel}
       onSelectCreature={handleSelectCreature}
@@ -79,6 +115,29 @@ function PlayScreenBody(): ReactElement {
     </GameScreen>
   );
 }
+
+/**
+ * The team of the screen, as the HUD reads it.
+ *
+ * O time vem da store do time, e nao do estado cru: a store tem a mudanca que
+ * o cliente prediz, e por isso o time da tela muda no mesmo instante do
+ * clique na janela de armazenamento, sem esperar o servidor responder.
+ */
+function useTeamSlots(): TeamSlots {
+  const team = useTeam();
+  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
+  const slots = buildTeamSlots(team.team);
+  // The server says which creature is in the field. The local selection only
+  // takes over while the server has not answered yet.
+  const activeId = resolveActiveId(slots, team.activeCreatureId ?? selectedCreatureId);
+  return { activeId, select: setSelectedCreatureId, slots };
+}
+
+type TeamSlots = {
+  activeId: string | null;
+  select(id: string | null): void;
+  slots: CreatureSlot[];
+};
 
 /**
  * The hunt areas: the modal of the list and the drawer of the details.
@@ -148,7 +207,7 @@ function GameScreen(props: GameScreenProps): ReactElement {
     state,
   } = props;
   return (
-    <Box display="flex" flexDirection="column" h="100dvh" w="full">
+    <Box display="flex" flexDirection="column" h="100dvh" overflow="hidden" w="full">
       <GameToolbar
         onOpenBackpack={actions.onOpenBackpack}
         onOpenStorage={actions.onOpenStorage}
@@ -156,7 +215,7 @@ function GameScreen(props: GameScreenProps): ReactElement {
         onSwitchTrainer={onSwitchTrainer}
         state={state}
       />
-      <Box display="flex" flex="1" position="relative">
+      <Box display="flex" flex="1" position="relative" touchAction="none">
         <CanvasPlaceholder />
         <GameHud
           activeId={activeId}

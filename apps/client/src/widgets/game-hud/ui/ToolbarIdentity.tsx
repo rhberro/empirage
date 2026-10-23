@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { IconTeam } from '~/shared/ui/icon';
 import { Text } from '~/shared/ui/text';
 
-const AVATAR_SIZE = '36px';
+const AVATAR_SIZE = '2.25rem';
 
 type ToolbarIdentityProps = {
   level: number;

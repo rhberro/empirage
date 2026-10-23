@@ -10,7 +10,7 @@ type IconButtonSampleProps = {
 export function IconButtonSample(props: IconButtonSampleProps): ReactElement {
   const { children, label } = props;
   return (
-    <Button aria-label={label} bg="bg.raised" minW="44px" padding="0" tone="ghost">
+    <Button aria-label={label} bg="bg.raised" minW="2.75rem" padding="0" tone="ghost">
       {children}
     </Button>
   );

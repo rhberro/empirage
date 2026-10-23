@@ -1,18 +1,21 @@
-import { Box } from '@chakra-ui/react';
+import { Box, NumberInput } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
-import { TextField } from '~/shared/ui/field';
+import { StoreQuantityButton } from '~/features/store/ui/StoreQuantityButton';
+import { Text } from '~/shared/ui/text';
 
 const QUANTITY_LABEL = 'Quantidade';
-const QUANTITY_WIDTH = '72px';
-const MAX_QUANTITY = 999999;
-const MIN_QUANTITY = 1;
+const INPUT_WIDTH = '4.5rem';
+const DECREMENT_LABEL = 'Diminuir a quantidade';
+const INCREMENT_LABEL = 'Aumentar a quantidade';
 
 export type StoreQuantityFieldProps = {
   /** The field is closed when there is nothing to buy or to sell. */
   disabled: boolean;
-  /** The quantity when the field loses the focus. */
-  onBlur(): void;
+  /** The biggest quantity the player can choose. */
+  limit: number;
+  /** The quantity is normalized when the field loses the focus. */
+  onCommit(): void;
   /** The write in the field. */
   onChange(text: string): void;
   /** The text of the field, while the player writes it. */
@@ -22,27 +25,53 @@ export type StoreQuantityFieldProps = {
 /**
  * The field of the quantity.
  *
- * The same field serves the buy and the sell: the quantity is never zero, it
- * goes back to one when the field loses the focus, and the limit is the same
- * in the two tabs.
+ * O campo e o *stepper* do mobile: o `-` e o `+` dos dois lados, e o numero
+ * no meio. Os botoes somam e tiram uma unidade, e nunca passam do limite: o
+ * dinheiro que o jogador tem, na compra, e a quantidade que ele tem na
+ * mochila, na venda.
  */
 export function StoreQuantityField(props: StoreQuantityFieldProps): ReactElement {
-  const { disabled, onBlur, onChange, quantityText } = props;
+  const { disabled, limit, onChange, onCommit, quantityText } = props;
   const change = buildQuantityChange(onChange);
-  const field = (
-    <TextField
-      aria-label={QUANTITY_LABEL}
+  const commit = buildQuantityCommit(onCommit);
+  return (
+    <NumberInput.Root
+      allowOverflow={false}
       disabled={disabled}
-      max={MAX_QUANTITY}
-      min={MIN_QUANTITY}
-      name="quantidade"
-      onBlur={onBlur}
-      onChange={change}
-      type="number"
+      max={limit}
+      min={1}
+      onValueChange={change}
+      onValueCommit={commit}
       value={quantityText}
-    />
+    >
+      <Box alignItems="center" display="flex" gap="1">
+        <NumberInput.DecrementTrigger asChild>
+          <StoreQuantityButton aria-label={DECREMENT_LABEL} disabled={disabled}>
+            <Text variant="label">−</Text>
+          </StoreQuantityButton>
+        </NumberInput.DecrementTrigger>
+        <NumberInput.Input
+          aria-label={QUANTITY_LABEL}
+          bg="bg.sunken"
+          borderColor="border"
+          borderRadius="sm"
+          borderWidth="1px"
+          color="fg"
+          focusVisibleRing="outside"
+          fontSize="sm"
+          height="2rem"
+          paddingInline="2"
+          textAlign="center"
+          width={INPUT_WIDTH}
+        />
+        <NumberInput.IncrementTrigger asChild>
+          <StoreQuantityButton aria-label={INCREMENT_LABEL} disabled={disabled}>
+            <Text variant="label">+</Text>
+          </StoreQuantityButton>
+        </NumberInput.IncrementTrigger>
+      </Box>
+    </NumberInput.Root>
   );
-  return <Box width={QUANTITY_WIDTH}>{field}</Box>;
 }
 
 /**
@@ -50,8 +79,18 @@ export function StoreQuantityField(props: StoreQuantityFieldProps): ReactElement
  */
 function buildQuantityChange(
   onChange: (text: string) => void,
-): (event: { target: { value: string } }) => void {
-  return function changeQuantity(event: { target: { value: string } }): void {
-    onChange(event.target.value);
+): (details: { value: string }) => void {
+  return function changeQuantity(details: { value: string }): void {
+    onChange(details.value);
+  };
+}
+
+/**
+ * O fim da escrita: o campo perde o foco ou o jogador aperta Enter, e a
+ * quantidade vai para dentro do limite.
+ */
+function buildQuantityCommit(onCommit: () => void): () => void {
+  return function commitQuantity(): void {
+    onCommit();
   };
 }

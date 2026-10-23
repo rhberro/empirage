@@ -56,7 +56,7 @@ export function IconsSection(): ReactElement {
   return (
     <Box marginBlockEnd="16">
       <SectionHeader
-        description="Um traço só, 2px na grade de 24, desenhado para 16px. Todos os ícones compõem a mesma primitiva Icon, que carrega o tamanho e o traço — um ícone novo é só o caminho, nunca um svg inteiro. A cor vem do estado, nunca do arquivo."
+        description="Um traço só, 2px na grade de 24, desenhado para 1rem. Todos os ícones compõem a mesma primitiva Icon, que carrega o tamanho e o traço — um ícone novo é só o caminho, nunca um svg inteiro. A cor vem do estado, nunca do arquivo."
         id="icones"
         title="Ícones"
       />
@@ -91,73 +91,73 @@ function renderIconCell(entry: IconEntry): ReactElement {
 }
 
 function renderIconBag(): ReactElement {
-  return <IconBag size="24px" />;
+  return <IconBag size="1.5rem" />;
 }
 
 function renderIconBell(): ReactElement {
-  return <IconBell size="24px" />;
+  return <IconBell size="1.5rem" />;
 }
 
 function renderIconBolt(): ReactElement {
-  return <IconBolt size="24px" />;
+  return <IconBolt size="1.5rem" />;
 }
 
 function renderIconChest(): ReactElement {
-  return <IconChest size="24px" />;
+  return <IconChest size="1.5rem" />;
 }
 
 function renderIconClose(): ReactElement {
-  return <IconClose size="24px" />;
+  return <IconClose size="1.5rem" />;
 }
 
 function renderIconCoin(): ReactElement {
-  return <IconCoin size="24px" />;
+  return <IconCoin size="1.5rem" />;
 }
 
 function renderIconCrosshair(): ReactElement {
-  return <IconCrosshair size="24px" />;
+  return <IconCrosshair size="1.5rem" />;
 }
 
 function renderIconGem(): ReactElement {
-  return <IconGem size="24px" />;
+  return <IconGem size="1.5rem" />;
 }
 
 function renderIconGear(): ReactElement {
-  return <IconGear size="24px" />;
+  return <IconGear size="1.5rem" />;
 }
 
 function renderIconHeart(): ReactElement {
-  return <IconHeart size="24px" />;
+  return <IconHeart size="1.5rem" />;
 }
 
 function renderIconMap(): ReactElement {
-  return <IconMap size="24px" />;
+  return <IconMap size="1.5rem" />;
 }
 
 function renderIconPlay(): ReactElement {
-  return <IconPlay size="24px" />;
+  return <IconPlay size="1.5rem" />;
 }
 
 function renderIconPotion(): ReactElement {
-  return <IconPotion size="24px" />;
+  return <IconPotion size="1.5rem" />;
 }
 
 function renderIconPrism(): ReactElement {
-  return <IconPrism size="24px" />;
+  return <IconPrism size="1.5rem" />;
 }
 
 function renderIconSearch(): ReactElement {
-  return <IconSearch size="24px" />;
+  return <IconSearch size="1.5rem" />;
 }
 
 function renderIconStore(): ReactElement {
-  return <IconStore size="24px" />;
+  return <IconStore size="1.5rem" />;
 }
 
 function renderIconTeam(): ReactElement {
-  return <IconTeam size="24px" />;
+  return <IconTeam size="1.5rem" />;
 }
 
 function renderIconUsers(): ReactElement {
-  return <IconUsers size="24px" />;
+  return <IconUsers size="1.5rem" />;
 }

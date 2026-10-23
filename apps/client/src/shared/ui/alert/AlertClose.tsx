@@ -3,8 +3,8 @@ import type { ReactElement } from 'react';
 import { NativeButton } from '~/shared/ui/button';
 import { IconClose } from '~/shared/ui/icon';
 
-const CLOSE_SIZE = '32px';
-const ICON_SIZE = '16px';
+const CLOSE_SIZE = '2rem';
+const ICON_SIZE = '1rem';
 
 type AlertCloseProps = {
   onClick: () => void;

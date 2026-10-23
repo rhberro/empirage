@@ -6,7 +6,7 @@ Este documento cobre o modal do armazenamento, onde o jogador vê as criaturas q
 
 ## Visão Geral
 
-O armazenamento é um modal aberto pelo segundo botão do menu da esquerda da [toolbar](PLAY_SCREEN.md#menu-da-esquerda) da tela do jogo, onde o jogador vê as criaturas que capturou e que não estão no time, com o time atual do treinador em destaque na primeira fileira. Por enquanto o jogador só consulta as criaturas: nenhuma interação com elas existe ainda.
+O armazenamento é um modal aberto pelo segundo botão do menu da esquerda da [toolbar](PLAY_SCREEN.md#menu-da-esquerda) da tela do jogo, onde o jogador vê as criaturas que capturou e que não estão no time, com o time atual do treinador em destaque na primeira fileira. O jogador também usa o modal para montar o time: cada criatura capturada pode entrar no time, e cada criatura do time pode sair dele.
 
 A consulta vale de qualquer lugar, caçando ou não, conforme as regras do [armazenamento](TRAINER.md#armazenamento).
 
@@ -56,7 +56,23 @@ Uma barra de rolagem fica fixa na lateral direita da seção, sempre visível, m
 
 ### Popup da Criatura
 
-Ao passar o cursor sobre uma criatura, é exibido um popup com informações dela, seguindo o comportamento padrão de [popup](INTERFACE.md#popup) da interface. Por enquanto o popup exibe apenas o **nome da criatura**, e exibirá mais informações no futuro.
+O [popup](INTERFACE.md#popup) da criatura mostra o **nome** dela, o **nível**, o status **Em campo** quando ela está no time, e os **atributos** que a criatura tem agora.
+
+O clique no slot — ou o **botão direito do mouse** — abre o **menu contextual** da criatura, com as ações que ela tem naquele lugar:
+
+- Na fileira do **time**: **Remover do time**.
+- Na grade de criaturas capturadas: **Adicionar ao time** e **Soltar criatura**.
+- Em qualquer lugar: **Ver detalhes**, que abre a ficha completa da criatura.
+
+O **menu** é o lugar das ações, e o **popup** é o lugar da informação: o clique nunca muda o time sozinho, e nenhuma ação acontece por acidente.
+
+### Ficha da Criatura
+
+A ficha completa abre no modal dos detalhes: a imagem, o nome, o nível, o **potencial máximo** — a média dos cinco potenciais — e os cinco atributos com o **valor atual**, o **valor de base** da espécie (**BV**) e o **potencial** do indivíduo (**PV**).
+
+No fim da ficha ficam as **habilidades** da espécie, com o título, a descrição e o cooldown de cada uma.
+
+> A ficha é o caminho de quem está no celular: lá não existe hover, e o toque abre o menu, e o menu leva à ficha.
 
 ### Busca
 
@@ -68,9 +84,19 @@ Quando a busca não encontra nenhuma criatura, a seção de criaturas exibe a me
 
 ### Interações com o Time
 
-Quando existirem, as ações que mudam o time — como enviar uma criatura capturada para o time — ficarão **desabilitadas** durante a caçada. Fora dela, funcionarão normalmente.
+As ações que mudam o time — enviar uma criatura capturada para o time e tirar uma criatura do time — ficam no [menu da criatura](#popup-da-criatura). Elas ficam **desabilitadas** durante a caçada. Fora dela, funcionam normalmente.
 
 > A regra é a do [time durante a caçada](TRAINER.md#durante-a-caçada): o time que o treinador entra é o time que ele sai. A caçada é a atividade em andamento, e o modal não pode ser um caminho para mudar o time no meio dela. A consulta continua liberada de qualquer lugar, caçando ou não; o que muda é só a ação, que aparece desabilitada, sem resposta ao clique.
+
+A mudança aparece na hora: a criatura entra no time — ou sai dele — no mesmo instante do clique, sem esperar o servidor responder.
+
+### Soltar uma Criatura
+
+**Soltar criatura** tira a criatura do armazenamento do treinador **para sempre**: ela não volta para o time, nem para a grade, e não existe mais.
+
+A ação pede uma confirmação, como a [exclusão do treinador](TRAINER.md#exclusão-do-treinador), e o aviso deixa claro que a ação não pode ser desfeita. Uma criatura do time não é solta: ela sai do time primeiro, e a soltura vem depois.
+
+> Soltar é o contrário de capturar: a criatura deixa de existir para o jogador. A confirmação existe porque não há volta.
 
 ## Comportamento
 
@@ -86,5 +112,4 @@ Se a conexão com o servidor cai enquanto o modal está aberto, o modal é fecha
 
 Os pontos abaixo ainda estão em aberto ou são provisórios nesta fase e devem ser revistos conforme o jogo evolui:
 
-- O jogador só consulta as criaturas. As interações, como enviar uma criatura para o time, serão definidas no futuro.
-- O popup exibe apenas o nome da criatura. Mais informações serão adicionadas depois.
+- A ficha da criatura mostra o nome, o nível, o potencial máximo, os atributos e as habilidades. Mais informações serão adicionadas depois.

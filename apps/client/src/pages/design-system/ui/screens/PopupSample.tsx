@@ -6,7 +6,7 @@ import { Text } from '~/shared/ui/text';
 
 export function PopupSample(): ReactElement {
   return (
-    <Box width="240px">
+    <Box width="15rem">
       <Box
         bg="bg.panel"
         borderColor="border.emphasized"
@@ -19,7 +19,7 @@ export function PopupSample(): ReactElement {
           Poção de Cura
         </Text>
         <Box alignItems="center" color="currency.gold" display="flex" gap="1" marginBlockEnd="2">
-          <IconCoin size="13px" />
+          <IconCoin size="0.8125rem" />
           <Text variant="numeric">120</Text>
         </Box>
         <Text color="fg.muted" variant="body">

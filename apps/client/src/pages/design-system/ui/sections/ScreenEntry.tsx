@@ -22,7 +22,7 @@ type ScreenEntryProps = {
 export function ScreenEntry(props: ScreenEntryProps): ReactElement {
   const { children, description, frameMinHeight, id, title } = props;
   return (
-    <Box id={id} minW="0" scrollMarginTop="80px">
+    <Box id={id} minW="0" scrollMarginTop="5rem">
       <Box marginBlockEnd="4">
         <Text color="fg" variant="name">
           {title}

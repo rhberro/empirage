@@ -5,7 +5,7 @@ import { useSelectionRing } from '~/shared/theme';
 import { Pressable } from '~/shared/ui/interactive';
 import { Text } from '~/shared/ui/text';
 
-const CARD_SIZE = '64px';
+const CARD_SIZE = '4rem';
 
 type StarterCardProps = {
   isSelected: boolean;

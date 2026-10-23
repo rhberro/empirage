@@ -10,11 +10,14 @@ import { createPublicLimiter } from '~/ratelimit/publicLimiter';
 import { buildHttpHandler, composeMiddleware, createRequestContext } from '~/router';
 import type { RouteHandler } from '~/router';
 import { createAuthRoutes } from '~/routes/auth';
+import { createBackpackRoutes } from '~/routes/backpack';
+import { createCreatureRoutes } from '~/routes/creatures';
 import { createGearSlotRoutes } from '~/routes/gearSlots';
 import { createHealthRoutes } from '~/routes/health';
 import { createHuntAreaRoutes } from '~/routes/huntAreas';
 import { createLoadoutRoutes } from '~/routes/loadout';
 import { createPlayerRoutes } from '~/routes/player';
+import { createSpeciesRoutes } from '~/routes/species';
 import { createStarterRoutes } from '~/routes/starters';
 import { createStoreRoutes } from '~/routes/store';
 import { createTeamRoutes } from '~/routes/team';
@@ -46,6 +49,7 @@ export const HUNT_AREA_PATH = '/api/hunt-areas/:id';
 export const STORE_PATH = '/api/store';
 export const STORE_BUY_PATH = '/api/store/buy';
 export const STORE_SELL_PATH = '/api/store/sell';
+export const DESTROY_ITEM_PATH = '/api/backpack/destroy';
 export const WS_TICKET_PATH = '/api/ws-ticket';
 export const HEALTH_PATH = '/api/health';
 export const TRAINER_ID = '11111111-1111-4111-8111-111111111111';
@@ -177,6 +181,8 @@ export function registerFakeConnection(deps: ServerDependencies, userId: string)
 export function buildHandler(deps: ServerDependencies = buildDependencies()): RouteHandler {
   const routes = createTrainerRoutes(deps)
     .concat(createStarterRoutes(deps))
+    .concat(createSpeciesRoutes(deps))
+    .concat(createCreatureRoutes(deps))
     .concat(createPlayerRoutes(deps))
     .concat(createTeamRoutes(deps))
     .concat(createAuthRoutes(deps))
@@ -184,6 +190,7 @@ export function buildHandler(deps: ServerDependencies = buildDependencies()): Ro
     .concat(createLoadoutRoutes(deps))
     .concat(createGearSlotRoutes(deps))
     .concat(createStoreRoutes(deps))
+    .concat(createBackpackRoutes(deps))
     .concat(createWsTicketRoutes(deps))
     .concat(createHealthRoutes());
   const middlewares = [createLoggingMiddleware(deps.logger), createCorsMiddleware()];

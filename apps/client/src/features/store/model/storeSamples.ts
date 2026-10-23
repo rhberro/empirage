@@ -47,7 +47,7 @@ export const SAMPLE_STORE_CATALOG: StoreCatalog = {
     },
     {
       category: 'consumable',
-      description: 'Restaura pouca vida, mas sai barato.',
+      description: 'Restaura 20 de vida.',
       id: 'sample-pocao-fraca',
       name: 'Poção Fraca',
       price: 60,

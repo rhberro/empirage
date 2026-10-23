@@ -278,8 +278,11 @@ function buildItems(seed: AreaSeed): HuntAreaItem[] {
 function buildItem(seed: ItemSeed): HuntAreaItem {
   return {
     category: seed.category,
+    description: '',
+    isStoreItem: false,
     itemId: seed.id,
     name: seed.name,
+    price: 0,
     slug: seed.id,
     tone: seed.tone,
   };

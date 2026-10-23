@@ -26,7 +26,7 @@ export function PlayScreenPreview(): ReactElement {
       <Box display="flex" flexDirection="column" gap="8">
         <ScreenEntry
           description="A toolbar, as linguetas do time, a barra de habilidades e os botões de cidade, com a mesma linguagem das referências. O canvas é o espaço do PixiJS."
-          frameMinHeight="560px"
+          frameMinHeight="35rem"
           id={SCREEN_ANCHORS.telaDoJogo}
           title="Tela do jogo"
         >
@@ -34,7 +34,7 @@ export function PlayScreenPreview(): ReactElement {
         </ScreenEntry>
         <ScreenEntry
           description="O modal sobre a tela, com as abas Comprar e Vender, a grade de slots com espaços vazios, o estado selecionado e o rodapé com quantidade, total e a ação."
-          frameMinHeight="700px"
+          frameMinHeight="43.75rem"
           id={SCREEN_ANCHORS.loja}
           title="Loja"
         >
@@ -53,7 +53,7 @@ function PlayScreenFrame(): ReactElement {
       borderColor="border.emphasized"
       display="flex"
       flexDirection="column"
-      minH="560px"
+      minH="35rem"
       overflow="hidden"
       position="relative"
     >

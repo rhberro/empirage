@@ -9,6 +9,8 @@ export type StoreView = {
   buy: () => void;
   /** The items the store sells. */
   catalog: StoreItem[];
+  /** Takes the selection away. */
+  clearSelection: () => void;
   /** Closes the modal and resets everything. */
   close: () => void;
   /** Normalizes the quantity when the field loses the focus. */
@@ -23,6 +25,8 @@ export type StoreView = {
   isLoading: boolean;
   /** The quantity the player is buying. */
   quantity: number;
+  /** The biggest quantity the player can choose. */
+  quantityLimit: number;
   /** The text of the quantity field, while the player writes it. */
   quantityText: string;
   /** The item of the backpack the player selected to sell. */
@@ -33,6 +37,8 @@ export type StoreView = {
   sell: () => void;
   /** Selects an item of the current tab. */
   select: (itemId: string) => void;
+  /** Puts the quantity in the limit. */
+  setMaxQuantity: () => void;
   /** Changes the tab and resets the state of the modal. */
   setTab: (tab: StoreTab) => void;
   /** Adds a step to the quantity. */

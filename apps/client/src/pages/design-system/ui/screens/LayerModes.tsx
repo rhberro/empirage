@@ -7,7 +7,7 @@ import { Text } from '~/shared/ui/text';
 export function LayerModes(): ReactElement {
   return (
     <Box display="flex" gap="5">
-      <Box width="220px">
+      <Box width="13.75rem">
         <Text color="fg.muted" marginBlockEnd="2" variant="meta">
           Painel simples
         </Text>
@@ -20,7 +20,7 @@ export function LayerModes(): ReactElement {
           </Box>
         </Frame>
       </Box>
-      <Box width="220px">
+      <Box width="13.75rem">
         <Text color="fg.muted" marginBlockEnd="2" variant="meta">
           Modal composto
         </Text>

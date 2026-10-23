@@ -6,7 +6,7 @@ import { Text } from '~/shared/ui/text';
 
 export function EmptyBackpack(): ReactElement {
   return (
-    <Box width="420px">
+    <Box width="26.25rem">
       <Frame>
         <FrameHeader>Mochila</FrameHeader>
         <Box alignItems="center" display="flex" flexDirection="column" padding="10">

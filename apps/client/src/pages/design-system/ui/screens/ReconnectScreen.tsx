@@ -10,9 +10,9 @@ export function ReconnectScreen(): ReactElement {
       bg="bg"
       display="flex"
       flexDirection="column"
-      height="320px"
+      height="20rem"
       justifyContent="center"
-      width="520px"
+      width="32.5rem"
     >
       <Box
         alignItems="center"
@@ -21,9 +21,9 @@ export function ReconnectScreen(): ReactElement {
         borderStyle="solid"
         borderTopColor="transparent"
         borderWidth="2px"
-        height="34px"
+        height="2.125rem"
         mb="5"
-        width="34px"
+        width="2.125rem"
       />
       <Text color="fg" marginBlockEnd="2" variant="title">
         Conexão perdida

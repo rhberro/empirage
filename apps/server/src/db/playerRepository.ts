@@ -15,9 +15,11 @@ import type {
 } from '~/db/types';
 
 const CREATURE_COLUMNS =
-  'id, trainer_id, species_id, nickname, level, experience, potential, is_in_team, team_slot, captured_at, created_at, species(id, slug, name, element)';
-const BACKPACK_COLUMNS = 'item_id, quantity, items(id, slug, name, category, description)';
-const ABILITY_COLUMNS = 'slot, abilities(id, slug, name, element, damage, cooldown_ms)';
+  'id, trainer_id, species_id, nickname, level, experience, potential, is_in_team, team_slot, captured_at, created_at, species(id, slug, name, element, base_vitality, base_physical_attack, base_magic_attack, base_physical_defense, base_magic_defense)';
+const BACKPACK_COLUMNS =
+  'item_id, quantity, items(id, slug, name, category, description, price, is_store_item)';
+const ABILITY_COLUMNS =
+  'slot, abilities(id, slug, name, element, damage, cooldown_ms, description)';
 const VITALS_COLUMNS = 'current_hp, level, potential, species(base_vitality)';
 
 type QueryResult<T> = {

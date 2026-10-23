@@ -3,6 +3,8 @@ import type { ReactElement } from 'react';
 
 import type { PanelCardEntry } from '~/features/skill-panel/model/skillPanel.types';
 import { useSelectionRing } from '~/shared/theme';
+import { AbilityCard } from '~/shared/ui/ability';
+import { Slot } from '~/shared/ui/frame';
 import { IconBolt, IconPotion, IconPrism } from '~/shared/ui/icon';
 import { Pressable } from '~/shared/ui/interactive';
 import { Text } from '~/shared/ui/text';
@@ -12,24 +14,36 @@ type PanelCardProps = {
   onSelect: (id: string) => void;
 };
 
-/**
- * One item of a selection panel.
- *
- * The card is the same in the three panels: what changes is the data it
- * carries. The item that is already equipped in the slot the panel edits is
- * the selected one, and clicking it again empties the slot.
- */
+// eslint-disable-next-line max-lines-per-function
 export function PanelCard(props: PanelCardProps): ReactElement {
   const { entry, onSelect } = props;
   const selectionRing = useSelectionRing();
   const background = entry.selected ? 'bg.raised' : 'transparent';
   const ring = entry.selected ? selectionRing : undefined;
-  const glyphColor = readGlyphColor(entry.kind);
-  const glyph = renderGlyph(entry.kind);
 
   function handlePress(): void {
     onSelect(entry.id);
   }
+
+  if (entry.kind === 'ability') {
+    return (
+      <Pressable disabled={entry.disabled} onPress={handlePress} width="full">
+        <Box _before={ring} bg={background} position="relative" width="full">
+          <AbilityCard
+            cooldownMs={entry.cooldownMs}
+            damage={entry.damage}
+            description={entry.description}
+            element={entry.element}
+            name={entry.name}
+            selected={entry.selected}
+          />
+        </Box>
+      </Pressable>
+    );
+  }
+
+  const glyphColor = readGlyphColor(entry.kind);
+  const glyph = renderGlyph(entry.kind);
 
   return (
     <Pressable disabled={entry.disabled} onPress={handlePress} width="full">
@@ -47,19 +61,18 @@ export function PanelCard(props: PanelCardProps): ReactElement {
         textAlign="left"
         width="full"
       >
-        <Box
-          alignItems="center"
-          bg="bg.sunken"
-          borderRadius="xs"
-          boxShadow="recessed"
-          color={glyphColor}
-          display="flex"
-          height="34px"
-          justifyContent="center"
-          width="34px"
-        >
-          {glyph}
-        </Box>
+        <Slot>
+          <Box
+            alignItems="center"
+            color={glyphColor}
+            display="flex"
+            height="full"
+            justifyContent="center"
+            width="full"
+          >
+            {glyph}
+          </Box>
+        </Slot>
         <PanelCardText entry={entry} />
       </Box>
     </Pressable>
@@ -101,12 +114,6 @@ function PanelCardText(props: PanelCardTextProps): ReactElement {
   );
 }
 
-/**
- * The color of the glyph of the card.
- *
- * The color tells the kind of the item apart, and the name of the item is
- * what carries the information: a color alone is not information.
- */
 function readGlyphColor(kind: PanelCardEntry['kind']): string {
   if (kind === 'consumable') {
     return 'verdant.fg';

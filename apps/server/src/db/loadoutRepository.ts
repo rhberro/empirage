@@ -19,7 +19,8 @@ import type {
   TrainerItemQuantityRow,
 } from '~/db/types';
 
-const ABILITY_SLOT_COLUMNS = 'slot, abilities(id, slug, name, element, damage, cooldown_ms)';
+const ABILITY_SLOT_COLUMNS =
+  'slot, abilities(id, slug, name, element, damage, cooldown_ms, description)';
 const GEAR_SLOT_COLUMNS = 'slot, kind, item_id, trigger_hp_percent, items(id, name)';
 const SET_ABILITY_SLOTS_FUNCTION = 'set_creature_ability_slots';
 

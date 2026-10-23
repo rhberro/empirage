@@ -49,7 +49,7 @@ function renderScale(scale: FoundationScale): ReactElement {
 function renderSwatch(swatch: FoundationSwatch): ReactElement {
   return (
     <Box flex="1" key={swatch.step} minW="0">
-      <Box bg={swatch.hex} borderRadius="xs" height="34px" title={swatch.hex} />
+      <Box bg={swatch.hex} borderRadius="xs" height="2.125rem" title={swatch.hex} />
       <Text color="fg.subtle" marginBlockStart="1" variant="numeric">
         {swatch.step}
       </Text>

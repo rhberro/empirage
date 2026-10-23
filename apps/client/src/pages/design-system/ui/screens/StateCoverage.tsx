@@ -21,7 +21,7 @@ function renderState(state: (typeof STATES)[number]): ReactElement {
       <Text color="fg.muted" marginBlockEnd="2" variant="meta">
         {state}
       </Text>
-      <Box bg="bg.panel" borderRadius="sm" boxShadow="raised" minH="120px" padding="3">
+      <Box bg="bg.panel" borderRadius="sm" boxShadow="raised" minH="7.5rem" padding="3">
         {body}
       </Box>
     </Box>
@@ -46,15 +46,15 @@ function renderStateBody(state: (typeof STATES)[number]): ReactElement {
 
 function LoadingState(): ReactElement {
   return (
-    <Box alignItems="center" display="flex" height="90px" justifyContent="center">
+    <Box alignItems="center" display="flex" height="5.625rem" justifyContent="center">
       <Box
         borderColor="arcane.500"
         borderRadius="full"
         borderStyle="solid"
         borderTopColor="transparent"
         borderWidth="2px"
-        height="20px"
-        width="20px"
+        height="1.25rem"
+        width="1.25rem"
       />
     </Box>
   );
@@ -66,7 +66,7 @@ function EmptyState(): ReactElement {
       alignItems="center"
       display="flex"
       flexDirection="column"
-      height="90px"
+      height="5.625rem"
       justifyContent="center"
     >
       <Text color="fg.muted" textAlign="center" variant="body">
@@ -85,7 +85,7 @@ function ErrorState(): ReactElement {
       alignItems="center"
       display="flex"
       flexDirection="column"
-      height="90px"
+      height="5.625rem"
       justifyContent="center"
     >
       <Text color="fg.error" textAlign="center" variant="body">
@@ -100,22 +100,22 @@ function ErrorState(): ReactElement {
 
 function EdgeState(): ReactElement {
   return (
-    <Box display="flex" flexDirection="column" gap="2" height="90px" justifyContent="center">
+    <Box display="flex" flexDirection="column" gap="2" height="5.625rem" justifyContent="center">
       <Text color="fg.muted" variant="body">
         Poção de Cura Interminável
       </Text>
-      <Box bg="bg.raised" borderRadius="xs" height="6px" width="100%" />
+      <Box bg="bg.raised" borderRadius="xs" height="0.375rem" width="100%" />
     </Box>
   );
 }
 
 function PopulatedState(): ReactElement {
   return (
-    <Box display="flex" flexDirection="column" gap="2" height="90px" justifyContent="center">
+    <Box display="flex" flexDirection="column" gap="2" height="5.625rem" justifyContent="center">
       <Text color="fg" variant="body">
         Poção de Cura
       </Text>
-      <Box bg="bg.raised" borderRadius="xs" height="6px" width="70%" />
+      <Box bg="bg.raised" borderRadius="xs" height="0.375rem" width="70%" />
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { Box } from '@chakra-ui/react';
+import { Box, Grid } from '@chakra-ui/react';
 import type { HuntArea } from '@creatures/contracts/hunt';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useState } from 'react';
@@ -25,10 +25,10 @@ const LOADING_TITLE = 'Carregando os locais de caça...';
 const LOADING_DESCRIPTION = 'A lista das áreas está chegando. Só um instante.';
 const ERROR_TITLE = 'Não foi possível carregar os locais de caça.';
 const ERROR_DESCRIPTION = 'A busca das áreas falhou. Tente abrir o modal de novo em instantes.';
-const MODAL_WIDTH = '980px';
-const MODAL_HEIGHT = '720px';
-const SEARCH_WIDTH = '280px';
-const GRID_COLUMNS = 'repeat(4, 1fr)';
+const MODAL_WIDTH = '61.25rem';
+const MODAL_HEIGHT = '45rem';
+const SEARCH_WIDTH = '17.5rem';
+const GRID_COLUMNS = 'repeat(4, minmax(0, 1fr))';
 
 export type HuntAreaSelectModalProps = {
   areas: HuntArea[];
@@ -49,10 +49,17 @@ export type HuntAreaSelectModalProps = {
  * When there is nothing to show — no result, loading or failure — the grid
  * gives place to the empty state, and the footer stays where it is.
  */
+// eslint-disable-next-line max-lines-per-function
 export function HuntAreaSelectModal(props: HuntAreaSelectModalProps): ReactElement {
   const { areas, contained = false, isOpen, onClose, onSelect, status = 'ready' } = props;
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
+
+  function handleModalClose(): void {
+    setPage(1);
+    setQuery('');
+    onClose();
+  }
   const filtered = filterHuntAreas(areas, query);
   const pageCount = countHuntAreaPages(filtered.length);
   const currentPage = clampHuntAreaPage(page, pageCount);
@@ -74,7 +81,7 @@ export function HuntAreaSelectModal(props: HuntAreaSelectModalProps): ReactEleme
       contained={contained}
       height={MODAL_HEIGHT}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleModalClose}
       width={MODAL_WIDTH}
     >
       <ModalHeader>{TITLE}</ModalHeader>
@@ -116,8 +123,8 @@ function renderBody(status: HuntAreaStatus, cards: ReactElement[], total: number
     return <PanelState description={EMPTY_DESCRIPTION} title={EMPTY_TITLE} variant="empty" />;
   }
   return (
-    <Box display="grid" gap="3" gridTemplateColumns={GRID_COLUMNS}>
+    <Grid autoRows="1fr" gap="3" templateColumns={GRID_COLUMNS}>
       {cards}
-    </Box>
+    </Grid>
   );
 }

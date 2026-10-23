@@ -4,8 +4,8 @@ import { NativeButton } from '~/shared/ui/button';
 
 import { EyeIcon, EyeOffIcon } from './passwordField.icons';
 
-const BUTTON_SIZE = '44px';
-const ICON_SIZE = '16px';
+const BUTTON_SIZE = '2.75rem';
+const ICON_SIZE = '1rem';
 
 const HOVER_STYLE = {
   color: 'fg',
@@ -21,7 +21,7 @@ type PasswordVisibilityButtonProps = {
  * O botão que mostra e oculta a senha.
  *
  * É um `<button>` de verdade: o leitor de tela anuncia o rótulo, e o clique
- * troca o tipo do input. O alvo tem 44px, mesmo com o ícone de 16px — o alvo
+ * troca o tipo do input. O alvo tem 2.75rem, mesmo com o ícone de 1rem — o alvo
  * é maior que o elemento visível.
  */
 export function PasswordVisibilityButton(props: PasswordVisibilityButtonProps): ReactElement {

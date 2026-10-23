@@ -5,6 +5,7 @@ import { buildHeaders, isSuccessStatus, resolveErrorCode } from '~/shared/api';
 import type { TrainerClientErrorCode } from '~/shared/api';
 
 const TEAM_PATH = '/api/team';
+const CREATURE_PATH = '/api/creatures';
 const UNAUTHENTICATED: TeamErrorCode = 'unauthenticated';
 
 export function requestAddToTeam(deps: ApiDeps, creatureId: string): Promise<TeamCommandResult> {
@@ -28,6 +29,18 @@ export function requestReorderTeam(deps: ApiDeps, order: string[]): Promise<Team
   return requestTeamCommand(deps, buildTeamUrl(deps.baseUrl), buildBodyInit('PUT', { order }));
 }
 
+/**
+ * The release of a creature: it leaves the storage of the trainer for good.
+ */
+export function requestReleaseCreature(
+  deps: ApiDeps,
+  creatureId: string,
+): Promise<TeamCommandResult> {
+  return requestTeamCommand(deps, buildCreatureUrl(deps.baseUrl, creatureId), {
+    method: 'DELETE',
+  });
+}
+
 function buildBodyInit(method: 'POST' | 'PUT', body: Record<string, unknown>): RequestInit {
   return { body: JSON.stringify(body), method };
 }
@@ -38,6 +51,10 @@ function buildTeamUrl(baseUrl: string): string {
 
 function buildTeamMemberUrl(baseUrl: string, creatureId: string): string {
   return `${baseUrl}${TEAM_PATH}/${creatureId}`;
+}
+
+function buildCreatureUrl(baseUrl: string, creatureId: string): string {
+  return `${baseUrl}${CREATURE_PATH}/${creatureId}`;
 }
 
 /**

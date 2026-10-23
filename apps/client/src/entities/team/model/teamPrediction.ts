@@ -31,6 +31,9 @@ export function applyCommand(roster: TeamRoster, command: TeamCommand): TeamRost
   if (command.kind === 'remove') {
     return predictRemove(roster, command.creatureId);
   }
+  if (command.kind === 'release') {
+    return predictRelease(roster, command.creatureId);
+  }
   return predictReorder(roster, command.order);
 }
 
@@ -46,6 +49,9 @@ export function satisfiesCommand(roster: TeamRoster, command: TeamCommand): bool
   }
   if (command.kind === 'remove') {
     return findTeamSlot(roster.team, command.creatureId) === null;
+  }
+  if (command.kind === 'release') {
+    return findStorageCreature(roster.storage, command.creatureId) === null;
   }
   return readOrder(roster.team, command.order) === command.order.join(',');
 }
@@ -93,6 +99,21 @@ function predictRemove(roster: TeamRoster, creatureId: string): TeamRoster {
     team: roster.team.filter(function keepOther(entry: TeamSlot): boolean {
       return entry.creature.id !== creatureId;
     }),
+  };
+}
+
+/**
+ * The team without a creature that the player released.
+ *
+ * A criatura solta deixa o armazenamento para sempre: ela nao volta para o
+ * time nem para a grade.
+ */
+function predictRelease(roster: TeamRoster, creatureId: string): TeamRoster {
+  return {
+    storage: roster.storage.filter(function keepOther(creature: Creature): boolean {
+      return creature.id !== creatureId;
+    }),
+    team: roster.team,
   };
 }
 

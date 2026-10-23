@@ -13,13 +13,14 @@ import { ScrollArea } from '~/shared/ui/scroll';
  */
 export function StoreSellPanel(props: { store: StoreView }): ReactElement {
   const { store } = props;
+  const handleSelect = buildToggleSelect(store);
   const cells = store.bag.map(function renderItem(item: StoreBagItem): ReactElement {
     return (
       <StoreBagCell
         item={item}
         key={item.itemId}
         selectedId={store.selectedBagItemId}
-        select={store.select}
+        select={handleSelect}
       />
     );
   });
@@ -43,14 +44,27 @@ function StoreBagCell(props: StoreBagCellProps): ReactElement {
   return (
     <StoreSlot
       category={item.category}
+      description={item.description}
       isSelected={isSelected}
       name={item.name}
       quantity={item.quantity}
       value={item.sellPrice}
-      valueLabel="Valor de venda por unidade"
       onSelect={onSelect}
     />
   );
+}
+
+/**
+ * Toggles the selection of an item: clicking the selected one deselects it.
+ */
+function buildToggleSelect(store: StoreView): (itemId: string) => void {
+  return function toggle(itemId: string): void {
+    if (store.selectedBagItemId === itemId) {
+      store.clearSelection();
+      return;
+    }
+    store.select(itemId);
+  };
 }
 
 /**

@@ -24,7 +24,7 @@ export function StoreBuyAction(props: StoreBuyActionProps): ReactElement {
   const isDisabled = !hasSelection || !hasGold || store.isBusy;
   const needsGold = hasSelection && !hasGold;
   const button = (
-    <Button disabled={isDisabled} onClick={store.buy} tone="primary">
+    <Button disabled={isDisabled} loading={store.isBusy} onClick={store.buy} tone="primary">
       {BUY_LABEL}
     </Button>
   );

@@ -27,7 +27,7 @@ export function Vitals(props: VitalsProps): ReactElement {
   const hpRatio = readHpRatio(vitals);
   const hpValue = readHpValue(vitals);
   return (
-    <Box minW="180px">
+    <Box minW="11.25rem">
       <StatusBar color="hp" duration={hpValue} icon={<IconHeart />} label="Vida" ratio={hpRatio} />
       <StatusBar
         color="stamina"
@@ -101,7 +101,7 @@ function StatusBar(props: StatusBarProps): ReactElement {
   const durationNode = renderDuration(duration);
   const fillNode = renderFill(color, hasValue, widthStyle);
   return (
-    <Box marginBlockEnd="1.5">
+    <Box marginBlockEnd="0">
       <Box alignItems="center" display="flex" gap={1} mb={1}>
         <Box color={color} display="flex">
           {icon}
@@ -115,9 +115,9 @@ function StatusBar(props: StatusBarProps): ReactElement {
         bg="bg.sunken"
         borderRadius="xs"
         boxShadow="recessed"
-        h="8px"
+        h="0.5rem"
         overflow="hidden"
-        w="180px"
+        w="11.25rem"
       >
         {fillNode}
       </Box>

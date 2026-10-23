@@ -4,10 +4,10 @@ import type { ReactElement } from 'react';
 import { IconChevronRight } from '~/shared/ui/icon';
 import { Text } from '~/shared/ui/text';
 
-const PLAY_WIDTH = '340px';
-const PLAY_HEIGHT = '104px';
-const PLAY_BOTTOM = '128px';
-const CHEVRON_SIZE = '34px';
+const PLAY_WIDTH = '21.25rem';
+const PLAY_HEIGHT = '6.5rem';
+const PLAY_BOTTOM = '8rem';
+const CHEVRON_SIZE = '2.125rem';
 
 type PlayButtonProps = {
   onClick: () => void;

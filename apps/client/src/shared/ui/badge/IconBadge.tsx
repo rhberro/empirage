@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 
 import type { IconBadgeProps } from './badge.types';
 
-const BADGE_SIZE = '28px';
+const BADGE_SIZE = '1.75rem';
 
 export function IconBadge(props: IconBadgeProps): ReactElement {
   const { children, size = BADGE_SIZE, tone = 'fg.muted' } = props;

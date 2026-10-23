@@ -1,10 +1,6 @@
 export { Popup } from './Popup';
 export { PopupCard } from './PopupCard';
-export { PopupGroup } from './PopupGroup';
-export { PopupGroupContext } from './popupGroup.context';
-export type { PopupGroupContextValue } from './popupGroup.context';
+export type { SlotTooltip } from './useSlotTooltip';
 export { useHasHoverCapability } from './useHasHoverCapability';
-export { usePopupGroup, usePopupGroupContext } from './usePopupGroup';
-export { usePopupState } from './usePopupState';
-export type { PopupController, PopupProps } from './popup.types';
-export type { PopupEvent, PopupState } from './popupState';
+export { useSlotTooltip } from './useSlotTooltip';
+export type { PopupProps } from './popup.types';

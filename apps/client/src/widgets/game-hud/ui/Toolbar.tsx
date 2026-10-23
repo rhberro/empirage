@@ -6,7 +6,7 @@ import type { ToolbarProps } from '~/widgets/game-hud/model/toolbar.types';
 import { ToolbarLeft } from './ToolbarLeft';
 import { ToolbarRight } from './ToolbarRight';
 
-const TOOLBAR_HEIGHT = '56px';
+const TOOLBAR_HEIGHT = '3.5rem';
 
 export function Toolbar(props: ToolbarProps): ReactElement {
   const {
@@ -30,6 +30,8 @@ export function Toolbar(props: ToolbarProps): ReactElement {
       height={TOOLBAR_HEIGHT}
       justifyContent="space-between"
       paddingInline="4"
+      position="relative"
+      zIndex={2}
     >
       <ToolbarLeft
         trainerLevel={trainerLevel}

@@ -4,7 +4,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { Frame, FrameHeader } from '~/shared/ui/frame';
 
 const TITLE = 'Criar Treinador';
-const PANEL_WIDTH = '360px';
+const PANEL_WIDTH = '22.5rem';
 
 type CreateTrainerPanelProps = {
   children: ReactNode;

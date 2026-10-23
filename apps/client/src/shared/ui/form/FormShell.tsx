@@ -5,7 +5,7 @@ import { DIVIDER_BOTTOM } from '~/shared/theme';
 import { Frame, FrameFooter } from '~/shared/ui/frame';
 import { Text } from '~/shared/ui/text';
 
-const SHELL_WIDTH = '360px';
+const SHELL_WIDTH = '22.5rem';
 
 type FormShellProps = {
   children: ReactNode;

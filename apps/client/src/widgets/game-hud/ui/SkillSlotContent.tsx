@@ -41,7 +41,7 @@ export function AbilityContent(props: AbilityContentProps): ReactElement {
     );
   return (
     <Box display="flex" flexDirection="column" height="full" padding="1">
-      <Box bg={color} borderRadius="xs" height="3px" width="full" />
+      <Box bg={color} borderRadius="xs" height="0.1875rem" width="full" />
       <Text
         color="fg"
         marginBlockStart="1"
@@ -70,7 +70,7 @@ export function ConsumableContent(props: ConsumableContentProps): ReactElement {
   const trigger = `Usa com ${consumable.triggerHpPercent}%`;
   return (
     <Box display="flex" flexDirection="column" height="full" padding="1">
-      <Box bg={CONSUMABLE_COLOR} borderRadius="xs" height="3px" width="full" />
+      <Box bg={CONSUMABLE_COLOR} borderRadius="xs" height="0.1875rem" width="full" />
       <Text
         color="fg"
         marginBlockStart="1"
@@ -99,7 +99,7 @@ export function DeviceContent(props: DeviceContentProps): ReactElement {
   const { device } = props;
   return (
     <Box display="flex" flexDirection="column" height="full" padding="1">
-      <Box bg={DEVICE_COLOR} borderRadius="xs" height="3px" width="full" />
+      <Box bg={DEVICE_COLOR} borderRadius="xs" height="0.1875rem" width="full" />
       <Text
         color="fg"
         marginBlockStart="1"

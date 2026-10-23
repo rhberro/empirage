@@ -14,9 +14,16 @@ Cada superfície tem as suas regras no documento dela, e aqui ficam as convenç�
 
 O popup é o elemento que mostra informações de um item, de uma criatura ou de outro conteúdo. Ele segue o mesmo comportamento em qualquer superfície.
 
-O hover exibe o popup, e ele some quando o cursor sai do elemento. O clique no elemento mantém o popup aberto: ele continua visível mesmo sem o cursor sobre ele, até o jogador clicar em outro lugar.
+O popup tem duas camadas, e o gesto do jogador escolhe qual delas aparece:
 
-> O popup funciona nos dois formatos de tela. No desktop, o hover mostra o popup e tirar o cursor o esconde, sem clique nenhum. No celular, onde não existe hover, o clique no elemento mostra o popup e ele fica aberto até o jogador clicar em outro lugar, então ele lê a informação sem precisar segurar o toque em nenhum lugar da tela.
+- O **hover** exibe o popup como um *tooltip*: ele aparece depois de um instante, some quando o cursor sai do elemento e **fica aberto enquanto o cursor está sobre o próprio popup**. O jogador pode passar o mouse do slot para o painel e ler sem que ele pisque.
+- O **clique** — ou o **botão direito do mouse** — abre um **menu contextual** com as ações daquele elemento. O menu fica aberto até o jogador clicar em qualquer outro lugar, e, no botão direito, ele nasce no ponto do clique.
+
+> O popup funciona nos dois formatos de tela. No desktop, o hover mostra o tooltip e o clique abre o menu; no celular, onde não existe hover, o toque abre o menu, e ele lê a informação sem precisar segurar o toque em nenhum lugar da tela.
+
+O conteúdo do tooltip é um resumo, e o do menu é o mesmo resumo com as **ações** daquele elemento, quando ele tem alguma — o botão de enviar uma criatura para o time fica no menu, e não no tooltip, porque um botão que aparece sozinho no hover é um acidente esperando para acontecer.
+
+O clique num item **não tem efeito nenhum**: o item da loja é escolhido no clique porque a loja precisa da seleção, e o item da mochila e o drop de uma área só mostram a informação.
 
 ## Tamanho Fixo
 

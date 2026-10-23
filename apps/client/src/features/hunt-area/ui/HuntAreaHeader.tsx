@@ -3,9 +3,10 @@ import type { HuntArea } from '@creatures/contracts/hunt';
 import type { ReactElement } from 'react';
 
 import { HUNT_AREA_TONE_COLORS } from '~/features/hunt-area/model/huntAreaTone';
+import { HuntAreaLevels } from '~/features/hunt-area/ui/HuntAreaLevels';
 import { Text } from '~/shared/ui/text';
 
-const IMAGE_HEIGHT = '180px';
+const IMAGE_HEIGHT = '11.25rem';
 
 type HuntAreaHeaderProps = {
   area: HuntArea;
@@ -20,7 +21,7 @@ type HuntAreaHeaderProps = {
 export function HuntAreaHeader(props: HuntAreaHeaderProps): ReactElement {
   const { area } = props;
   const tone = HUNT_AREA_TONE_COLORS[area.tone];
-  const levelLabel = `Recomendado ${area.recommendedLevel} - Mínimo ${area.minimumLevel}`;
+
   return (
     <Box position="relative">
       <Box bg={tone.surface} height={IMAGE_HEIGHT} width="full" />
@@ -34,12 +35,10 @@ export function HuntAreaHeader(props: HuntAreaHeaderProps): ReactElement {
         right="0"
       />
       <Box bottom="3" left="4" position="absolute">
-        <Text color="fg" variant="title">
+        <Text color="fg" variant="section">
           {area.name}
         </Text>
-        <Text color="fg.muted" variant="meta">
-          {levelLabel}
-        </Text>
+        <HuntAreaLevels minimumLevel={area.minimumLevel} recommendedLevel={area.recommendedLevel} />
       </Box>
     </Box>
   );

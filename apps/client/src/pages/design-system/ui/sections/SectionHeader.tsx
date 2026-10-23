@@ -12,7 +12,7 @@ type SectionHeaderProps = {
 export function SectionHeader(props: SectionHeaderProps): ReactElement {
   const { description, id, title } = props;
   return (
-    <Box id={id} marginBlockEnd="8" scrollMarginTop="80px">
+    <Box id={id} marginBlockEnd="8" scrollMarginTop="5rem">
       <Text color="fg" variant="title">
         {title}
       </Text>

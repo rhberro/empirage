@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 
 import { Text } from '~/shared/ui/text';
 
-const PORTRAIT_SIZE = '44px';
+const PORTRAIT_SIZE = '2.75rem';
 
 type CreaturePortraitProps = {
   borderColor: string;

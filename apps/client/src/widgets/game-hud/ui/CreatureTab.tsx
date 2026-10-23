@@ -11,7 +11,7 @@ import type { Creature } from '~/widgets/game-hud/model/gameHud.types';
 
 import { CreaturePortrait } from './CreaturePortrait';
 
-const TAB_WIDTH = '92px';
+const TAB_WIDTH = '5.75rem';
 const UNKNOWN_NAME = '—';
 
 type CreatureTabProps = {

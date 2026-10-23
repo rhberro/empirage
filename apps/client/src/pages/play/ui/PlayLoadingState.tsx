@@ -35,9 +35,9 @@ export function PlayLoadingState(): ReactElement {
         borderStyle="solid"
         borderTopColor="transparent"
         borderWidth="2px"
-        height="28px"
+        height="1.75rem"
         marginBlockStart="6"
-        width="28px"
+        width="1.75rem"
       />
       <Text color="fg.muted" marginBlockStart="4" maxW="42ch" textAlign="center" variant="body">
         {DESCRIPTION}

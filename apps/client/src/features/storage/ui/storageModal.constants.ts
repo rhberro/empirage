@@ -26,8 +26,8 @@ export const HUNT_REASON = 'Durante a caçada o time fica fechado.';
 export const FULL_REASON = 'O time está completo. Remova uma criatura para liberar um slot.';
 
 /** The modal has a fixed size, like the one of the backpack. */
-export const STORAGE_WIDTH = '720px';
-export const STORAGE_HEIGHT = '620px';
+export const STORAGE_WIDTH = '45rem';
+export const STORAGE_HEIGHT = '38.75rem';
 
 /** The width of the field of the search. */
-export const SEARCH_WIDTH = '240px';
+export const SEARCH_WIDTH = '15rem';

@@ -12,6 +12,10 @@ export type StaminaGauge = {
 };
 
 export type SkillBarProps = {
+  /** Whether the bar is collapsed. */
+  collapsed?: boolean;
+  /** The button of the city shop, rendered above the bar. */
+  shopButton?: ReactNode;
   /** The panel of selection that is open, drawn over the bar. */
   children?: ReactNode;
   /**
@@ -29,6 +33,8 @@ export type SkillBarProps = {
   onSlotPress?: (slot: SkillSlot) => void;
   /** The slot whose panel of selection is open. */
   openSlot?: SkillSlot | null;
+  /** Called when the collapse button is pressed. */
+  onToggle?: (collapsed: boolean) => void;
   stamina?: StaminaGauge;
   /** The life of the active creature. */
   vitals?: CreatureVitals | null;

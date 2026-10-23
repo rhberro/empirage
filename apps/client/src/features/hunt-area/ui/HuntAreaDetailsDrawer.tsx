@@ -20,8 +20,8 @@ import { Text } from '~/shared/ui/text';
 
 const CREATURES_TITLE = 'Criaturas';
 const ITEMS_TITLE = 'Itens';
-const DRAWER_WIDTH = '380px';
-const DRAWER_HEIGHT = '720px';
+const DRAWER_WIDTH = '23.75rem';
+const DRAWER_HEIGHT = '45rem';
 const ALERT_DURATION = 4000;
 const ALERT_ICON = 'i';
 const HUNT_UNAVAILABLE_MESSAGE = 'Caçada em breve.';

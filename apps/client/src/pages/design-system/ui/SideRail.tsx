@@ -9,9 +9,9 @@ import { Text } from '~/shared/ui/text';
 import { RAIL_GROUPS } from './rail';
 import type { RailGroup, RailItem, RailSubGroup } from './rail';
 
-const DRAWER_WIDTH = '280px';
-const RAIL_WIDTH = '232px';
-const TOOLBAR_HEIGHT = '56px';
+const DRAWER_WIDTH = '17.5rem';
+const RAIL_WIDTH = '14.5rem';
+const TOOLBAR_HEIGHT = '3.5rem';
 
 const RAIL_HOVER = { bg: 'bg.raised', color: 'fg' };
 
@@ -125,7 +125,7 @@ function RailSubGroupView(props: { onNavigate: () => void; subGroup: RailSubGrou
           transitionProperty="transform"
           transitionTimingFunction="ease-out"
         >
-          <IconChevronRight size="14px" />
+          <IconChevronRight size="0.875rem" />
         </Box>
       </Box>
       {list}
@@ -169,9 +169,9 @@ function BrandMark(): ReactElement {
         boxShadow="sm"
         color="currency.gold"
         display="flex"
-        height="30px"
+        height="1.875rem"
         justifyContent="center"
-        width="30px"
+        width="1.875rem"
       >
         <IconCoin />
       </Box>

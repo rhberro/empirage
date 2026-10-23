@@ -3,16 +3,18 @@ import type { ReactElement } from 'react';
 import { Icon } from './Icon';
 import type { IconProps } from './icon.types';
 
+/**
+ * A engrenagem das configurações.
+ *
+ * O desenho é o da engrenagem de verdade — dentes trapezoidais em volta do
+ * furo — e não o do sol: o botão da direita da barra é o menu do jogo, e ele
+ * precisa parecer uma engrenagem.
+ */
 export function IconGear(props: IconProps): ReactElement {
   return (
     <Icon {...props}>
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 3v2.5" />
-      <path d="M12 18.5V21" />
-      <path d="M4.6 7.2l2.2 1.3" />
-      <path d="M17.2 15.5l2.2 1.3" />
-      <path d="M4.6 16.8l2.2-1.3" />
-      <path d="M17.2 8.5l2.2-1.3" />
     </Icon>
   );
 }

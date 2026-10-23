@@ -6,7 +6,7 @@ import { Text } from '~/shared/ui/text';
 
 export function EmptyTrainers(): ReactElement {
   return (
-    <Box width="380px">
+    <Box width="23.75rem">
       <Frame>
         <FrameHeader>Lista de Treinadores</FrameHeader>
         <Box padding="4">

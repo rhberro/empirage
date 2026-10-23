@@ -34,7 +34,7 @@ Todo item tem um valor, definido no banco de dados, e os números em si não sã
 
 A aba de compra lista o que a loja vende, em duas categorias, cada uma com o seu título: **Consumíveis** e **Dispositivos**.
 
-Ao passar o cursor sobre um item, o [popup](INTERFACE.md#popup) exibe o nome do item e o seu valor de compra em gold coins.
+Ao passar o cursor sobre um item, o [popup](INTERFACE.md#popup) exibe o nome do item, o que ele faz e o seu valor de compra em gold coins. O clique no item **seleciona** ele — a loja precisa da seleção para os botões e o campo do rodapé — e não abre nenhum menu.
 
 A grade é a mesma da [mochila](BACKPACK.md#slots-de-itens), com as mesmas regras: fileiras completas, espaços vazios preenchidos com slots vazios e nenhum número fixo de colunas. O catálogo da loja ocupa o começo da grade, e o resto do espaço fica com slots vazios.
 
@@ -44,7 +44,11 @@ Para comprar, o jogador clica em um item, que entra no estado **selecionado**, d
 
 A quantidade nunca pode ser 0 nem vazia: se o jogador apagar o campo, digitar um valor negativo ou deixá-lo em branco, ao tirar o foco do campo o valor volta a ser 1.
 
-Do lado do campo existem três botões, **+10**, **+100** e **+1000**, que somam o valor do botão à quantidade atual: com 1 no campo, o +10 leva a 11, e mais um clique leva a 21. A quantidade máxima é **999999**, seis dígitos, e quem quiser comprar mais do que isso aperta Comprar mais vezes. Os botões de soma travam nesse limite: com 999500 no campo, o +1000 leva a 999999, e não além.
+O campo é um *stepper*: o **−** e o **+** dos dois lados somam e tiram uma unidade, e o número fica no meio. Ao lado deles ficam os botões **+10**, **+100** e **+1000**, que somam o valor do botão à quantidade atual: com 1 no campo, o +10 leva a 11, e mais um clique leva a 21. Depois deles vem o **MAX**, que leva a quantidade direto ao limite.
+
+**Na compra, o limite é o dinheiro do jogador**: ele não consegue escolher uma quantidade que ele não pode pagar. Com 1000 gold coins e um item de 120, o máximo é 8, e o +1000, o +100 e o MAX não passam disso. Na venda, o limite é a mochila: o jogador não vende o que ele não tem, e o máximo é a quantidade do item que ele possui.
+
+> O limite existe para o jogador não descobrir a recusa depois de montar a compra: a quantidade que ele não pode ter nunca entra no campo, e o total do rodapé é sempre um total que ele pode pagar.
 
 > Os botões existem para o jogador não digitar quantidades grandes à mão, e a soma incide sobre o que já está no campo: um clique a mais nunca significa começar de novo.
 
@@ -54,7 +58,7 @@ Do lado esquerdo do botão **Comprar** fica o total de gold coins da compra, que
 
 Sem dinheiro suficiente, o botão **Comprar** fica desabilitado, com um tooltip dizendo "Você não tem dinheiro suficiente". Com dinheiro suficiente, ele fica habilitado. O saldo do jogador fica visível na [toolbar](PLAY_SCREEN.md#menu-da-direita), e é ele que decide se o botão fica habilitado.
 
-A compra não tem confirmação: o clique executa a compra. Os itens vão direto para a [mochila](BACKPACK.md), o gold coin é subtraído, o item sai do estado selecionado e o modal volta ao estado original — sem seleção, campo de quantidade desabilitado e total zerado.
+A compra não tem confirmação: o clique executa a compra. Os itens vão direto para a [mochila](BACKPACK.md), o gold coin é subtraído, o item sai do estado selecionado e o modal volta ao estado original — sem seleção, campo de quantidade desabilitado e total zerado. A compra concluída mostra um [alerta](INTERFACE.md#alerta) no canto da tela: **"Você comprou 6 Poções de Cura."**
 
 > Sem confirmação porque o total exato está na tela antes do clique, e comprar é a ação mais comum da loja. O arrependimento tem caminho: o item comprado pode ser vendido de novo na aba de venda.
 
@@ -62,7 +66,7 @@ A compra não tem confirmação: o clique executa a compra. Os itens vão direto
 
 A aba de venda lista todos os itens da [mochila](BACKPACK.md) do treinador — dispositivos, poções e itens de criaturas, ou seja, tudo o que a loja vende mais o drop. Itens iguais ficam em um slot só, com a quantidade na label: 300 poções de cura ocupam um slot com 300, e não 300 slots.
 
-Ao passar o cursor sobre um item, o [popup](INTERFACE.md#popup) exibe o nome do item e o seu valor de venda em gold coins — o valor **unitário** do item, o de uma unidade.
+Ao passar o cursor sobre um item, o [popup](INTERFACE.md#popup) exibe o nome do item, o que ele faz e o seu valor de venda em gold coins — o valor **unitário** do item, o de uma unidade.
 
 As duas abas usam a mesma grade, com as mesmas regras de preenchimento de espaços vazios.
 
@@ -74,13 +78,15 @@ Para vender, o jogador clica em um item, que entra no estado **selecionado**, de
 
 O rodapé da aba de venda é o mesmo da aba de compra: à esquerda ficam o campo de quantidade e os botões de soma, e à direita o total em gold coins e o botão **Vender Selecionado**. Sem item selecionado, o campo de quantidade fica desabilitado e o botão também.
 
-A quantidade tem as mesmas regras da compra: nunca é 0 nem vazia — se o jogador apagar o campo, digitar um valor negativo ou deixá-lo em branco, ao tirar o foco o valor volta a ser 1 —, o máximo é **999999**, e os botões **+10**, **+100** e **+1000** somam ao valor atual e travam nesse limite.
+A quantidade tem as mesmas regras da compra: nunca é 0 nem vazia — se o jogador apagar o campo, digitar um valor negativo ou deixá-lo em branco, ao tirar o foco o valor volta a ser 1 —, os botões **−**, **+**, **+10**, **+100** e **+1000** somam ao valor atual, e o **MAX** leva ao limite. **Na venda o limite é a mochila**: o jogador não consegue selecionar mais do que o item que ele tem, e um item com 12 na mochila trava em 12.
 
 O **preço do item é o preço unitário**: é o que o [popup](INTERFACE.md#popup) mostra, ao lado do nome do item, e é com ele que o jogador multiplica. O **total** que fica do lado do botão é o valor da quantidade escolhida — o valor unitário vezes a quantidade — e não o valor de tudo o que está selecionado. Um item de 90 gold coins com quantidade 3 mostra 270 no total.
 
 A venda não tem confirmação: o clique executa. Os itens vendidos saem da mochila, o gold coin é somado, o total do rodapé passa a ser o total que o servidor devolveu, e a seleção continua no item enquanto ele estiver na mochila: o jogador pode vender mais dele sem selecionar de novo. O item que sai da mochila por inteiro leva a seleção com ele, porque o slot dele não existe mais.
 
 Vender mais do que o treinador tem na mochila é recusado pelo servidor, e a aba mostra o motivo da recusa, sem perder os itens que ainda estão na mochila.
+
+A venda concluída mostra um [alerta](INTERFACE.md#alerta) no canto da tela: **"Você vendeu 4 Poções de Cura."**
 
 ## Comportamento
 

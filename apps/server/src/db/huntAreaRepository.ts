@@ -11,7 +11,8 @@ import type { HuntAreaItemRow, HuntAreaListEntry, HuntAreaRow } from '~/db/types
 
 const HUNT_AREA_COLUMNS =
   'id, slug, name, description, recommended_level, minimum_level, tone, hunt_area_species(position, is_primary, species(id, slug, name, element))';
-const DROP_COLUMNS = 'species_id, items(id, slug, name, category, description)';
+const DROP_COLUMNS =
+  'species_id, items(id, slug, name, category, description, price, is_store_item)';
 
 type QueryResult<T> = {
   data: T | null;

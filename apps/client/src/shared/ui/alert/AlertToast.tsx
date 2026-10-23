@@ -38,11 +38,11 @@ export function AlertToast(props: AlertToastProps): ReactElement {
       borderWidth="1px"
       boxShadow="overlay"
       gap="3"
-      maxWidth="calc(100vw - 32px)"
+      maxWidth="calc(100vw - 2rem)"
       padding="4"
       width="max-content"
     >
-      <IconBadge size="36px" tone={tone}>
+      <IconBadge size="2.25rem" tone={tone}>
         {icon}
       </IconBadge>
       <Box flex="1" minW="0" overflowWrap="anywhere" paddingBlockStart="1">
