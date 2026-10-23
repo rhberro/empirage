@@ -1,0 +1,264 @@
+{
+  "animations": {
+    "tiles/3": [
+      "tiles/3:0",
+      "tiles/3:1"
+    ],
+    "tiles/4": [
+      "tiles/4:0",
+      "tiles/4:1"
+    ]
+  },
+  "frames": {
+    "tiles/0:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/1:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 16,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/2:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 32,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/3:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 48,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/3:1": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 16
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/4:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 16,
+        "y": 16
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/4:1": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 32,
+        "y": 16
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/5:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 48,
+        "y": 16
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/6:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 32
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/7:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 16,
+        "y": 32
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/8:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 32,
+        "y": 32
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "tiles/9:0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 48,
+        "y": 32
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    }
+  },
+  "meta": {
+    "app": "creatures-gen-assets",
+    "format": "RGBA8888",
+    "image": "tiles.png",
+    "scale": 1,
+    "size": {
+      "h": 48,
+      "w": 64
+    }
+  }
+}
