@@ -13,9 +13,13 @@ export const SWAP_COOLDOWN_MS = 5000;
 const SWAP_COOLDOWN_MESSAGE = 'A troca de criatura está em recarga. Aguarde alguns segundos.';
 const SWAP_FAILURE_MESSAGE = 'Não foi possível trocar a criatura.';
 
+export type SwapExecutor = (creatureId: string) => Promise<SkillCommandResult>;
+
 export type CreatureSwapOptions = {
   /** Called when the server refuses the swap. */
   onFailed: (message: string) => void;
+  /** The swap during a hunt: the server command instead of the REST route. */
+  swapExecutor?: SwapExecutor;
 };
 
 export type CreatureSwapView = {
@@ -35,7 +39,7 @@ export type CreatureSwapView = {
  * what the player sees while the tabs wait.
  */
 export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView {
-  const { onFailed } = options;
+  const { onFailed, swapExecutor } = options;
   const [isSwapping, setSwapping] = useState<boolean>(false);
   const cooldown = useSwapCooldown(SWAP_COOLDOWN_MS);
 
@@ -47,7 +51,8 @@ export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView 
     // The revision the client has is the one the swap is built on: the state
     // that confirms the swap is the one that is newer than it.
     const expectedRev = readAppliedRevision();
-    requestSwapCreature(createApiDeps(getAccessToken), creatureId).then(
+    const request = swapExecutor ?? requestSwapViaRest;
+    request(creatureId).then(
       function handleSwap(result: SkillCommandResult): void {
         setSwapping(false);
         if (!result.ok) {
@@ -71,6 +76,10 @@ export function useCreatureSwap(options: CreatureSwapOptions): CreatureSwapView 
     isSwapping,
     swapCreature,
   };
+}
+
+function requestSwapViaRest(creatureId: string): Promise<SkillCommandResult> {
+  return requestSwapCreature(createApiDeps(getAccessToken), creatureId);
 }
 
 /**

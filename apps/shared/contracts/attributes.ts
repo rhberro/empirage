@@ -123,6 +123,36 @@ export function readBaseValues(species: CreatureSpecies): CreatureAttributes {
   };
 }
 
+/**
+ * The total experience a creature needs to reach the level `level`.
+ *
+ * The curve is quadratic: `100 × (level − 1)²`. Level 2 needs 100, level 3
+ * needs 400, level 4 needs 900, and so on.
+ */
+export function experienceForLevel(level: number): number {
+  const safe = Math.max(MIN_LEVEL, level);
+  return 100 * (safe - 1) * (safe - 1);
+}
+
+/**
+ * The level a creature has with the given total experience.
+ *
+ * It is the inverse of {@link experienceForLevel}: `floor(√(xp / 100)) + 1`.
+ */
+export function levelForExperience(experience: number): number {
+  if (experience < 0) {
+    return MIN_LEVEL;
+  }
+  return Math.floor(Math.sqrt(experience / 100)) + 1;
+}
+
+/**
+ * The experience the next level requires on top of the current one.
+ */
+export function experienceForNextLevel(level: number): number {
+  return experienceForLevel(level + 1) - experienceForLevel(level);
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }

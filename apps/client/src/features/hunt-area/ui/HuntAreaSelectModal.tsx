@@ -108,7 +108,7 @@ export function HuntAreaSelectModal(props: HuntAreaSelectModalProps): ReactEleme
 
 function buildAreaCard(onSelect: (area: HuntArea) => void): (area: HuntArea) => ReactElement {
   return function renderCard(area: HuntArea): ReactElement {
-    return <HuntAreaCard area={area} onPress={onSelect} />;
+    return <HuntAreaCard key={area.slug} area={area} onPress={onSelect} />;
   };
 }
 

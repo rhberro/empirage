@@ -94,10 +94,18 @@ function startsWithTheLoadout(): Promise<void> {
   return readSpeciesAbilities(env).then(function assertAbilities(
     abilities: AbilityPayload[],
   ): Promise<void> {
+    // The species declares six abilities, but the creature is born with the
+    // four player slots: the species slots 4 and 5 are options for the loadout,
+    // not part of the loadout it starts with.
+    const playerAbilities = abilities.filter(function inPlayerSlot(
+      ability: AbilityPayload,
+    ): boolean {
+      return ability.slot < 4;
+    });
     return readState(env, token).then(function assertState(state: PlayerStatePayload): void {
-      expect(state.equippedAbilities).toHaveLength(abilities.length);
-      expect(state.equippedAbilities.map(readSlot)).toEqual(abilities.map(readSlot));
-      expect(state.equippedAbilities[0]?.abilityId).toBe(abilities[0]?.ability_id);
+      expect(state.equippedAbilities).toHaveLength(playerAbilities.length);
+      expect(state.equippedAbilities.map(readSlot)).toEqual(playerAbilities.map(readSlot));
+      expect(state.equippedAbilities[0]?.abilityId).toBe(playerAbilities[0]?.ability_id);
     });
   });
 }

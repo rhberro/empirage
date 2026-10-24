@@ -13,10 +13,16 @@ export function HuntAreaDetails(): ReactElement {
       isOpen
       staminaMinutes={SAMPLE_STAMINA_MINUTES}
       onClose={noop}
+      onStartHunt={startNothing}
+      onStarted={noop}
     />
   );
 }
 
 function noop(): void {
   void 0;
+}
+
+function startNothing(): Promise<boolean> {
+  return Promise.resolve(true);
 }

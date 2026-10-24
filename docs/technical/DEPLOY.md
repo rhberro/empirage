@@ -220,7 +220,7 @@ Os pontos abaixo estão registrados como pendência no repositório e precisam s
 - **A sessão do treinador é por processo.** O mapa `userId → trainerId` vive na memória do processo: ele não sobrevive a um reinício do servidor e não é compartilhado entre instâncias. A decisão de instância única ainda está em aberto na [Stack do Servidor](server/STACK.md#pendências), então **suba uma única instância do servidor** até ela ser resolvida.
 - **O `/api/auth/google-merge` ainda recebe `email` no corpo.** O campo é opcional e apenas conferido contra o e-mail da identidade autenticada, e a busca da conta de senha usa sempre o e-mail do usuário Google autenticado. A dívida restante é cosmética: a versão final deixa de receber o campo.
 - **Os termos de serviço e a política de privacidade são placeholders.** As duas telas precisam estar publicadas antes da abertura do jogo ao público, em conformidade com a LGPD, conforme a [Autenticação](../game/AUTHENTICATION.md#termos-de-serviço-e-política-de-privacidade).
-- **O jogo em si ainda não existe.** O que sobe hoje é a API de treinador, inventário, time, carga da barra, loja e catálogo de áreas. Não há simulação nem caçada, que são o marco do gameplay.
+- **O jogo ainda está no vertical slice.** O que sobe hoje é a API de treinador, inventário, time, carga da barra, loja, catálogo de áreas e a caçada jogável com simulação autoritativa. Captura, party, level-up, recuperação de stamina e conta paga ainda não existem.
 
 ## O Que o Repositório Não Define
 

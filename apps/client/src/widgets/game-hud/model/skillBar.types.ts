@@ -11,7 +11,26 @@ export type StaminaGauge = {
   minutes: number;
 };
 
+export type SlotCooldown = {
+  cooldownMs: number;
+  readyAt: number;
+  slot: number;
+};
+
+/**
+ * The device as the bar shows it.
+ *
+ * The hunt carries the multiplier of the device, which the state of the
+ * trainer does not: the bar reads the same type from both, with an optional
+ * multiplier that only the hunt fills.
+ */
+export type DeviceDisplay = EquippedDevice & {
+  multiplier?: number;
+};
+
 export type SkillBarProps = {
+  /** The cooldowns of the ability slots, while the creature fights. */
+  abilityCooldowns?: SlotCooldown[];
   /** Whether the bar is collapsed. */
   collapsed?: boolean;
   /** The button of the city shop, rendered above the bar. */
@@ -28,7 +47,7 @@ export type SkillBarProps = {
   /** The consumables equipped in the two consumable slots of the trainer. */
   equippedConsumables?: EquippedConsumable[];
   /** The capture device equipped in the device slot of the trainer. */
-  equippedDevice?: EquippedDevice | null;
+  equippedDevice?: DeviceDisplay | null;
   /** The slot that opens the panel of selection. */
   onSlotPress?: (slot: SkillSlot) => void;
   /** The slot whose panel of selection is open. */

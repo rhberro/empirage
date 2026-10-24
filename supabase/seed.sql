@@ -113,7 +113,22 @@ set
   base_experience = excluded.base_experience,
   is_starter = excluded.is_starter;
 
-insert into public.abilities (id, slug, name, element, damage, cooldown_ms, description)
+insert into public.abilities (
+  id,
+  slug,
+  name,
+  element,
+  damage,
+  cooldown_ms,
+  description,
+  target_type,
+  range,
+  area_shape,
+  area_length,
+  area_radius,
+  area_step_ms,
+  travel_ms
+)
 values
   (
     'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -122,7 +137,14 @@ values
     'fire',
     12,
     4000,
-    'Ataque de fogo rápido, o golpe mais curto da criatura.'
+    'Ataque de fogo rápido, o golpe mais curto da criatura.',
+    'target',
+    5,
+    null,
+    null,
+    null,
+    150,
+    200
   ),
   (
     'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
@@ -131,7 +153,14 @@ values
     'fire',
     24,
     7000,
-    'Explosão de fogo de alto dano e longo tempo de recarga.'
+    'Explosão de fogo de alto dano e longo tempo de recarga.',
+    'area',
+    5,
+    'circle',
+    null,
+    2,
+    150,
+    0
   ),
   (
     'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f',
@@ -140,7 +169,14 @@ values
     'neutral',
     8,
     2000,
-    'Arranhão sem elemento, disponível para quase toda espécie.'
+    'Arranhão sem elemento, disponível para quase toda espécie.',
+    'target',
+    1,
+    null,
+    null,
+    null,
+    150,
+    0
   ),
   (
     'e4d5f6a7-b8c9-4d0e-9f1a-3b4c5d6e7f8a',
@@ -149,7 +185,14 @@ values
     'water',
     14,
     4000,
-    'Jato de água de alcance médio.'
+    'Jato de água de alcance médio.',
+    'target',
+    6,
+    null,
+    null,
+    null,
+    150,
+    200
   ),
   (
     'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b',
@@ -158,7 +201,46 @@ values
     'plant',
     10,
     4000,
-    'Espinho venenoso que perfura a defesa.'
+    'Espinho venenoso que perfura a defesa.',
+    'area',
+    4,
+    'line',
+    4,
+    null,
+    200,
+    0
+  ),
+  (
+    'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d',
+    'explosao',
+    'Explosão',
+    'fire',
+    18,
+    5000,
+    'Explosão de fogo centrada no conjurador, sem alvo.',
+    'area_self',
+    0,
+    'circle',
+    null,
+    1,
+    150,
+    0
+  ),
+  (
+    'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e',
+    'vendaval',
+    'Vendaval',
+    'water',
+    12,
+    6000,
+    'Vendaval de água que varre a área ao redor do conjurador.',
+    'area_self',
+    0,
+    'circle',
+    null,
+    2,
+    150,
+    0
   )
 on conflict (slug) do update
 set
@@ -167,26 +249,90 @@ set
   element = excluded.element,
   damage = excluded.damage,
   cooldown_ms = excluded.cooldown_ms,
-  description = excluded.description;
+  description = excluded.description,
+  target_type = excluded.target_type,
+  range = excluded.range,
+  area_shape = excluded.area_shape,
+  area_length = excluded.area_length,
+  area_radius = excluded.area_radius,
+  area_step_ms = excluded.area_step_ms,
+  travel_ms = excluded.travel_ms;
 
-insert into public.species_abilities (species_id, ability_id, slot)
+-- The set of abilities of a species is replaced as a whole: an ability that
+-- moves from one slot to another would collide with the unique
+-- (species_id, ability_id) constraint if the seed only upserted by slot. The
+-- upsert below still makes a rerun converge after the rows are recreated.
+delete from public.species_abilities
+where species_id in (
+  '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+  '6ba7b810-9dad-41d1-80b4-00c04fd430c8',
+  '16fd2706-8baf-433b-82eb-8c7fada847da',
+  '4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d',
+  '8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e'
+);
+
+insert into public.species_abilities (
+  species_id,
+  ability_id,
+  slot,
+  wild_chance,
+  wild_interval_ms
+)
 values
-  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0),
-  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 1),
-  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 2),
-  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'e4d5f6a7-b8c9-4d0e-9f1a-3b4c5d6e7f8a', 0),
-  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1),
-  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 0),
-  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1),
-  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0),
-  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1),
-  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2),
-  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 0),
-  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 1)
+  -- Every species shares the six abilities of the 2.2 catalog: two that reach
+  -- a target, two areas around a target, and two centred on the caster.
+  -- Brasa.
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0, 10, 3000),
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1, 12, 2000),
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2, 6, 7000),
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 3, 8, 5000),
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d', 4, 8, 5000),
+  ('3f2504e0-4f89-41d3-9a0c-0305e82c3301', 'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e', 5, 6, 6000),
+  -- Gota.
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0, 10, 3000),
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1, 12, 2000),
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2, 6, 7000),
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 3, 8, 5000),
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d', 4, 8, 5000),
+  ('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e', 5, 6, 6000),
+  -- Broto.
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0, 10, 3000),
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1, 12, 2000),
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2, 6, 7000),
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 3, 8, 5000),
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d', 4, 8, 5000),
+  ('16fd2706-8baf-433b-82eb-8c7fada847da', 'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e', 5, 6, 6000),
+  -- Cinzarra.
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0, 10, 3000),
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1, 12, 2000),
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2, 6, 7000),
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 3, 8, 5000),
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d', 4, 8, 5000),
+  ('4a1b2c3d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e', 5, 6, 6000),
+  -- Pedrino.
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'b1a2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 0, 10, 3000),
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'd3c4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f', 1, 12, 2000),
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'c2b3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 2, 6, 7000),
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'f5e6a7b8-c9d0-4e1f-8a2b-4c5d6e7f8a9b', 3, 8, 5000),
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d', 4, 8, 5000),
+  ('8b9c0d1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e', 'b7c8d9e0-f1a2-4b3c-8d4e-5f6a7b8c9d0e', 5, 6, 6000)
 on conflict (species_id, slot) do update
-set ability_id = excluded.ability_id;
+set ability_id = excluded.ability_id,
+  wild_chance = excluded.wild_chance,
+  wild_interval_ms = excluded.wild_interval_ms;
 
-insert into public.items (id, slug, name, category, description, price, is_store_item)
+insert into public.items (
+  id,
+  slug,
+  name,
+  category,
+  description,
+  price,
+  is_store_item,
+  heal_percent,
+  cooldown_ms,
+  capture_multiplier
+)
 values
   (
     '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
@@ -195,7 +341,10 @@ values
     'consumable',
     'Restaura a vida de uma criatura.',
     120,
-    true
+    true,
+    50,
+    1000,
+    1.00
   ),
   (
     '1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e',
@@ -204,7 +353,10 @@ values
     'consumable',
     'Restaura mais vida que a poção comum.',
     320,
-    true
+    true,
+    80,
+    1500,
+    1.00
   ),
   (
     '2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f',
@@ -213,16 +365,10 @@ values
     'consumable',
     'Restaura pouca vida, mas sai barato.',
     60,
-    true
-  ),
-  (
-    '3d4e5f6a-7b8c-4d9e-8f0a-2b3c4d5e6f7a',
-    'prisma-de-captura',
-    'Prisma de Captura',
-    'device',
-    'Dispositivo de captura de multiplicador alto.',
-    1800,
-    true
+    true,
+    25,
+    1000,
+    1.00
   ),
   (
     '4e5f6a7b-8c9d-4e0f-9a1b-3c4d5e6f7a8b',
@@ -231,16 +377,58 @@ values
     'device',
     'Dispositivo de captura mais simples, multiplicador 1x.',
     900,
-    true
+    true,
+    null,
+    0,
+    1.00
+  ),
+  (
+    'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+    'prisma-reforcado',
+    'Prisma Reforçado',
+    'device',
+    'Dispositivo de captura com multiplicador 2x.',
+    1300,
+    true,
+    null,
+    0,
+    2.00
+  ),
+  (
+    '3d4e5f6a-7b8c-4d9e-8f0a-2b3c4d5e6f7a',
+    'prisma-de-captura',
+    'Prisma de Captura',
+    'device',
+    'Dispositivo de captura de multiplicador alto, 3x.',
+    1800,
+    true,
+    null,
+    0,
+    3.00
+  ),
+  (
+    'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+    'prisma-lapidado',
+    'Prisma Lapidado',
+    'device',
+    'Dispositivo de captura com multiplicador 4x.',
+    2000,
+    true,
+    null,
+    0,
+    4.00
   ),
   (
     '5f6a7b8c-9d0e-4f1a-8b2c-4d5e6f7a8b9c',
     'cristal-bruto',
     'Cristal Bruto',
     'device',
-    'Dispositivo de captura bruto, de multiplicador máximo.',
+    'Dispositivo de captura bruto, de multiplicador máximo, 5x.',
     2400,
-    true
+    true,
+    null,
+    0,
+    5.00
   ),
   (
     '6a7b8c9d-0e1f-4a2b-9c3d-5e6f7a8b9c0d',
@@ -249,7 +437,10 @@ values
     'consumable',
     'Recupera stamina do treinador.',
     340,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '7b8c9d0e-1f2a-4b3c-8d4e-6f7a8b9c0d1e',
@@ -258,7 +449,10 @@ values
     'consumable',
     'Cura o efeito de veneno de uma criatura.',
     260,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '8c9d0e1f-2a3b-4c4d-9e5f-7a8b9c0d1e2f',
@@ -267,7 +461,10 @@ values
     'material',
     'Pata de uma criatura derrotada, o drop mais comum dos quadrúpedes.',
     40,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '9d0e1f2a-3b4c-4d5e-8f6a-9b0c1d2e3f4a',
@@ -276,7 +473,10 @@ values
     'material',
     'Pele de uma criatura derrotada, usada como matéria-prima.',
     45,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '0e1f2a3b-4c5d-4e6f-9a7b-0c1d2e3f4a5b',
@@ -285,7 +485,10 @@ values
     'material',
     'Couro de uma criatura derrotada, mais resistente que a pele comum.',
     70,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '1f2a3b4c-5d6e-4f7a-8b8c-1d2e3f4a5b6c',
@@ -294,7 +497,10 @@ values
     'material',
     'Asa de uma criatura alada derrotada, leve e resistente.',
     60,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '2b3c4d5e-6f70-4181-92a3-b4c5d6e7f809',
@@ -303,7 +509,10 @@ values
     'material',
     'Cinza que fica de uma criatura de cinzas derrotada.',
     30,
-    false
+    false,
+    null,
+    0,
+    1.00
   ),
   (
     '3c4d5e6f-7081-4292-a3b4-c5d6e7f8091a',
@@ -312,7 +521,10 @@ values
     'material',
     'Seiva que escorre de uma criatura de planta derrotada.',
     35,
-    false
+    false,
+    null,
+    0,
+    1.00
   )
 on conflict (slug) do update
 set
@@ -321,7 +533,10 @@ set
   category = excluded.category,
   description = excluded.description,
   price = excluded.price,
-  is_store_item = excluded.is_store_item;
+  is_store_item = excluded.is_store_item,
+  heal_percent = excluded.heal_percent,
+  cooldown_ms = excluded.cooldown_ms,
+  capture_multiplier = excluded.capture_multiplier;
 
 -- The drops of the species are the parts of the creature, and nothing else: a
 -- capture device is never dropped by a wild creature. The old device drops are

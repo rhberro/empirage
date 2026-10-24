@@ -45,16 +45,24 @@ const AFTER_THE_CLICK = 0;
  * (o gatilho da criatura, enquanto o menu dela esta aberto) passa `false` e o
  * hover nao abre nada. Sem a prop, o hover manda, como sempre.
  *
+ * Uma tooltip com estado proprio fica inerte enquanto fechada: a maquina do
+ * Ark escuta os eventos de ponteiro por conta propria, e um `open: false`
+ * constante nunca sincroniza — a maquina remontada reabriria a si mesma com o
+ * hook fechado, e o painel fantasma revive. O despertar acontece em duas
+ * etapas — o gate acende um tick antes de o comando de abrir pousar, porque
+ * o `disabled` engole uma virada no mesmo commit — e o comando de fechar
+ * pousa enquanto a maquina ainda escuta.
+ *
  * Um fechamento controlado adota uma geracao nova: a raiz do tooltip remonta,
- * e a maquina dele morre com o painel — a maquina do Ark reabre por eventos
- * de ponteiro por conta propria, e um painel que o consumidor fechou nunca
+ * e a maquina dele morre com o painel — um sync de fechar engolido nunca
  * ressuscita. A troca de geracao nunca ocorre no meio de uma pressao: ela
  * espera o `pointerup` e sai do frame do clique, para o click nunca pousar
  * num node que o remount vai destruir.
  */
 export function Popup(props: PopupProps): ReactElement {
-  const { children, content, disabled = false, open, ...triggerProps } = props;
-  const { generation, rootRef } = useGenerationOnClose(open);
+  const { children, content, disabled: disabledProp = false, open, ...triggerProps } = props;
+  const { generation, rootRef, machineOpen, machineEnabled } = useGenerationOnClose(open);
+  const disabled = disabledProp || (open !== undefined && !machineEnabled);
   const trigger = cloneElement(
     children as ReactElement<Record<string, unknown>>,
     mergeTriggerProps(children.props as Record<string, unknown>, triggerProps),
@@ -62,12 +70,12 @@ export function Popup(props: PopupProps): ReactElement {
   return (
     <Box display="contents" ref={rootRef}>
       <Tooltip.Root
-        closeDelay={200}
+        closeDelay={100}
         disabled={disabled}
         interactive
         key={generation}
-        open={open}
-        openDelay={150}
+        open={machineOpen}
+        openDelay={100}
         positioning={POPUP_POSITIONING}
       >
         <Tooltip.Trigger asChild>{trigger}</Tooltip.Trigger>
@@ -83,17 +91,53 @@ function bumpGeneration(value: number): number {
   return value + 1;
 }
 
-// The generations of the tooltip root, and the window of a pointer press on
-// the glass around it. The root carries the key: a controlled close adopts
-// the next generation — unless a press is running on the popup subtree, when
-// the turnover waits for the release, because the click of that press has to
-// run on the very nodes the remount would destroy.
+const REAP_DELAY_MS = 150;
+
+/**
+ * The orphan reaper. A remount replaces the tooltip machine, but the panel of
+ * the old machine can outlive it in the document body — a loose node no
+ * trigger points at anymore, visible with the mouse miles away. A mounted and
+ * legitimate panel always has its trigger tied to it by `aria-describedby`:
+ * whatever no trigger points at is a corpse, and it goes.
+ */
+function reapOrphanPanels(): void {
+  window.setTimeout(function reap(): void {
+    const panels = Array.from(document.querySelectorAll('[role="tooltip"]'));
+    for (const panel of panels) {
+      const id = panel.getAttribute('id') ?? '';
+      if (id === '') {
+        continue;
+      }
+      if (document.querySelector('[aria-describedby="' + id + '"]') !== null) {
+        continue;
+      }
+      panel.remove();
+    }
+  }, REAP_DELAY_MS);
+}
+
+// The generations of the tooltip root, the gate of the machine (see the
+// popup), and the window of a pointer press on the glass around it. The
+// root carries the key: a controlled close adopts the next generation —
+// unless a press is running on the popup subtree, when the turnover waits
+// for the release, because the click of that press has to run on the very
+// nodes the remount would destroy.
+//
+// The gate is the two-step wake of the machine: it flips a tick after
+// `open` changes, never in its own commit. The opening command lands
+// already finding the machine enabled (`disabled` swallows a same-commit
+// flip), and the closing command lands while the previous gate is still
+// on. Once the consumer is done, the gate closes and the machine is inert
+// again — it can never act on its own pointer events.
 // eslint-disable-next-line max-lines-per-function
 function useGenerationOnClose(open: boolean | undefined): {
   generation: number;
+  machineEnabled: boolean;
+  machineOpen: boolean | undefined;
   rootRef: RefObject<HTMLDivElement | null>;
 } {
   const [generation, setGeneration] = useState(0);
+  const [awake, setAwake] = useState(false);
   const wasOpenRef = useRef(false);
   const isPressedRef = useRef(false);
   const isClosePendingRef = useRef(false);
@@ -106,6 +150,7 @@ function useGenerationOnClose(open: boolean | undefined): {
       }
       isClosePendingRef.current = false;
       setGeneration(bumpGeneration);
+      reapOrphanPanels();
     },
     [isClosePendingRef],
   );
@@ -147,6 +192,7 @@ function useGenerationOnClose(open: boolean | undefined): {
           isClosePendingRef.current = true;
         } else {
           setGeneration(bumpGeneration);
+          reapOrphanPanels();
         }
       }
       wasOpenRef.current = open === true;
@@ -154,5 +200,22 @@ function useGenerationOnClose(open: boolean | undefined): {
     [open, isPressedRef],
   );
 
-  return { generation, rootRef };
+  useEffect(
+    function gateTheMachine(): () => void {
+      const applyGate = window.setTimeout(function apply(): void {
+        setAwake(open === true);
+      }, AFTER_THE_CLICK);
+      return function cancel(): void {
+        window.clearTimeout(applyGate);
+      };
+    },
+    [open, setAwake],
+  );
+
+  return {
+    generation,
+    machineEnabled: awake,
+    machineOpen: open === undefined ? undefined : awake && open === true,
+    rootRef,
+  };
 }

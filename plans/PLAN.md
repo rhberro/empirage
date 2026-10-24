@@ -384,6 +384,10 @@ recuperação são da **conta**. O `advance()` precisa das duas entradas.
 O cliente interpola posição pelo caminho e anima o efeito pela duração. O
 servidor **não** empurra posição a cada quadro.
 
+> O **canal de mundo da cidade** já é a primeira aplicação real dessas ideias, ainda que fora da caçada: o `move` é o primeiro comando real do canal, a caminhada é planejada inteira no servidor com tempos absolutos, e o mundo tem um canal leve próprio (`world_state`, `actor_update`, `actor_leave`). O que existe está em [Mundo](../docs/game/WORLD.md), [Mundo (cliente)](../docs/technical/client/WORLD.md) e [Mundo (servidor)](../docs/technical/server/WORLD.md); a cobertura de integração do `move` pelo WebSocket está em `apps/server/src/__tests__/gameSocketWorld.spec.ts`.
+
+> **Rodada 2 do canal de mundo** (ver `plans/GAMEPLAY_1_CITY.md` §12): o pathfinding deixou de ser BFS de custo uniforme e virou **Dijkstra ponderado** (ortogonal custa 1, diagonal custa 3), para o caminho preferir as linhas retas; um `move` recebido no meio de um passo **preserva o passo em curso** e replaneja a partir do tile que está entrando; e a posição passou a ser **persistida** em `trainer_positions` por write-behind (~1 s), com o passo em curso completado e gravado na desconexão.
+
 ---
 
 ## 5. O cache no cliente

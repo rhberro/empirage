@@ -2,7 +2,7 @@
 
 Este documento cobre a tela principal do jogo, onde o jogador passa a maior parte do tempo: a estrutura da tela, os elementos de acesso rápido e as informações do treinador, até os estados de conexão e o comportamento em dispositivos móveis.
 
-> A **tela do jogo** é composta por uma **toolbar** fixa no topo, um **canvas**, que renderiza o mundo do jogo, e **elementos HTML flutuando sobre o canvas**, como o botão de play, as linguetas do time e a barra de habilidades. O que é renderizado dentro do canvas (mapa, criaturas, vida, chat, informações do alvo etc.) é tema de um documento próprio, assim como cada modal e menu aberto a partir dessa tela.
+> A **tela do jogo** é composta por uma **toolbar** fixa no topo, um **canvas**, que renderiza o mundo do jogo, e **elementos HTML flutuando sobre o canvas**, como o botão de play, as linguetas do time e a barra de habilidades. O mundo em grid, a cena da cidade e a cena da caçada estão em [Mundo](WORLD.md); os painéis da caçada estão no [analisador de caçada](HUNT_ANALYZER.md). Cada modal e menu aberto a partir da tela tem documento próprio.
 
 > Este documento cobre **a tela em si**. Cada módulo aberto a partir dela — o modal da [mochila](BACKPACK.md), o modal de [locais de caça](HUNT_AREA_SELECT.md), o modal do [armazenamento](STORAGE.md), a configuração da barra de habilidades — tem documento próprio, e aqui só interessa o acesso a eles.
 
@@ -42,11 +42,21 @@ Nenhum elemento HTML da tela, incluindo os modais abertos a partir dela, pausa o
 
 Modais e drawers seguem a convenção de [tamanho fixo](INTERFACE.md#tamanho-fixo): depois de abertos, eles não mudam de altura nem de largura por causa do conteúdo.
 
+## O Canvas Hoje
+
+O canvas tem dois contextos. Na cidade, renderiza o mapa em grid, o treinador e os outros jogadores, com movimento por clique, WASD e setas e a câmera seguindo o treinador. Na caçada, renderiza o mapa da área, de **96x64 sqm**, com os **clusters de spawn** e os obstáculos internos, a criatura ativa, as criaturas selvagens e o treinador, com a câmera seguindo a **posição interpolada** da criatura ativa.
+
+Na caçada, a cena desenha as barras de vida, o anel do alvo, as ondas das habilidades de área, os projéteis e os números de dano. A caminhada é interpolada até o próximo passo previsto, para o ator não chegar cedo e ficar parado esperando a próxima decisão. A composição da cena está em [Mundo](WORLD.md#a-caçada-no-mundo).
+
+> A janela de visão é fixa em 34x20 sqm: o canvas lógico é sempre 544x320 px e a tela aplica um zoom inteiro em modo **cover** — sem barras. O canvas cobre o container, fica centralizado e a sobra é recortada nas bordas; uma tela maior não mostra mais mapa, só pixels maiores.
+
 ## Visibilidade dos Elementos
 
-Parte dos elementos da tela existe só em alguns contextos. Elementos de cidade, como o botão de play, existem enquanto o treinador está na cidade e desaparecem nas batalhas, e o contrário também pode acontecer: elementos de batalha aparecem durante a caçada e não existem na cidade.
+Parte dos elementos da tela existe só em alguns contextos. Elementos de cidade, como o botão de play e o botão da loja, existem enquanto o treinador está na cidade e desaparecem nas batalhas, e o contrário também pode acontecer: elementos de batalha aparecem durante a caçada e não existem na cidade.
 
-> A tela não é a mesma em todos os momentos, e esconder o que não faz sentido é parte da informação. Um botão de começar a caçar não tem utilidade no meio de uma batalha, e um painel de estatísticas da batalha não tem utilidade na cidade.
+Os modais de [mochila](BACKPACK.md) e de [armazenamento](STORAGE.md) são a exceção: eles abrem sobre o canvas na cidade e durante a caçada. A leitura é permitida nos dois casos; no armazenamento, as ações que mudam o time ficam bloqueadas enquanto a caçada está em andamento.
+
+> A tela não é a mesma em todos os momentos, e esconder o que não faz sentido é parte da informação. Um botão de começar a caçar não tem utilidade no meio de uma batalha, e um painel de estatísticas da batalha não tem utilidade na cidade. A mochila e o armazenamento, por outro lado, são consulta: eles não dependem do lugar e não pausam o jogo.
 
 ## Toolbar
 
@@ -125,7 +135,7 @@ Barra flutuando sobre o canvas, na parte inferior da tela, com 7 slots divididos
 
 - **4 slots de habilidades:** as habilidades ativas da criatura em campo, usadas automaticamente pela criatura durante a caçada.
 - **2 slots de consumíveis:** os consumíveis que a criatura usa em si mesma, como poções de cura, cada um com o seu gatilho de vida.
-- **1 slot de dispositivo de captura:** uma vez selecionado, o dispositivo é usado automaticamente para tentar a captura quando uma criatura selvagem desmaia. Sem dispositivo selecionado, a tentativa de captura não acontece, e o resto da caçada segue normalmente.
+- **1 slot de dispositivo de captura:** guarda o dispositivo da captura, que está fora de escopo nesta fase. O slot existe, mas não tem efeito: nenhuma criatura é capturada e nenhum dispositivo é gasto.
 
 Por meio dela o jogador acompanha o que está sendo usado e o tempo de recarga (cooldown) de cada habilidade.
 
@@ -136,6 +146,8 @@ Por meio dela o jogador acompanha o que está sendo usado e o tempo de recarga (
 ## Responsividade
 
 O jogo precisa rodar bem em celulares e desktops, em qualquer tamanho de tela, e os elementos da tela se adaptam ao espaço disponível. Os detalhes de como a toolbar, as linguetas e a barra de habilidades se comportam em telas pequenas serão definidos em [Interface](INTERFACE.md).
+
+> O canvas do mundo não entra nessa adaptação de tamanho: ele mantém a janela fixa de 34x20 sqm e só muda o zoom inteiro, conforme [Mundo](WORLD.md).
 
 ### Orientação
 
@@ -180,4 +192,4 @@ Os pontos abaixo ainda estão em aberto ou são provisórios nesta fase e devem 
 
 - Os botões dos menus da toolbar, com exceção dos de Mochila, Armazenamento e Configurações, são placeholders para funcionalidades ainda não definidas.
 - Os detalhes de como a tela se adapta a telas pequenas ainda serão definidos junto com o design da interface.
-- O painel de estatísticas da batalha, que aparece durante as caçadas, ainda não existe.
+- Os detalhes da cena da caçada — arte definitiva, animação dos tiles e ordenação visual fina — ainda serão definidos junto com o design do mundo.

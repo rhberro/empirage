@@ -134,12 +134,23 @@ O mundo do jogo é renderizado com o PixiJS, em um canvas separado dos elementos
 O estilo do jogo impõe um conjunto de configurações que não são o padrão da biblioteca:
 
 - `resolution` em 1, porque o jogo roda também em celular e resolução maior dobra o trabalho de renderização.
-- `antialias` desligado, `roundPixels` ligado e `scaleMode` em nearest nos sprites, porque o jogo é em pixel art e escala fracionária deixa a imagem borrada.
-- Escala sempre inteira, calculada a partir do espaço disponível e do tamanho do tile.
+- `antialias` desligado, `roundPixels` ligado e `scaleMode` em nearest nos sprites, porque o jogo é em pixel art e ampliação fracionária deixa a imagem borrada.
+- Buffer lógico fixo de 544x320 px (34x20 sqm) e zoom inteiro aplicado por CSS, porque a janela de visão é fixa e a arte não pode ser reamostrada.
 
-> Essas configurações são consequência do estilo de arte, não preferência. Se o jogo deixar de ser pixel art, as três últimas saem e a primeira volta a ser avaliada.
+> Essas configurações são consequência do estilo de arte, não preferência. Se o jogo deixar de ser pixel art, as demais saem e a primeira volta a ser avaliada.
 
-O canvas é dimensionado pelo elemento que o contém, e não pela janela do browser, porque a tela do jogo ocupa apenas a altura restante abaixo da toolbar.
+O canvas vive dentro do elemento que o contém, e não da janela do browser, porque a tela do jogo ocupa apenas a altura restante abaixo da toolbar. O container não define o tamanho do buffer: ele define o zoom inteiro e o recorte. O buffer lógico é sempre 544x320, e o canvas é exibido em `544 * zoom` por `320 * zoom`, centralizado. O zoom é o menor inteiro que cobre o container nos dois eixos (`ceil`), então o canvas nunca mostra barra: quando sobra, o excesso é cortado nas bordas. `autoDensity: false` mantém o backing store em 544x320, e `image-rendering: pixelated` impede que o navegador suavize a ampliação por CSS.
+
+### A API real da v8
+
+A versão instalada é a **8.22.0**, e a API que a implementação encontrou é a da v8, não a dos exemplos mais antigos:
+
+- **A `Application` não recebe as opções no construtor.** Cria-se `new Application()` e chama-se `await app.init({ ... })`; o canvas só existe depois que o `init` resolve. Por isso a criação é assíncrona e o componente que monta o canvas trata a espera e o descarte.
+- **O atlas JSON vira uma `Spritesheet`.** `Assets.load` devolve uma `Spritesheet` com `textures` e `animations`; o filtro nearest é pedido no carregamento, com `data: { textureOptions: { scaleMode: 'nearest' } }`.
+- **O `destroy` não destrói as texturas do cache.** `app.destroy({ removeView: true }, { children: true })` destrói os filhos do stage, mas as texturas continuam no cache do `Assets`. Isso é o que permite ao `StrictMode` remontar o canvas e reutilizar os PNGs já carregados, em vez de baixá-los de novo. Uma textura criada pela própria cena, como a `RenderTexture` do chão, é destruída por conta própria.
+- **Renderizar para uma textura é `renderer.render({ container, target })`.** É assim que o mapa inteiro é pintado uma vez na `RenderTexture` do chão.
+
+> As configurações acima continuam valendo: `resolution: 1`, `antialias: false`, `roundPixels: true`, `scaleMode: 'nearest'` e zoom inteiro por CSS. A API mudou; a decisão de pixel art não. A implementação do mundo que usa essa API está em [Mundo (cliente)](WORLD.md).
 
 ## Zustand
 
@@ -158,6 +169,8 @@ O estado da conta e da sessão fica em um store separado do estado do jogo.
 **A lista de treinadores da conta não é um store: é uma query.** A tela que lista e a tela que cria treinador mostram a mesma lista, e elas a leem do mesmo cache do TanStack Query (`shared/api/queries/trainerQueries.ts`). O pedido em andamento é aguardado pela própria query, sem dedup manual. O store Zustand ficou só com o que é **da sessão**: o treinador que o jogador escolheu e o fato de a lista já ter sido lida. Ele é zerado quando a sessão deixa de existir.
 
 **O estado vivo do jogo não entra no TanStack Query.** Ele é empurrado pelo WebSocket, e a revisão decide a aplicação: só o estado mais novo é aplicado, e um estado velho é descartado. Uma query de cache não sabe o que é uma revisão, e por isso o estado do jogador não pode morar lá — ele fica no registro global de `entities/team/model/playerStateSync.ts`.
+
+**O mundo tem um store próprio.** A dinâmica do mundo — atores, caminhada do jogador, revisão de mundo e correção do relógio — fica em `entities/world/model/worldStore.ts`, separada do estado do jogador. A revisão do mundo é própria porque as mensagens do jogador e as do mundo são sequências diferentes; o renderer lê esse store a cada quadro, fora do React. A implementação está em [Mundo (cliente)](WORLD.md).
 
 ## TanStack Query
 

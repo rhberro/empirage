@@ -60,7 +60,11 @@ export function buildEmptyAdmin(): SupabaseClient {
  * A client that answers with a trainer of the account, for the routes that
  * read the trainer of the session.
  */
-export function buildTrainerAdmin(trainerId: string, ownerId: string): SupabaseClient {
+export function buildTrainerAdmin(
+  trainerId: string,
+  ownerId: string,
+  positions?: PositionAdminOptions,
+): SupabaseClient {
   const trainerRow: TrainerRow = {
     created_at: '2026-01-01T00:00:00.000Z',
     diamonds: 0,
@@ -73,19 +77,122 @@ export function buildTrainerAdmin(trainerId: string, ownerId: string): SupabaseC
     stamina_minutes: 480,
     starter_species_id: STARTER_ID,
   };
-  return buildFakeAdmin(trainerRow);
+  return buildFakeAdmin(trainerRow, positions);
 }
+
+/** The shape of a row of the durable position of a trainer. */
+export type TrainerPositionRow = {
+  facing: string;
+  trainer_id: string;
+  x: number;
+  y: number;
+};
+
+export type PositionAdminOptions = {
+  /** The rows the database already has. */
+  positions?: TrainerPositionRow[];
+  /** Receives every upsert, so a test can see what was written and when. */
+  saves?: TrainerPositionRow[];
+  /** How long a position read or write takes, to hold a flush open. */
+  delayMs?: number;
+};
+
+type FakeDatabase = {
+  delayMs: number;
+  positions: TrainerPositionRow[];
+  saves?: TrainerPositionRow[];
+};
 
 /**
  * The database of the unit tests: the trainer is the only row that exists.
  */
-export function buildFakeAdmin(trainerRow?: TrainerRow): SupabaseClient {
+export function buildFakeAdmin(
+  trainerRow?: TrainerRow,
+  options?: PositionAdminOptions,
+): SupabaseClient {
+  const database: FakeDatabase = {
+    delayMs: options?.delayMs ?? 0,
+    positions: (options?.positions ?? []).map(function copy(row): TrainerPositionRow {
+      return { ...row };
+    }),
+    saves: options?.saves,
+  };
   return {
     from: function from(table: string): unknown {
+      if (table === 'trainer_positions') {
+        return buildPositionTable(database);
+      }
       const rows = table === 'trainers' && trainerRow !== undefined ? [trainerRow] : [];
       return buildQuery(rows, false);
     },
   } as unknown as SupabaseClient;
+}
+
+/**
+ * The table of the durable positions: the read answers the row of the
+ * trainer and the upsert replaces or creates it.
+ */
+function buildPositionTable(database: FakeDatabase): unknown {
+  const eq = buildPositionEq(database);
+  return {
+    select: function select(): unknown {
+      return { eq };
+    },
+    upsert: function upsert(row: TrainerPositionRow): Promise<unknown> {
+      writePositionRow(database, row);
+      return buildDelayedAnswer({ data: null, error: null }, database.delayMs);
+    },
+  };
+}
+
+function buildPositionEq(database: FakeDatabase): (column: string, value: string) => unknown {
+  return function eq(column: string, value: string): unknown {
+    return buildPositionRead(database, column, value);
+  };
+}
+
+function buildPositionRead(database: FakeDatabase, column: string, value: string): unknown {
+  const row = column === 'trainer_id' ? findPosition(database.positions, value) : null;
+  return {
+    maybeSingle: function maybeSingle(): Promise<unknown> {
+      return buildDelayedAnswer({ data: row, error: null }, database.delayMs);
+    },
+    single: function single(): Promise<unknown> {
+      return buildDelayedAnswer({ data: row, error: null }, database.delayMs);
+    },
+  };
+}
+
+function findPosition(
+  positions: TrainerPositionRow[],
+  trainerId: string,
+): TrainerPositionRow | null {
+  for (const entry of positions) {
+    if (entry.trainer_id === trainerId) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+function findPositionIndex(positions: TrainerPositionRow[], trainerId: string): number {
+  for (let index = 0; index < positions.length; index += 1) {
+    if (positions[index].trainer_id === trainerId) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function writePositionRow(database: FakeDatabase, row: TrainerPositionRow): void {
+  const saved = { ...row };
+  const index = findPositionIndex(database.positions, saved.trainer_id);
+  if (index >= 0) {
+    database.positions[index] = saved;
+  } else {
+    database.positions.push(saved);
+  }
+  database.saves?.push(saved);
 }
 
 export type StoreAdminOptions = {
@@ -126,6 +233,9 @@ export function buildStoreAdmin(options?: StoreAdminOptions): SupabaseClient {
  * The answer of the database, after a while.
  */
 function buildDelayedAnswer(value: unknown, delayMs: number): Promise<unknown> {
+  if (delayMs <= 0) {
+    return Promise.resolve(value);
+  }
   return new globalThis.Promise(function resolveLater(resolve: (answer: unknown) => void): void {
     setTimeout(function deliver(): void {
       resolve(value);

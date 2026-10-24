@@ -265,7 +265,7 @@ O estado do trainer vive no Postgres do Supabase. O `trainerStore` que era um `M
 | `20261020230009_swap_active_creature_positions.sql` | A RPC `swap_active_creature` passa a trocar a criatura escolhida com a criatura em campo, em vez de deslocar as outras. |
 | `20261020230010_starter_backpack.sql` | A mochila inicial do treinador novo, sorteada dentro da RPC de criação. |
 | `20261021100000_store_items.sql` | A coluna `items.is_store_item`, a restrição de preço dos itens da loja, e as RPCs transacionais `store_buy_item` e `store_sell_item`. |
-| `20261021130000_hunt_sessions.sql` | A tabela `hunt_sessions`, a sessão da caçada, com RLS deny-by-default, o cursor da simulação e dois índices parciais. Está em [A Caçada](HUNT.md). |
+| `20261021130000_hunt_sessions.sql` | A tabela `hunt_sessions`, a sessão da caçada, com RLS deny-by-default, o cursor da simulação e dois índices parciais. O checkpoint `simulation_state` entra na migration de combate. Está em [A Caçada](HUNT.md). |
 
 O acesso é **deny-by-default**: RLS está ligado em todas as tabelas, `anon` e `authenticated` não têm grant nem policy, e só o `service_role` — que ignora RLS — enxerga os dados. O servidor, com a chave de serviço, é o único caminho de escrita.
 
@@ -1540,7 +1540,7 @@ Cliente → servidor:
 | type | Campos | O que o servidor faz |
 | --- | --- | --- |
 | `select_trainer` | `trainerId` (uuid), `reqId` | Confirma que o trainer pertence à conta, registra-o como trainer ativo e responde com um `state_snapshot`. Trainer de outra conta → `command_result` com `ok: false` e o código `trainer_not_found`. |
-| `command` | `command` (o comando da caçada), `reqId` | Responde com `command_result`. Os comandos da caçada ainda não são executados: a resposta é `ok: false` com o código `invalid_command`. |
+| `command` | `command` (o comando da caçada), `reqId` | Responde com `command_result`. `finalize_hunt` e `swap_creature` são executados pelo manager da caçada; `use_ability` e `use_consumable` são recusados com `invalid_command`, porque a rotação pertence à simulação. |
 | `ping` | `sentAt` (number) | Responde `pong` com o mesmo `sentAt`. |
 
 Servidor → cliente:
@@ -1551,6 +1551,8 @@ Servidor → cliente:
 | `command_result` | `reqId`, `ok`, `rev`, e `code` quando o comando não funcionou |
 | `pong` | `sentAt` |
 | `error` | `code` (`GameErrorCode`), `message` |
+
+As mensagens da caçada (`hunt_state`, `hunt_delta` e `hunt_ended`) estão em [A Caçada](HUNT.md#websocket), que é o documento do ramo da caçada no canal.
 
 O `reqId` é o que correlaciona a resposta com o pedido. O motivo da falha viaja na resposta do comando, e não em um `error`: a mensagem de erro do canal não tem `reqId`, e sem ele o cliente não saberia qual pedido falhou.
 
@@ -1576,9 +1578,11 @@ O `state_snapshot` é o que o canal empurra, e ele carrega os três. O cliente c
 
 > O cliente usa o fallback quando a revisão de um comando não chega em 2 s, e quando um salto de revisão denuncia um estado perdido no caminho.
 
-### O que o canal ainda não faz
+### O que o canal faz hoje
 
-O canal ainda está no esqueleto do transporte. **Não existe simulação de jogo**: não há ciclo de simulação nem comandos de jogo. O que o canal já faz é abrir a sessão do trainer, entregar o retrato do estado e **empurrar o estado novo** depois de cada comando que muda o estado (veja [O push do estado](#o-push-do-estado)). O que ele faz quando o jogador entra na caçada, quando um treino termina ou quando uma criatura desmaiou ainda não está escrito.
+O canal abre a sessão do trainer, entrega o retrato do estado, empurra o estado novo depois de cada comando que muda o estado (veja [O push do estado](#o-push-do-estado)), aplica o `move` e encaminha `finalize_hunt` e `swap_creature` ao manager da caçada. `use_ability` e `use_consumable` são recusados: a rotação e os consumíveis pertencem à simulação.
+
+A caçada tem o próprio ramo de mensagens (`hunt_state`, `hunt_delta` e `hunt_ended`) e o próprio runtime; o detalhe está em [A Caçada](HUNT.md).
 
 ## Contratos Compartilhados
 
@@ -1680,12 +1684,12 @@ A suíte toda, unidade e integração, roda com `bun test` na raiz.
 - **O rate limit é por processo** — o contador das tentativas mora na memória do processo, como a sessão do treinador. Com mais de uma instância, cada uma conta só as tentativas que ela viu, e o limite enfraquece na proporção do número de instâncias. A correção é um contador compartilhado, e liga com a decisão de instância única, ainda em aberto no [Stack](STACK.md#pendências).
 - **O endereço do cliente depende do proxy** — sem `TRUST_PROXY=1`, o servidor usa o endereço do socket, e um servidor atrás de um proxy passa a ver todos os clientes com o mesmo endereço. A variável precisa ser ligada em produção; o [rate limit](#rate-limit) explica o porquê.
 - **Sessão do treinador por processo** — o mapa `userId → trainerId` vive na memória do processo. Ele não sobrevive a um reinício e não é compartilhado entre instâncias. Isso liga com a decisão de instância única, ainda em aberto no [Stack](STACK.md#pendências), e é o que impede o servidor de subir com mais de uma instância, conforme o [runbook](../DEPLOY.md#o-que-ainda-não-está-pronto-para-o-público).
-- **O time pode ser remanejado durante a caçada** — as rotas de time não recusam nada além do que a regra do [time](../../game/TRAINER.md#time) já proíbe hoje. Quando a caçada existir, o servidor precisa saber que ela está em andamento para fechar o time, como está escrito em [Durante a Caçada](../../game/TRAINER.md#durante-a-caçada).
-- **A mochila é só de leitura** — o servidor entrega os itens que o treinador tem, mas nada os dá ou os gasta. Quem escreve a quantidade é o gameplay, que ainda não existe. A única escrita automática é o sorteio da mochila do treinador novo, na criação.
-- **A caçada não existe** — as rotas de área entregam o catálogo e o detalhe do local. Quem entra na caçada, quem encontra a criatura selvagem, quem resolve a captura e quem entrega o drop é o marco seguinte, e ainda não foi escrito. A **fundação** — a função de avanço e a sessão com o cursor — já existe e está em [A Caçada](HUNT.md).
+- **O time pode ser remanejado durante a caçada** — as rotas de time não conferem se o treinador está em uma caçada ativa. A caçada já existe e o time deveria ficar fechado nela, como está escrito em [Durante a Caçada](../../game/TRAINER.md#durante-a-caçada).
+- **A mochila fora da caçada é só de leitura** — a caçada credita o loot e gasta os consumíveis no runtime, mas nenhuma outra rota dá ou gasta itens. A única escrita fora da caçada é o sorteio da mochila do treinador novo, na criação.
+- **Captura e party não existem** — a caçada é jogável, mas o dispositivo de captura é um no-op e não há party nem interação entre caçadas. O que existe está em [A Caçada](HUNT.md).
 - **O catálogo de áreas é pequeno e fixo** — o seed traz quatro áreas com as cinco espécies existentes. Crescer o catálogo é mexer no `seed.sql`, sem migration.
 - **A área não sabe nada do treinador** — as rotas de área não olham o nível nem o time do treinador: o nível recomendado é um conselho, e nenhuma área é bloqueada por nível.
 - **A fórmula dos atributos ainda não está na documentação de produto** — o servidor implementa `d = 0.3` e `k = 0.05`, e a decisão precisa ser escrita em [Criaturas](../../game/CREATURES.md#atributos-atuais), que ainda marca a fórmula como pendente.
 - **A carga da barra é a lista dos slots** — o `PUT /api/creatures/:id/ability-slots` recebe a carga como a lista dos quatro slots, com a string vazia no slot vazio. A lista pode ser mais curta, e aí os slots do fim ficam vazios.
-- **A vida da criatura não tem dono ainda** — `creatures.current_hp` existe e é lida, mas nada escreve nela: quem fere a criatura é o gameplay, que ainda não existe.
-- **A espera da troca é por processo** — o instante da última troca vive na memória do processo, como o resto da sessão do treinador, e se perde no reinício. A troca automática, que acontece quando a criatura em campo desmaia, não tem espera: o gameplay é quem a resolve, e ele ainda não existe.
+- **A vida da criatura é escrita pela caçada** — `creatures.current_hp` é gravada no checkpoint e no close da caçada. Fora dela, a vida só volta ao normal no local de cura da cidade.
+- **A espera da troca é por processo** — o instante da última troca vive na memória do processo, como o resto da sessão do treinador, e se perde no reinício. A troca automática, que acontece quando a criatura em campo desmaia, é resolvida pela simulação da caçada, sem espera.

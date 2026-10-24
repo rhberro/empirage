@@ -2,13 +2,15 @@
 
 Este documento cobre a cidade, a área segura do jogo: o único lugar sem batalhas, onde o treinador anda livremente, vê outros jogadores e resolve a vida dele — cura, compra e venda.
 
-> Este documento cobre **a cidade**. As regras do treinador estão em [Treinador](TRAINER.md), a atividade que acontece fora dela está em [Caçada](HUNT.md), e a tela de onde a cidade faz parte é a [Tela do Jogo](PLAY_SCREEN.md).
+> Este documento cobre **a cidade**. As regras do treinador estão em [Treinador](TRAINER.md), a atividade que acontece fora dela está em [Caçada](HUNT.md), a tela de onde a cidade faz parte é a [Tela do Jogo](PLAY_SCREEN.md), e as medidas e o movimento do mundo em grid estão em [Mundo](WORLD.md).
 
 ## Visão Geral
 
 A cidade é a área segura do jogo. Nas fases alfa e beta ela é a única área segura, e é para ela que o treinador volta quando uma caçada acaba.
 
 A cidade é o único lugar do jogo onde o treinador anda livremente com o personagem, por clique no chão, WASD ou pelas setas do teclado. Na caçada o personagem é automatizado: as batalhas acontecem sozinhas e o treinador não caminha pelo mapa.
+
+> Como a grade, o passo e a câmera funcionam está em [Mundo](WORLD.md). Este documento cobre o que a cidade significa e o que o jogador faz nela. A janela de visão da cidade é fixa em 34x20 sqm: o canvas cobre a tela com zoom inteiro e recorte central — sem barras —, então telas maiores mostram os mesmos 34x20 com pixels maiores.
 
 > A cidade é o oposto da caçada no que depende do jogador. Na caçada tudo acontece sozinho; na cidade tudo depende do jogador. Onde já se usou o termo safe zone, leia cidade.
 
@@ -30,7 +32,9 @@ A cidade é o único lugar onde o jogador vê outros jogadores. Os treinadores d
 
 ## Pontos de Interação
 
-A cidade tem pontos de interação: locais do mapa onde o jogador aproxima o personagem e interage com um NPC, por conversa ou por clique. Por enquanto existe o local de cura, e a loja entra com as fases alfa e beta.
+A cidade tem pontos de interação: locais do mapa onde o jogador aproxima o personagem e interage com um NPC, por conversa ou por clique. O primeiro ponto de interação é o local de cura, e a loja entra com as fases alfa e beta.
+
+> No código atual, os pontos de interação ainda não existem: não há NPC, não há ação de interação e a cura não está implementada. O que está descrito nesta seção é o desenho do produto para as fases alfa e beta.
 
 ### Local de Cura
 
@@ -54,6 +58,8 @@ A moeda do jogo é o **gold coin**, e por enquanto a única forma de ganhar gold
 
 Compra e venda acontecem no mesmo modal, a [loja](STORE.md), e não pela mochila, que é só de consulta.
 
+> O modal da loja já existe e abre pelo botão da [tela do jogo](PLAY_SCREEN.md#botão-da-loja); o NPC da cidade, que é o outro caminho de acesso, ainda não existe.
+
 > A loja é o destino do loot: o item dropado na caçada só se transforma em algo quando é vendido na cidade, e o que o jogador quiser guardar fica na [mochila](BACKPACK.md). Comprar e vender são duas abas do mesmo modal, e é por isso que a loja mora na cidade e não em outro lugar.
 
 Mais tarde a cidade ganha lojas especializadas, o mercado e NPCs de outras funções.
@@ -64,6 +70,22 @@ Os pontos abaixo ainda estão em aberto ou são provisórios nesta fase e devem 
 
 - Mais de um local de cura só se a necessidade aparecer, e as lojas vão se especializar mais tarde, com o mercado e outros NPCs.
 - Os outros jogadores aparecem andando, mas a interação entre eles ainda não existe.
+
+## Estado da Implementação
+
+O que a cidade já tem no jogo:
+
+- O mapa renderizado em grid, com o treinador e os outros jogadores visíveis.
+- O movimento por clique, WASD e setas, com o caminho calculado pelo servidor.
+- A câmera que segue o treinador e respeita os limites do mapa.
+
+O que a cidade ainda não tem:
+
+- Pontos de interação e NPCs, incluindo a cura e o NPC da loja.
+- A ação de cura.
+- Interação entre jogadores, nome sobre a cabeça e chat.
+
+> O que aparece no canvas e como o movimento se comporta está em [Mundo](WORLD.md).
 
 ## Pendências
 

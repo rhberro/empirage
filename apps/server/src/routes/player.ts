@@ -64,6 +64,7 @@ function handleSelectSessionTrainer(deps: ServerDependencies): RouteHandler {
       .then(checkTrainerOwnership(deps, userId))
       .then(function toResponse(result: Response | string): Response {
         if (typeof result === 'string') {
+          closePreviousHunt(deps, userId, result);
           deps.sessions.set(userId, result);
           deps.connections.disconnect(userId, REPLACED_CLOSE_CODE, REPLACED_CLOSE_REASON);
           logRouteEvent(deps.logger, ctx, 'trainer session opened', { trainerId: result });
@@ -95,11 +96,42 @@ function handleClearSessionTrainer(deps: ServerDependencies): RouteHandler {
     if (userId === null) {
       return Promise.resolve(errorResponse(401, UNAUTHENTICATED_ERROR, UNAUTHENTICATED_MESSAGE));
     }
+    const trainerId = deps.sessions.get(userId);
+    closeHuntOf(deps, trainerId, userId);
     deps.sessions.clear(userId);
     deps.connections.disconnect(userId, DISCONNECTED_CLOSE_CODE, DISCONNECTED_CLOSE_REASON);
     const init = { status: NO_CONTENT };
     return Promise.resolve(new globalThis.Response(null, init));
   };
+}
+
+/**
+ * Closes the hunt of the trainer that is leaving, when it is running.
+ *
+ * The close is fire and forget: the player is already leaving, and the session
+ * is written in the background. A hunt that was already closed is not touched
+ * again.
+ */
+function closeHuntOf(deps: ServerDependencies, trainerId: string | null, userId: string): void {
+  if (trainerId === null || !deps.hunts.has(trainerId)) {
+    return;
+  }
+  void deps.hunts.close(trainerId, 'trainer_switched').catch(function closeFailed(
+    error: unknown,
+  ): void {
+    deps.logger.error({ err: error, trainerId, userId }, 'hunt close failed');
+  });
+}
+
+/**
+ * Closes the hunt of the trainer that was active before the new selection.
+ */
+function closePreviousHunt(deps: ServerDependencies, userId: string, trainerId: string): void {
+  const previous = deps.sessions.get(userId);
+  if (previous === trainerId) {
+    return;
+  }
+  closeHuntOf(deps, previous, userId);
 }
 
 /**

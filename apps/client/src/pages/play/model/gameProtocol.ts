@@ -2,6 +2,19 @@ import { PROTOCOL_VERSION } from '@creatures/contracts/game';
 import type { GameErrorCode } from '@creatures/contracts/game';
 import type { PlayerState } from '@creatures/contracts/player';
 
+import { readHuntPayload } from '~/pages/play/model/gameHuntProtocol';
+import type { HuntPayload } from '~/pages/play/model/gameHuntProtocol';
+import { readGameErrorCode, readWorldPayload } from '~/pages/play/model/gameWorldProtocol';
+import type { WorldPayload } from '~/pages/play/model/gameWorldProtocol';
+
+export type { HuntPayload } from '~/pages/play/model/gameHuntProtocol';
+export type {
+  ActorLeaveMessage,
+  ActorUpdateMessage,
+  MoveResult,
+  WorldStateMessage,
+} from '~/pages/play/model/gameWorldProtocol';
+
 /**
  * Why a message of the server was refused.
  */
@@ -25,9 +38,11 @@ export type CommandResult = {
  * What the client reads out of a message of the server.
  */
 export type ServerPayload =
+  | WorldPayload
+  | HuntPayload
   | { kind: 'command_result'; result: CommandResult }
   | { kind: 'error'; code: GameErrorCode | null; message: string }
-  | { kind: 'pong'; sentAt: number }
+  | { kind: 'pong'; sentAt: number; serverNow: number }
   | { kind: 'state_snapshot'; state: PlayerState };
 
 export type ParsedServerMessage =
@@ -101,7 +116,11 @@ function readPayload(value: object): ServerPayload | null {
   if (message.type === 'command_result') {
     return readCommandResult(value);
   }
-  return null;
+  const hunt = readHuntPayload(message.type, value);
+  if (hunt !== null) {
+    return hunt;
+  }
+  return readWorldPayload(message.type, value);
 }
 
 function readStateSnapshot(value: object): ServerPayload | null {
@@ -113,11 +132,11 @@ function readStateSnapshot(value: object): ServerPayload | null {
 }
 
 function readPong(value: object): ServerPayload | null {
-  const message = value as { sentAt?: unknown };
-  if (typeof message.sentAt !== 'number') {
+  const message = value as { sentAt?: unknown; serverNow?: unknown };
+  if (typeof message.sentAt !== 'number' || typeof message.serverNow !== 'number') {
     return null;
   }
-  return { kind: 'pong', sentAt: message.sentAt };
+  return { kind: 'pong', sentAt: message.sentAt, serverNow: message.serverNow };
 }
 
 function readError(value: object): ServerPayload | null {
@@ -126,7 +145,7 @@ function readError(value: object): ServerPayload | null {
     return null;
   }
   return {
-    code: readErrorCode(message.code),
+    code: readGameErrorCode(message.code),
     kind: 'error',
     message: message.message,
   };
@@ -143,16 +162,12 @@ function readCommandResult(value: object): ServerPayload | null {
   return {
     kind: 'command_result',
     result: {
-      code: readErrorCode(message.code),
+      code: readGameErrorCode(message.code),
       ok: message.ok,
       reqId: message.reqId,
       rev: message.rev,
     },
   };
-}
-
-function readErrorCode(value: unknown): GameErrorCode | null {
-  return typeof value === 'string' ? (value as GameErrorCode) : null;
 }
 
 function isPlayerState(value: unknown): value is PlayerState {

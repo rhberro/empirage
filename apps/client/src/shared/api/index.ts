@@ -45,6 +45,8 @@ export { requestGoogleMerge } from './endpoints/auth';
 export type { GoogleMergeErrorCode, GoogleMergeResult } from './endpoints/auth';
 export { requestHuntArea, requestHuntAreaList } from './endpoints/hunt';
 export type { HuntAreaDetailResult, HuntAreaListResult } from './endpoints/hunt';
+export { requestCurrentHunt, requestFinalizeHunt, requestStartHunt } from './endpoints/huntSession';
+export type { HuntStartResult } from './endpoints/huntSession';
 export { requestStoreBuy, requestStoreCatalog, requestStoreSell } from './endpoints/store';
 export type {
   StoreCatalogResult,

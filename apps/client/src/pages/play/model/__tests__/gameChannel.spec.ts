@@ -1,8 +1,18 @@
 import { expect, test } from 'bun:test';
 
+import type { GameCommand } from '@creatures/contracts/game';
+import type { Tile } from '@creatures/contracts/world';
+
 import { openGameChannel } from '~/pages/play/model/gameChannel';
 import type { GameChannelDeps } from '~/pages/play/model/gameChannel';
-import type { GameSocketHandlers, GameSocketOptions } from '~/pages/play/model/gameSocket';
+import type { MoveResult } from '~/pages/play/model/gameProtocol';
+import type {
+  GameSocket,
+  GameSocketHandlers,
+  GameSocketOptions,
+} from '~/pages/play/model/gameSocket';
+
+import { buildFakeGameSocket } from './gameChannelFixture';
 
 const TRAINER_ID = 'trainer-1';
 const WAIT_MS = 20;
@@ -16,8 +26,10 @@ const MAX_RETRIES = 6;
 
 type ChannelFixture = {
   backoffs: number[];
+  commands: { command: GameCommand; reqId: string | undefined }[];
   controller: ReturnType<typeof openGameChannel>;
   lost: number;
+  moves: { reqId: string | undefined; target: Tile }[];
   sockets: GameSocketOptions[];
   ticketCalls: number;
 };
@@ -56,8 +68,10 @@ function fastBackoff(): number {
 function openFixture(settings: FixtureOptions = {}): ChannelFixture {
   const fixture: ChannelFixture = {
     backoffs: [],
+    commands: [],
     controller: null as unknown as ReturnType<typeof openGameChannel>,
     lost: 0,
+    moves: [],
     sockets: [],
     ticketCalls: 0,
   };
@@ -67,12 +81,12 @@ function openFixture(settings: FixtureOptions = {}): ChannelFixture {
       fixture.backoffs.push(attempt);
       return fastBackoff();
     },
-    connect: function connect(socketOptions: GameSocketOptions): { close: () => void } {
+    connect: function connect(socketOptions: GameSocketOptions): GameSocket {
       fixture.sockets.push(socketOptions);
       if (settings.onOpen !== undefined) {
         settings.onOpen(socketOptions.handlers);
       }
-      return { close: noop };
+      return buildFakeGameSocket(fixture);
     },
     onLost: function onLost(): void {
       fixture.lost += 1;
@@ -229,4 +243,36 @@ test('the channel that does not hold grows the backoff', function growsTheBackof
   return waitFor(LOOP_WAIT_MS).then(function assertGrowth(): void {
     expect(fixture.backoffs.slice(0, 2)).toEqual([0, 1]);
   });
+});
+
+/**
+ * The move goes through the socket of the attempt that is open: the machine
+ * does not keep a socket of its own.
+ */
+test('the move goes through the open socket', function sendsMove(): Promise<void> {
+  const fixture = openFixture();
+  return waitFor(5)
+    .then(function move(): Promise<MoveResult> {
+      return fixture.controller.requestMove({ x: 2, y: 3 });
+    })
+    .then(function assertMove(): void {
+      expect(fixture.moves.length).toBe(1);
+      expect(fixture.moves[0].target).toEqual({ x: 2, y: 3 });
+    });
+});
+
+/**
+ * A move asked after the channel fell is refused instead of waiting forever.
+ */
+test('the move without an open channel is refused', function refusesMove(): Promise<void> {
+  const fixture = openFixture();
+  fixture.controller.close();
+  return fixture.controller.requestMove({ x: 1, y: 1 }).then(
+    function noRefusal(): void {
+      expect(false).toBe(true);
+    },
+    function onRefusal(caught: unknown): void {
+      expect(caught instanceof Error).toBe(true);
+    },
+  );
 });

@@ -9,6 +9,8 @@ import { Text } from '~/shared/ui/text';
 type StorageTeamSectionProps = {
   /** The creature in the field, the one the row highlights. */
   activeCreatureId: string | null;
+  /** Whether the only member of the team can be taken out. */
+  canRemove: boolean;
   /** Whether the team is closed, which happens during the hunt. */
   isLocked: boolean;
   /** The command that takes a creature out of the team. */
@@ -30,7 +32,8 @@ type StorageTeamSectionProps = {
  * menu that it leaves the team: nothing happens by accident.
  */
 export function StorageTeamSection(props: StorageTeamSectionProps): ReactElement {
-  const { activeCreatureId, isLocked, onRemove, onSelect, reason, selectedId, slots } = props;
+  const { activeCreatureId, canRemove, isLocked, onRemove, onSelect, reason, selectedId, slots } =
+    props;
   const reasonText = buildReason(reason);
   const label = (
     <Box alignItems="center" display="flex" gap="3" justifyContent="space-between">
@@ -43,6 +46,7 @@ export function StorageTeamSection(props: StorageTeamSectionProps): ReactElement
   const row = (
     <TeamSlotRow
       activeCreatureId={activeCreatureId}
+      canRemove={canRemove}
       isLocked={isLocked}
       onRemove={onRemove}
       onSelect={onSelect}

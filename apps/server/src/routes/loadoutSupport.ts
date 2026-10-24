@@ -52,6 +52,23 @@ export function invalidCommandResponse(): Response {
 }
 
 /**
+ * Tells the hunt of the trainer to read the loadout again.
+ *
+ * The edit already reached the database and the response does not wait for the
+ * hunt: the runtime publishes a delta when the new loadout is in place, and a
+ * failure there is logged instead of failing the command that already committed.
+ */
+export function refreshHuntLoadout(deps: ServerDependencies, userId: string): void {
+  const trainerId = deps.sessions.get(userId);
+  if (trainerId === null) {
+    return;
+  }
+  deps.hunts.refreshLoadout(trainerId).catch(function logFailure(error: unknown): void {
+    deps.logger.error({ err: error, trainerId }, 'hunt loadout refresh failed');
+  });
+}
+
+/**
  * The answer of a command that writes the state.
  *
  * A command that changed the state pushes the new state to the channel of the

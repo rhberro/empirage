@@ -1,15 +1,20 @@
 /**
  * The loadout of the creatures of the test account.
  *
- * Every creature is born with the abilities of its species in the slots of the
- * skill bar, and the creatures of the test account are no exception: without
- * it the account would show a creature with an empty bar.
+ * The 2.2 catalog has three kinds of ability, and the test account exercises
+ * every one of them in the four slots of the bar: two that reach a target, one
+ * area around a target, and one centred on the caster. The slots of the species
+ * and the slots of the player are independent, so an ability declared in slot 4
+ * of the species can be equipped in slot 3 of the creature.
  */
 import type { AdminClient, SeedContext } from './seedTestAccountStore';
 
-type AbilityRow = {
-  ability_id: string;
-  slot: number;
+// Target, target, area around a target and area centred on the caster.
+const LOADOUT_SLUGS = ['brasa', 'garra', 'ignea', 'explosao'];
+
+type CatalogAbility = {
+  id: string;
+  slug: string;
 };
 
 type AbilitySlotRow = {
@@ -18,67 +23,63 @@ type AbilitySlotRow = {
   slot: number;
 };
 
+type RowsResult<T> = {
+  data: T[] | null;
+  error: { message: string } | null;
+};
+
 export function equipSpeciesAbilities(ctx: SeedContext): Promise<SeedContext> {
-  return equipCreature(ctx, ctx.creatureIds, 0);
+  return readLoadout(ctx.admin).then(function equipEveryCreature(
+    loadout: CatalogAbility[],
+  ): Promise<SeedContext> {
+    return equipCreature(ctx, ctx.creatureIds, loadout, 0);
+  });
+}
+
+function readLoadout(admin: AdminClient): Promise<CatalogAbility[]> {
+  const query = admin.from('abilities').select('id, slug').in('slug', LOADOUT_SLUGS);
+  return Promise.resolve(query).then(function orderRows(
+    result: RowsResult<CatalogAbility>,
+  ): CatalogAbility[] {
+    if (result.error !== null) {
+      throw new Error(`Falha ao ler o catálogo de habilidades: ${result.error.message}`);
+    }
+    return orderLoadout(result.data ?? []);
+  });
+}
+
+function orderLoadout(rows: CatalogAbility[]): CatalogAbility[] {
+  return LOADOUT_SLUGS.map(function pick(slug: string): CatalogAbility {
+    const row = rows.find(function matches(candidate: CatalogAbility): boolean {
+      return candidate.slug === slug;
+    });
+    if (row === undefined) {
+      throw new Error(`A habilidade "${slug}" não está no catálogo.`);
+    }
+    return row;
+  });
 }
 
 function equipCreature(
   ctx: SeedContext,
   creatureIds: string[],
+  loadout: CatalogAbility[],
   index: number,
 ): Promise<SeedContext> {
   const creatureId = creatureIds[index];
   if (creatureId === undefined) {
     return Promise.resolve(ctx);
   }
-  return readCreatureSpecies(ctx.admin, creatureId).then(function withSpecies(
-    speciesId: string,
-  ): Promise<SeedContext> {
-    return readSpeciesAbilities(ctx.admin, speciesId).then(function withAbilities(
-      abilities: AbilityRow[],
-    ): Promise<SeedContext> {
-      if (abilities.length === 0) {
-        return equipCreature(ctx, creatureIds, index + 1);
-      }
-      const rows = abilities.map(function toSlot(ability: AbilityRow): AbilitySlotRow {
-        return { ability_id: ability.ability_id, creature_id: creatureId, slot: ability.slot };
-      });
-      const query = ctx.admin.from('creature_ability_slots').upsert(rows);
-      return Promise.resolve(query).then(function written(): Promise<SeedContext> {
-        return equipCreature(ctx, creatureIds, index + 1);
-      });
-    });
+  const rows = loadout.map(function toSlot(ability: CatalogAbility, slot: number): AbilitySlotRow {
+    return { ability_id: ability.id, creature_id: creatureId, slot };
   });
-}
-
-function readCreatureSpecies(admin: AdminClient, creatureId: string): Promise<string> {
-  const query = admin.from('creatures').select('species_id').eq('id', creatureId).single();
-  return Promise.resolve(query).then(function readSpecies(result: {
-    data: { species_id: string } | null;
+  const query = ctx.admin.from('creature_ability_slots').upsert(rows);
+  return Promise.resolve(query).then(function written(result: {
     error: { message: string } | null;
-  }): string {
-    if (result.error !== null || result.data === null) {
-      throw new Error(
-        `Falha ao ler a espécie da criatura: ${result.error?.message ?? 'sem dados'}`,
-      );
-    }
-    return result.data.species_id;
-  });
-}
-
-function readSpeciesAbilities(admin: AdminClient, speciesId: string): Promise<AbilityRow[]> {
-  const query = admin
-    .from('species_abilities')
-    .select('slot, ability_id')
-    .eq('species_id', speciesId)
-    .order('slot');
-  return Promise.resolve(query).then(function readRows(result: {
-    data: AbilityRow[] | null;
-    error: { message: string } | null;
-  }): AbilityRow[] {
+  }): Promise<SeedContext> {
     if (result.error !== null) {
-      throw new Error(`Falha ao ler as habilidades da espécie: ${result.error.message}`);
+      throw new Error(`Falha ao equipar as habilidades: ${result.error.message}`);
     }
-    return result.data ?? [];
+    return equipCreature(ctx, creatureIds, loadout, index + 1);
   });
 }

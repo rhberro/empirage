@@ -24,7 +24,7 @@ Os slots são clicáveis. Clicar em um slot abre o painel de seleção daquele g
 
 ## Uso Automático
 
-Durante a caçada, a criatura usa sozinha o que está na barra. Habilidades e consumíveis seguem as mesmas três regras de ativação, e o que está em cooldown mostra o progresso pelo ícone, pela [animação de cooldown](INTERFACE.md#animação-de-cooldown):
+Durante a caçada, a criatura usa sozinha o que está na barra. As habilidades seguem três regras de ativação, e os consumíveis têm regras próprias, descritas abaixo. O que está em cooldown mostra o progresso pelo ícone, pela [animação de cooldown](INTERFACE.md#animação-de-cooldown):
 
 1. **Da esquerda para a direita:** quando mais de uma coisa pode ser usada, a da esquerda vem primeiro.
 2. **Intervalo mínimo de 1 segundo:** a criatura espera pelo menos 1 segundo entre um uso e outro. Sem esse intervalo, as 4 habilidades disparariam juntas no primeiro segundo de caçada.
@@ -32,15 +32,23 @@ Durante a caçada, a criatura usa sozinha o que está na barra. Habilidades e co
 
 Com cooldowns de 4s, 2s, 2s e 1s, da esquerda para a direita, a rotação corre assim: a primeira dispara no segundo 0, a segunda no 1 e a terceira no 2. No segundo 3, a quarta dispara, ganhando da segunda, que tinha acabado de ficar pronta. No 4, dispara a segunda, que já estava pronta enquanto a primeira e a terceira saíam do cooldown. No 5, sobraram três habilidades já prontas, e a esquerda para a direita manda: dispara a primeira.
 
-Nenhuma habilidade ou consumível tem cooldown menor que o intervalo de ativação, ou seja, menor que 1 segundo. Um cooldown menor faria a mesma habilidade ficar pronta antes de todo intervalo seguinte e disparar sempre, sem deixar as outras serem usadas.
+Nenhuma habilidade tem cooldown menor que o intervalo global de 1 segundo. Um cooldown menor faria a mesma habilidade ficar pronta antes de todo intervalo seguinte e disparar sempre, sem deixar as outras serem usadas.
 
 > O piso de 1 segundo é o que mantém a rotação honesta: uma habilidade de cooldown curto dispara rápido, mas sempre dá espaço para as outras no intervalo seguinte.
 
 ### Habilidades
 
-Os 4 slots de habilidade mostram as 4 habilidades equipadas da criatura ativa. Cada habilidade tem o seu cooldown, e a criatura as usa sozinha seguindo as regras de ativação. As habilidades de cada espécie, seus elementos e cooldowns estão em [Criaturas](CREATURES.md#habilidades).
+Os 4 slots de habilidade mostram as 4 habilidades equipadas da criatura ativa. A espécie lista **6 habilidades** no catálogo 2.2, e os 4 slots equipam qualquer uma delas. Cada habilidade tem o seu cooldown, e a criatura as usa sozinha seguindo as regras de ativação. As habilidades de cada espécie, seus elementos, tipos e cooldowns estão em [Criaturas](CREATURES.md#habilidades).
+
+A criatura do jogador **não tem ataque básico**: todo o dano dela sai das 4 habilidades equipadas. Um slot vazio é um slot que não age, e não um golpe automático.
+
+No servidor, cada habilidade equipada guarda o instante absoluto em que fica pronta, o seu `readyAt`. A decisão da rotação acontece quando a criatura tem alvo e está no alcance de pelo menos uma habilidade. São elegíveis as habilidades cujo `readyAt` já passou e cujo alvo está dentro do alcance; a escolha é a de menor `readyAt`, ou seja, a que está pronta há mais tempo. No empate, vence o slot mais à esquerda.
+
+O intervalo global de 1 segundo é um relógio separado: usar uma habilidade define `readyAt = agora + cooldown` para ela e empurra a próxima habilidade para `agora + 1000 ms`, qualquer que seja o slot. É por isso que o intervalo vale entre quaisquer duas habilidades, e não só entre duas do mesmo slot.
 
 Equipar uma habilidade no meio de uma caçada a coloca em cooldown na hora: uma habilidade de 7 segundos recém-colocada só dispara depois dos 7 segundos. A regra vale para qualquer troca, em qualquer lugar, e existe para o jogador não ficar trocando habilidades para criar combos que não existiriam.
+
+A edição durante a caçada chega ao runtime: a habilidade removida sai da barra, a nova entra em cooldown e a que ficou no slot mantém o cooldown que já tinha. O jogador pode trocar as 4 habilidades da criatura ativa a qualquer momento, com a mesma regra de cooldown.
 
 O cooldown é da habilidade da criatura, e não do slot: cada criatura tem as suas habilidades e os seus cooldowns, e duas criaturas iguais, com as mesmas habilidades nos mesmos slots, não compartilham nada. Trocar de criatura não zera cooldown nenhum — a que sai mantém os seus, e a que entra vem com os seus próprios. Uma criatura que nunca entrou em batalha chega com tudo pronto, e uma que já lutou pode voltar com habilidades em cooldown, que só ficam prontas quando o tempo passar.
 
@@ -50,15 +58,29 @@ Tirar uma habilidade e colocá-la de volta também a coloca em cooldown, mesmo s
 
 ### Consumíveis
 
-Os 2 slots de consumível funcionam como os de habilidade — mesmas regras de ativação, mesmo intervalo mínimo de 1 segundo, cooldown próprio de cada consumível —, com duas diferenças.
+Os 2 slots de consumível têm regras próprias, separadas das habilidades.
 
-A primeira: o consumo não compartilha o intervalo com as habilidades. A criatura pode usar um consumível no mesmo segundo em que usou uma habilidade, porque são dois relógios separados: cooldown de habilidade é para habilidades, cooldown de consumível é para consumíveis.
+Cada slot tem o seu **gatilho de vida**. O jogador escolhe a porcentagem em que aquele consumível deve ser usado, e a criatura respeita a escolha: uma poção forte pode ser configurada para disparar quando a vida estiver com 30% ou menos, e uma mais fraca quando estiver com 70% ou menos, cada uma no seu slot. O uso acontece quando a vida restante, em porcentagem da vida máxima, é menor ou igual ao gatilho.
 
-A segunda: cada slot de consumível tem o seu gatilho de vida. O jogador escolhe a porcentagem em que aquele consumível deve ser usado, e a ativação respeita a escolha: uma poção forte pode ser configurada para disparar quando a vida estiver com 30% ou menos, e uma mais fraca quando estiver com 70% ou menos, cada uma no seu slot.
+O relógio dos consumíveis é separado do relógio das habilidades: a criatura pode usar um consumível no mesmo segundo em que usou uma habilidade. Cada item tem o seu próprio cooldown, e os dois slots são independentes entre si; se os dois estiverem prontos e os dois gatilhos forem atingidos, os dois podem ser usados no mesmo instante. Quando os dois disparam juntos, o da esquerda é aplicado primeiro.
 
-Como nas habilidades, equipar ou trocar um consumível vem com o cooldown dele: um consumível de 2 segundos recém-colocado só pode ser usado depois dos 2 segundos.
+A cura é percentual: o item cura `round(vida máxima × cura do item / 100)`, limitado à vida máxima. Usar gasta 1 unidade da mochila; quando a quantidade chega a zero, o slot para de disparar.
+
+As poções atuais têm estes valores:
+
+| Consumível | Cura | Cooldown |
+| --- | --- | --- |
+| Poção Fraca | 25% da vida máxima | 2000 ms |
+| Poção de Cura | 50% da vida máxima | 2000 ms |
+| Poção de Cura Forte | 80% da vida máxima | 2500 ms |
+
+Como nas habilidades, equipar ou trocar um consumível vem com o cooldown dele: um consumível recém-colocado só pode ser usado depois do cooldown do item.
+
+Alterar o gatilho de vida de um consumível durante a caçada passa a valer imediatamente. Trocar o item do slot reinicia o cooldown, e a quantidade mostrada acompanha o que está na mochila: usar uma poção reduz a quantidade no runtime e na barra.
 
 ### Dispositivos
+
+> Nesta fase a captura está fora de escopo. O slot de dispositivo continua na barra, mas fica sem efeito: nenhuma criatura é capturada e nenhum dispositivo é gasto.
 
 O slot de dispositivo não é da criatura: é configuração do treinador e vale em qualquer caçada. Ele guarda o dispositivo usado para tentar a captura, e a captura acontece sozinha quando uma criatura selvagem desmaia, usando o dispositivo que está selecionado.
 
@@ -70,7 +92,7 @@ Clicar em um slot abre o painel de seleção daquele grupo, por cima da barra. N
 
 ### Painel de Habilidades
 
-O painel tem o título **Habilidades**, o subtítulo com o slot de destino — "Seleciona a habilidade para o slot 3." — e a lista de habilidades da criatura ativa. Cada habilidade é um card com imagem, título e descrição.
+O painel tem o título **Habilidades**, o subtítulo com o slot de destino — "Seleciona a habilidade para o slot 3." — e a lista das **6** habilidades da criatura ativa. Cada habilidade é um card com imagem, título e descrição.
 
 Habilidade que já está em outro slot não aparece na lista, porque a mesma habilidade não pode ocupar dois slots. O serviço valida isso de todo jeito: se uma habilidade acabar duplicada, a cópia do slot anterior some, e ela fica só no slot novo, com o slot anterior vazio.
 
@@ -119,4 +141,5 @@ O mockup mostra a barra com os 7 slots e, abaixo deles, a barra de vida e a barr
 Os pontos abaixo ainda estão em aberto ou são provisórios nesta fase e devem ser revistos conforme o jogo evolui:
 
 - Por enquanto só existem poções como consumíveis.
+- A captura está fora de escopo nesta fase: o slot de dispositivo existe na barra, mas não é usado.
 - Habilidades com nível mínimo, evolução e outras regras por criatura serão documentadas junto com as criaturas.

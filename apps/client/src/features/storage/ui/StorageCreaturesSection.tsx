@@ -15,6 +15,8 @@ import { ScrollArea } from '~/shared/ui/scroll';
 import { Text } from '~/shared/ui/text';
 
 type StorageCreaturesSectionProps = {
+  /** Whether a creature can be released: there is another one in the account. */
+  canRelease: boolean;
   captured: Creature[];
   /** Whether the team is closed, which happens during the hunt. */
   isLocked: boolean;
@@ -34,14 +36,24 @@ type StorageCreaturesSectionProps = {
  * not in the team, in the order of the capture.
  */
 export function StorageCreaturesSection(props: StorageCreaturesSectionProps): ReactElement {
-  const { captured, isLocked, isLoading, isSearching, onAdd, onRelease, onSelect, selectedId } =
-    props;
+  const {
+    canRelease,
+    captured,
+    isLocked,
+    isLoading,
+    isSearching,
+    onAdd,
+    onRelease,
+    onSelect,
+    selectedId,
+  } = props;
   const label = (
     <Text color="fg.muted" variant="label">
       {CREATURES_LABEL}
     </Text>
   );
   const content = buildCreaturesArea(
+    canRelease,
     captured,
     isLocked,
     isLoading,
@@ -69,6 +81,7 @@ export function StorageCreaturesSection(props: StorageCreaturesSectionProps): Re
  * empty grid.
  */
 function buildCreaturesArea(
+  canRelease: boolean,
   captured: Creature[],
   isLocked: boolean,
   isLoading: boolean,
@@ -84,7 +97,9 @@ function buildCreaturesArea(
   if (isSearching && captured.length === 0) {
     return <PanelState description={EMPTY_DESCRIPTION} title={EMPTY_TITLE} variant="empty" />;
   }
-  const cells = captured.map(renderCell(isLocked, onAdd, onRelease, onSelect, selectedId));
+  const cells = captured.map(
+    renderCell(canRelease, isLocked, onAdd, onRelease, onSelect, selectedId),
+  );
   return (
     <ScrollArea height="full">
       <SlotGrid>{cells}</SlotGrid>
@@ -93,6 +108,7 @@ function buildCreaturesArea(
 }
 
 function renderCell(
+  canRelease: boolean,
   isLocked: boolean,
   onAdd: (creatureId: string) => void,
   onRelease: (creature: Creature) => void,
@@ -103,6 +119,7 @@ function renderCell(
     const isSelected = selectedId === creature.id;
     return (
       <StorageCreatureCell
+        canRelease={canRelease}
         creature={creature}
         isLocked={isLocked}
         isSelected={isSelected}

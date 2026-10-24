@@ -91,9 +91,20 @@ A exceção é a captura. Se existe um slot disponível, a criatura capturada en
 
 Com o time cheio, qualquer criatura capturada vai para o [armazenamento](#armazenamento) automaticamente.
 
+### Última Criatura
+
+O time nunca fica vazio, e o treinador nunca fica sem nenhuma criatura. As duas recusas são diferentes:
+
+- **Remover do time** a única criatura do time fica indisponível; o time não pode ficar vazio. A criatura pode continuar no armazenamento, mas não pode sair do time enquanto for a única.
+- **Soltar** a única criatura do treinador é recusado com **O treinador precisa ter pelo menos uma criatura.** Soltar uma criatura que está no time e é a única do time também é recusado, porque a soltura deixaria o time vazio.
+
+Soltar uma criatura do armazenamento continua permitido enquanto houver outra criatura no treinador. Uma criatura do time só pode ser solta quando outra companheira continua no time.
+
 ## Criaturas Desmaiadas
 
-Uma criatura desmaiada não entra mais em batalha, e o slot dela é exibido em tons de cinza com opacidade reduzida, para o jogador perceber de longe. Ela volta a batalhar depois de ser curada no [local de cura](CITY.md#local-de-cura) da cidade.
+Uma criatura desmaiada não entra mais em batalha, e o slot dela é exibido em tons de cinza com opacidade reduzida, para o jogador perceber de longe. Ela volta a batalhar com a vida cheia no fim da caçada, quando todas as criaturas do treinador são curadas.
+
+Ao fim de qualquer caçada, o treinador volta para a cidade com **todas** as criaturas com a vida cheia, no time e no armazenamento, inclusive as que desmaiaram. O [local de cura](CITY.md#local-de-cura) da cidade continua existindo, mas a volta da caçada não depende mais dele para esse caso. Essa cura de volta é a regra provisória desta fase.
 
 ### Entrada Automática
 

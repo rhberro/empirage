@@ -1,5 +1,7 @@
+import type { HuntDelta, HuntEndedMessage, HuntSnapshot } from './huntSim';
 import type { PlayerState } from './player';
 import type { SkillSlot } from './skill';
+import type { ActorMedia, PathSegment, Tile } from './world';
 
 /**
  * The version of the protocol.
@@ -18,7 +20,9 @@ export type GameErrorCode =
   | 'invalid_command'
   | 'trainer_not_found'
   | 'unauthenticated'
-  | 'internal_error';
+  | 'internal_error'
+  | 'invalid_target'
+  | 'tile_blocked';
 
 /**
  * A command of the game, sent by the client over the channel.
@@ -30,7 +34,8 @@ export type GameCommand =
   | { type: 'finalize_hunt' }
   | { type: 'swap_creature'; creatureId: string }
   | { type: 'use_ability'; slot: SkillSlot }
-  | { type: 'use_consumable'; slot: SkillSlot };
+  | { type: 'use_consumable'; slot: SkillSlot }
+  | { type: 'move'; target: Tile };
 
 /**
  * What the client sends over the channel.
@@ -57,8 +62,58 @@ export type ServerMessage =
       type: 'command_result';
       v: number;
     }
-  | { sentAt: number; type: 'pong'; v: number }
-  | { state: PlayerState; type: 'state_snapshot'; v: number };
+  | {
+      sentAt: number;
+      /** The server clock when the pong was written, for the client clock. */
+      serverNow: number;
+      type: 'pong';
+      v: number;
+    }
+  | { state: PlayerState; type: 'state_snapshot'; v: number }
+  | {
+      /** The dynamic part of the world around the observer, sent after the snapshot. */
+      actors: ActorMedia[];
+      /** The revision of the world the observer receives, monotonic per observer. */
+      worldRev: number;
+      type: 'world_state';
+      /** The one actor the connection belongs to. */
+      you: ActorMedia;
+      v: number;
+    }
+  | {
+      code?: GameErrorCode;
+      ok: boolean;
+      /**
+       * The full walk, the confirmed tile included as its first from-to.
+       */
+      path: PathSegment[];
+      reqId: string;
+      worldRev: number;
+      type: 'move_result';
+      v: number;
+    }
+  | {
+      actor: ActorMedia;
+      worldRev: number;
+      type: 'actor_update';
+      v: number;
+    }
+  | {
+      actorId: string;
+      worldRev: number;
+      type: 'actor_leave';
+      v: number;
+    }
+  | (HuntSnapshot & {
+      type: 'hunt_state';
+      v: number;
+    })
+  | (HuntDelta & {
+      /** What changed in the hunt since the previous message. */
+      type: 'hunt_delta';
+      v: number;
+    })
+  | (HuntEndedMessage & { type: 'hunt_ended'; v: number });
 
 /**
  * The request id of a command.

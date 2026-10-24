@@ -44,7 +44,11 @@ export function StorageModal(props: StorageModalProps): ReactElement {
     selectedId,
   } = useStorage(team.storage);
   const isFull = team.team.length >= MAX_TEAM_SIZE;
-  const reason = isHunting ? HUNT_REASON : isFull ? FULL_REASON : null;
+  const isLastTeamMember = team.team.length <= 1;
+  const totalCreatures = team.team.length + team.storage.length;
+  const canRelease = totalCreatures > 1;
+  const canRemove = !isLastTeamMember;
+  const reason = readReason(isHunting, isFull);
 
   const actions = useStorageActions(team);
 
@@ -65,6 +69,8 @@ export function StorageModal(props: StorageModalProps): ReactElement {
       <ModalBody>
         <StorageBody
           activeCreatureId={team.activeCreatureId}
+          canRelease={canRelease}
+          canRemove={canRemove}
           captured={captured}
           isHunting={isHunting}
           isLoading={team.isLoading}
@@ -94,6 +100,10 @@ export function StorageModal(props: StorageModalProps): ReactElement {
 
 type StorageBodyProps = {
   activeCreatureId: string | null;
+  /** Whether there is more than one creature in the account. */
+  canRelease: boolean;
+  /** Whether the team has more than one creature. */
+  canRemove: boolean;
   captured: Creature[];
   isHunting: boolean;
   isLoading: boolean;
@@ -112,6 +122,44 @@ type StorageBodyProps = {
   slots: TeamSlot[];
 };
 
+function readReason(isHunting: boolean, isFull: boolean): string | null {
+  if (isHunting) {
+    return HUNT_REASON;
+  }
+  if (isFull) {
+    return FULL_REASON;
+  }
+  return null;
+}
+
+/**
+ * The mark of the team slot and the dismissal of the marks of the body.
+ *
+ * The team slot and the grid share the same menu store, so only one of them is
+ * marked at a time; the click anywhere clears the mark unless it chose a
+ * creature.
+ */
+function useBodySelection(
+  onClearSelection: () => void,
+  onSelect: (creatureId: string) => void,
+): {
+  select: (creatureId: string) => void;
+  selectTeam: (creatureId: string) => void;
+  selectedTeamId: string | null;
+} {
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  function clearAllSelection(): void {
+    onClearSelection();
+    setSelectedTeamId(null);
+  }
+  const selection = useSelectionDismiss({
+    onClearSelection: clearAllSelection,
+    onSelect,
+    onSelectTeam: setSelectedTeamId,
+  });
+  return { ...selection, selectedTeamId };
+}
+
 /**
  * The body of the storage: the team on top and the captured creatures below.
  *
@@ -122,6 +170,8 @@ type StorageBodyProps = {
 function StorageBody(props: StorageBodyProps): ReactElement {
   const {
     activeCreatureId,
+    canRelease,
+    canRemove,
     captured,
     isHunting,
     isLoading,
@@ -135,20 +185,12 @@ function StorageBody(props: StorageBodyProps): ReactElement {
     selectedId,
     slots,
   } = props;
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  function clearAllSelection(): void {
-    onClearSelection();
-    setSelectedTeamId(null);
-  }
-  const { select, selectTeam } = useSelectionDismiss({
-    onClearSelection: clearAllSelection,
-    onSelect,
-    onSelectTeam: setSelectedTeamId,
-  });
+  const { select, selectTeam, selectedTeamId } = useBodySelection(onClearSelection, onSelect);
   return (
     <Box display="flex" flexDirection="column" gap="4" height="full">
       <StorageTeamSection
         activeCreatureId={activeCreatureId}
+        canRemove={canRemove}
         isLocked={isHunting}
         onRemove={onRemove}
         onSelect={selectTeam}
@@ -157,6 +199,7 @@ function StorageBody(props: StorageBodyProps): ReactElement {
         slots={slots}
       />
       <StorageCreaturesSection
+        canRelease={canRelease}
         captured={captured}
         isLocked={isHunting}
         isLoading={isLoading}

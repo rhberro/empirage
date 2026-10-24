@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
-const OPEN_DELAY_MS = 150;
-const CLOSE_DELAY_MS = 200;
+const OPEN_DELAY_MS = 100;
+const CLOSE_DELAY_MS = 100;
 const NO_TIMER = 0;
 
 export type SlotTooltip = {
@@ -76,6 +76,7 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
   const [menuOpen, setMenuOpenState] = useState(false);
   const isPointerOverRef = useRef(false);
   const isPanelOverRef = useRef(false);
+  const isPanelOpenRef = useRef(false);
   const isMenuOpenRef = useRef(false);
   const wasMenuOpenRef = useRef(false);
   const openTimerRef = useRef(NO_TIMER);
@@ -84,6 +85,7 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
 
   const setPanel = useCallback(
     function settle(open: boolean): void {
+      isPanelOpenRef.current = open;
       window.clearTimeout(openTimerRef.current);
       window.clearTimeout(closeTimerRef.current);
       openTimerRef.current = NO_TIMER;
@@ -104,6 +106,7 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
       if (isPointerOverRef.current || isPanelOverRef.current) {
         return;
       }
+      isPanelOpenRef.current = false;
       setIsOpen(false);
     },
     [isPointerOverRef, isPanelOverRef],
@@ -126,6 +129,7 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = NO_TIMER;
       openTimerRef.current = window.setTimeout(function show(): void {
+        isPanelOpenRef.current = true;
         setIsOpen(true);
       }, OPEN_DELAY_MS);
     },
@@ -162,6 +166,7 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
         return;
       }
       setIsOpen(function flip(open: boolean): boolean {
+        isPanelOpenRef.current = !open;
         return !open;
       });
     },
@@ -202,12 +207,15 @@ export function useSlotTooltip(hasHover: boolean): SlotTooltip {
       // outlives the pointer itself. Every pointer step that is neither
       // the slot nor the panel of the slot is the verdict.
       function watchThePointer(event: PointerEvent): void {
-        isPanelOverRef.current = isOurPanelUnderThePointer(event.target, triggerRef.current);
-        if (isPanelOverRef.current) {
+        const panelVerdict = isOurPanelUnderThePointer(event.target, triggerRef.current);
+        const box = triggerRef.current;
+        const boxVerdict =
+          box !== null && event.target instanceof Node && box.contains(event.target);
+        isPanelOverRef.current = panelVerdict;
+        if (panelVerdict) {
           return;
         }
-        const box = triggerRef.current;
-        if (box !== null && event.target instanceof Node && box.contains(event.target)) {
+        if (boxVerdict) {
           return;
         }
         scheduleClose();

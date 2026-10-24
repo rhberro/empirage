@@ -14,6 +14,7 @@ import {
   invalidCommandResponse,
   readJsonBody,
   readSessionTrainer,
+  refreshHuntLoadout,
   unauthenticatedResponse,
   writeOutcomeResponse,
 } from '~/routes/loadoutSupport';
@@ -106,6 +107,7 @@ function writeGearSlotOfKind(
       const response = writeOutcomeResponse(deps, userId, trainerId, error);
       if (error === null) {
         logRouteEvent(deps.logger, ctx, 'gear slot written', { itemId: command.itemId, slot });
+        refreshHuntLoadout(deps, userId);
       }
       return response;
     });
@@ -141,6 +143,7 @@ function handleDeleteGearSlot(deps: ServerDependencies): RouteHandler {
         const response = writeOutcomeResponse(deps, userId, trainerId, error);
         if (error === null) {
           logRouteEvent(deps.logger, ctx, 'gear slot cleared', { slot });
+          refreshHuntLoadout(deps, userId);
         }
         return response;
       },

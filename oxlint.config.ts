@@ -12,9 +12,11 @@ const config: OxlintConfig = {
   },
   extends: [oxsome.recommended],
   globals: {
+    Bun: 'readonly',
     DOMRect: 'readonly',
     Node: 'readonly',
     ResizeObserver: 'readonly',
+    URL: 'readonly',
     clearInterval: 'readonly',
     clearTimeout: 'readonly',
     document: 'readonly',

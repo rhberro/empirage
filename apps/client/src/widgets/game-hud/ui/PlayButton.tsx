@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 
 import { IconChevronRight } from '~/shared/ui/icon';
 import { Text } from '~/shared/ui/text';
+import { useCanvasScale } from '~/widgets/game-hud/model/useCanvasScale';
 
 const PLAY_WIDTH = '21.25rem';
 const PLAY_HEIGHT = '6.5rem';
@@ -15,6 +16,8 @@ type PlayButtonProps = {
 
 export function PlayButton(props: PlayButtonProps): ReactElement {
   const { onClick } = props;
+  const scale = useCanvasScale();
+  const scaleTransform = `scale(${scale})`;
   return (
     <Box
       alignItems="center"
@@ -38,6 +41,8 @@ export function PlayButton(props: PlayButtonProps): ReactElement {
       transitionProperty="background-color"
       transitionDuration="150ms"
       transitionTimingFunction="ease-out"
+      transform={scaleTransform}
+      transformOrigin="left bottom"
       width={PLAY_WIDTH}
       onClick={onClick}
     >

@@ -4,7 +4,7 @@ Este documento é a porta de entrada para todas as instruções dos agentes que 
 
 ## Documentações
 
-A tabela a seguir lista todas as documentações disponíveis para consulta pelos agentes. Se estiver com dúvidas e não souber qual documento consultar, consulte todos os documentos um a um.
+A tabela a seguir lista todas as documentações disponíveis para consulta pelos agentes. Se estiver com dúvidas e não souber qual documento consultar, pergunte ao usuário qual documentação carregar e não carregue nenhuma automaticamente.
 
 | Documentação | Descrição | Quando consultar | Onde consultar |
 | --- | --- | --- | --- |
@@ -75,6 +75,12 @@ Faça a validação visual (navegação, interação e conferência do resultado
 
 ## Respostas
 
+### Linguagem
+
+Responda sempre em Português, o código gerado é sempre em Inglês (incluindo comentários).
+
+### Resumo
+
 Ao final de cada execução, você obrigatoriamente deve informar o que foi utilizado, no formato abaixo. Liste apenas os itens que realmente foram usados e omita as categorias vazias.
 
 ```
@@ -91,7 +97,3 @@ O que eu utilizei durante a execução:
 ```
 
 Não liste operações básicas de leitura e edição de arquivos nem comandos de terminal comuns. Se você não usou nenhum MCP, skill nem documentação, responda apenas: "Execução sem ferramentas."
-
-# Linguagem
-
-Responda sempre em Português, o código gerado é sempre em Inglês (incluindo comentários).

@@ -38,11 +38,13 @@ fórmula ainda para ser definida
 
 Cada espécie tem a sua experiência base, cadastrada e pertencente à espécie. Casos especiais — multiplicadores, ou itens que aumentam a experiência ganha por um tempo — são aplicados em outro momento; a espécie em si guarda apenas a base.
 
-Quando uma criatura da espécie é derrotada, o nível dela e a experiência base da espécie definem quanta experiência vai para a criatura que a derrotou.
+Quando uma criatura da espécie é derrotada, o nível dela e a experiência base da espécie definem quanta experiência vai para a criatura que a derrotou. A fórmula é provisória:
 
 ```
-fórmula ainda para ser definida
+experiência = round(baseExperience × (1 + (nível − 1) × 0.1))
 ```
+
+A criatura ativa recebe 100% da experiência, e as demais criaturas vivas do time recebem 10%. A experiência é creditada no abate, e não no fim da caçada. Nesta fase não há level-up: a experiência acumula, mas o nível não sobe.
 
 A experiência da criatura é separada do nível do treinador, e a divisão entre a criatura em campo e as demais do time está em [Experiência das Criaturas](TRAINER.md#experiência-das-criaturas).
 
@@ -99,6 +101,34 @@ A **vida máxima** de uma criatura é o seu atributo de Vitalidade calculado ass
 
 O potencial máximo é a média dos PVs: a soma dos cinco PVs dividida por cinco. Uma criatura com todos os PVs em 100% tem potencial máximo de 100%, e é uma criatura que vai atingir o teto da espécie.
 
+## Dano
+
+O dano de um ataque é calculado no momento em que ele acerta, a partir dos atributos dos dois lados, do nível de quem ataca e do elemento da habilidade. Ele não é guardado: só a vida restante é.
+
+```
+levelFactor = 1 + (nível − 1) × 0.05
+ataque = elemento da habilidade é neutro ? ataque físico : ataque mágico
+defesa = elemento da habilidade é neutro ? defesa física : defesa mágica
+ratio = ataque / (ataque + defesa)
+efetividade = tabela de efetividade[elemento da habilidade][elemento da espécie defendida]
+dano = max(1, round(poder × levelFactor × DAMAGE_SCALE × ratio × efetividade))
+```
+
+O `poder` é o dano da habilidade no catálogo. No ataque corpo a corpo implícito das criaturas selvagens, o poder é o ataque físico de quem ataca.
+
+As constantes e regras da fórmula são:
+
+| Regra | Valor |
+| --- | --- |
+| `DAMAGE_SCALE` | 0.25, provisório |
+| Elemento neutro | Usa ataque e defesa físicos; os demais elementos usam ataque e defesa mágicos |
+| Efetividade | Só fogo contra planta é 1,5×; todo o resto é 1× |
+| Piso do dano | 1 |
+
+O `DAMAGE_SCALE` encolhe o poder da habilidade para a escala de vida atual, em que uma criatura no nível 1 tem entre 22 e 28 de vida. Ele é o principal ajuste de balanceamento do combate e é provisório.
+
+A **vida máxima** continua sendo o atributo de vitalidade calculado em [Atributos Atuais](#atributos-atuais); o dano não muda essa regra. Não há crítico, esquiva nem resistência além da defesa e da efetividade.
+
 ## Captura
 
 Cada espécie tem a sua chance de captura, definida no cadastro da espécie. Todas as criaturas daquela espécie têm a mesma chance: uma espécie com 0,5% de chance dá 0,5% para qualquer criatura dela.
@@ -109,7 +139,17 @@ O fluxo de captura — dispositivo selecionado na barra, tentativa automática n
 
 ## Habilidades
 
-Cada espécie tem o seu set de habilidades, e espécies diferentes podem compartilhar a mesma habilidade.
+Cada espécie tem o seu set de habilidades, e espécies diferentes podem compartilhar a mesma habilidade. No catálogo 2.2 cada espécie tem **6 habilidades**, duas de cada tipo:
+
+| Tipo | Habilidades | Como atinge |
+| --- | --- | --- |
+| `target` | Brasa e Garra | Um alvo dentro do alcance. |
+| `area` | Ígnea e Espinho | Uma área a partir do alvo: círculo ou linha. |
+| `area_self` | Explosão e Vendaval | Um círculo centrado no conjurador, sem alvo. |
+
+A selvagem usa **todas as 6** habilidades da espécie. A criatura do jogador equipa **4** delas nos slots da barra, escolhidas entre as 6.
+
+As habilidades de área com alvo continuam indo até o alvo. A área sem alvo atinge ao redor do conjurador e **não o próprio lado**: não atinge o conjurador nem os aliados, só os adversários.
 
 Habilidades pertencem a um elemento ou ao elemento neutro. O dano e a efetividade do ataque são baseados no elemento da **habilidade**, e a efetividade da defesa é baseada no elemento da **espécie**.
 
@@ -119,13 +159,25 @@ O uso das habilidades durante a caçada — slots, cooldowns e troca — está e
 
 Cada espécie tem o seu set de itens, e o foco é dropar apenas o que faz sentido: partes das criaturas. Um quadrúpede pode dropar "Pata de Criatura", "Pele de Criatura" ou "Couro de Criatura", e uma criatura alada pode dropar "Asas de Criatura" — um inseto não carrega uma espada, e nenhum item é inventado.
 
-Cada item do set tem a sua própria chance de drop, e cada criatura morta faz o cálculo para ver se o item sai ou não. Espécies diferentes podem compartilhar o mesmo item, com chances iguais ou diferentes, dependendo do cadastro.
+Cada item do set tem a sua própria chance de drop, e cada criatura morta faz o cálculo para ver se o item sai ou não. Os rolls são independentes: cada item é sorteado separadamente, e uma mesma criatura pode deixar mais de um item. Espécies diferentes podem compartilhar o mesmo item, com chances iguais ou diferentes, dependendo do cadastro.
+
+O loot é creditado na mochila do treinador no abate, item por item, e não no fim da caçada.
 
 Esses itens são vendidos na [loja da cidade](CITY.md#lojas) e viram gold coins, que compram poções e dispositivos.
 
 Criatura capturada não dropa nada. Quem captura apenas desmaiou a criatura, não a finalizou, então ela não tem chance de dropar itens.
 
 > A regra exige uma mecânica no serviço: no desmaio da criatura selvagem, a tentativa de captura é resolvida primeiro, e o drop só é rolado se a captura não tiver acontecido. Se a criatura foi capturada, ela não dropa; se a captura falhou ou não havia dispositivo, o drop acontece normalmente.
+
+## Criaturas Selvagens
+
+As criaturas selvagens não são indivíduos capturados: elas nascem no spawn da área a cada caçada, com a vida cheia e com os atributos calculados a partir do nível definido no ponto de spawn e de todos os potenciais em 50%. Na prática, os atributos delas ficam iguais aos valores de base da espécie, crescidos pelo nível.
+
+Cada ponto de spawn da área define a espécie, o nível e o tempo de respawn. Os pontos ficam separados do spawn da criatura ativa e do treinador, e cada selvagem ocupa o próprio tile: ela bloqueia o tile confirmado e o destino do passo em curso, como os outros atores da caçada.
+
+Enquanto tem alvo, a selvagem olha na direção da criatura ativa, mesmo quando o passo em curso aponta para outro lado. A selvagem usa todas as **6** habilidades da espécie, independentemente do nível, cada uma com a sua chance de uso e o seu intervalo, inclusive as áreas sem alvo. Além das habilidades, ela tem um ataque corpo a corpo implícito: um golpe a cada 2 segundos, quando está adjacente ao alvo. O piso é 1 segundo; o valor atual é 2 segundos para o jogador sobreviver à primeira área.
+
+O dano da selvagem segue a fórmula de [Dano](#dano), e os drops seguem as regras de [Drops](#drops).
 
 ## Criaturas Iniciais
 
@@ -137,8 +189,9 @@ As opções vêm do banco de dados: são as espécies marcadas como iniciais, en
 
 Os pontos abaixo ainda não foram decididos:
 
-- As fórmulas de nível e de experiência.
+- A fórmula de nível, a fórmula definitiva de experiência e o level-up.
 - A tabela de efetividade entre elementos — o exemplo fogo contra planta, com 1,5×, é o único definido.
+- O valor definitivo do `DAMAGE_SCALE` e o balanceamento dos valores de dano, de vida e de atributos.
 - Se o dispositivo de captura é consumido em toda tentativa ou só na captura bem-sucedida.
 - A mecânica no serviço que segura a entrega do drop até saber se a captura aconteceu.
 - O catálogo completo de espécies e de habilidades. O que existe hoje está no banco de dados — 5 espécies, 3 delas iniciais, e 5 habilidades — e é o catálogo inicial, não a lista final.

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- the WebSocket lane owns the protocol parsing and the dispatch of every message */
 import { PROTOCOL_VERSION } from '@creatures/contracts/game';
 import type { ClientMessage, GameCommand, GameErrorCode } from '@creatures/contracts/game';
 import type { Trainer } from '@creatures/contracts/trainer';
@@ -5,8 +6,13 @@ import type { ServerWebSocket, WebSocketHandler } from 'bun';
 
 import { findTrainerById } from '~/db/trainerRepository';
 import type { ServerDependencies } from '~/dependencies';
+import { ensureHunt } from '~/hunt/runtime/ensure';
 import { isUuid } from '~/validation/trainer';
+import { createWorldChannel } from '~/world/channel';
+import type { WorldChannel } from '~/world/channel';
+import { readMoveTarget } from '~/world/command';
 import type { ConnectionRegistry, SocketData } from '~/ws/connections';
+import { handleHuntCommand } from '~/ws/huntCommands';
 import { buildCommandResult, buildErrorMessage, sendMessage } from '~/ws/protocol';
 
 const MAX_REQUEST_ID_LENGTH = 128;
@@ -16,17 +22,23 @@ export function createGameSocketHandler(
   deps: ServerDependencies,
   connections: ConnectionRegistry,
 ): WebSocketHandler<SocketData> {
+  const world = createWorldChannel({
+    admin: deps.admin,
+    connections,
+    logger: deps.logger,
+  });
+
   function open(ws: ServerWebSocket<SocketData>): void {
     connections.open(ws);
   }
 
   function close(ws: ServerWebSocket<SocketData>): void {
-    connections.close(ws);
+    void world.close(ws);
   }
 
   function message(ws: ServerWebSocket<SocketData>, raw: string | Buffer): void {
     connections.touch(ws);
-    handleMessage(deps, ws, raw).catch(reportFailure(deps, ws));
+    handleMessage(deps, world, ws, raw).catch(reportFailure(deps, ws));
   }
 
   /**
@@ -45,6 +57,7 @@ export function createGameSocketHandler(
 
 function handleMessage(
   deps: ServerDependencies,
+  world: WorldChannel,
   ws: ServerWebSocket<SocketData>,
   raw: string | Buffer,
 ): Promise<void> {
@@ -54,14 +67,22 @@ function handleMessage(
     return Promise.resolve();
   }
   if (parsed.type === 'ping') {
-    sendMessage(ws, { sentAt: parsed.sentAt, type: 'pong', v: PROTOCOL_VERSION });
+    sendMessage(ws, {
+      sentAt: parsed.sentAt,
+      serverNow: Date.now(),
+      type: 'pong',
+      v: PROTOCOL_VERSION,
+    });
     return Promise.resolve();
   }
   if (parsed.type === 'command') {
-    sendCommandRefusal(deps, ws, parsed.reqId);
-    return Promise.resolve();
+    if (parsed.command.type === 'move') {
+      world.move(ws, parsed.reqId, parsed.command.target);
+      return Promise.resolve();
+    }
+    return handleHuntCommand(deps, ws, parsed.reqId, parsed.command);
   }
-  return handleSelectTrainer(deps, ws, parsed.reqId, parsed.trainerId);
+  return handleSelectTrainer(deps, world, ws, parsed.reqId, parsed.trainerId);
 }
 
 /**
@@ -76,6 +97,7 @@ function handleMessage(
  */
 function handleSelectTrainer(
   deps: ServerDependencies,
+  world: WorldChannel,
   ws: ServerWebSocket<SocketData>,
   reqId: string,
   trainerId: string,
@@ -83,30 +105,59 @@ function handleSelectTrainer(
   const userId = ws.data.userId;
   return findTrainerById(deps.admin, trainerId, userId).then(function checkOwner(
     trainer: Trainer | null,
-  ): void {
+  ): Promise<void> | void {
     if (trainer === null) {
       sendCommandFailure(ws, reqId, deps.revs.current(userId), 'trainer_not_found');
       return;
     }
+    closePreviousHunt(deps, userId, trainer.id);
     deps.sessions.set(userId, trainer.id);
     const rev = deps.broadcaster.pushState(userId, trainer.id);
     sendMessage(ws, buildCommandResult(reqId, true, rev));
+    // The world comes after the answer of the command, as a separate and
+    // lighter message: the snapshot of the player has its own channel.
+    const profile = { gender: trainer.gender, name: trainer.name, trainerId: trainer.id };
+    return world.enter(ws, profile).then(function afterWorld(): Promise<void> {
+      return sendHuntState(deps, ws, trainer.id);
+    });
   });
 }
 
 /**
- * The commands of the hunt are not executed yet.
+ * Closes the hunt of the trainer that was active before this selection.
  *
- * The answer keeps the request id, so the client does not wait for an answer
- * that never comes, and the connection stays open.
+ * A trainer switch ends every activity of the previous trainer: the hunt is
+ * closed before the new trainer becomes the session. The close is fire and
+ * forget, like the one of the routes: the selection does not wait for the
+ * session to be written.
  */
-function sendCommandRefusal(
+function closePreviousHunt(deps: ServerDependencies, userId: string, trainerId: string): void {
+  const previous = deps.sessions.get(userId);
+  if (previous === null || previous === trainerId || !deps.hunts.has(previous)) {
+    return;
+  }
+  void deps.hunts.close(previous, 'trainer_switched').catch(function closeFailed(
+    error: unknown,
+  ): void {
+    deps.logger.error({ err: error, trainerId: previous, userId }, 'hunt close failed');
+  });
+}
+
+/**
+ * Sends the hunt of the trainer, resuming it when the process does not have
+ * the runtime yet.
+ */
+function sendHuntState(
   deps: ServerDependencies,
   ws: ServerWebSocket<SocketData>,
-  reqId: string,
-): void {
-  const rev = deps.revs.current(ws.data.userId);
-  sendCommandFailure(ws, reqId, rev, 'invalid_command');
+  trainerId: string,
+): Promise<void> {
+  return ensureHunt(deps, trainerId).then(function send(snapshot): void {
+    if (snapshot === null) {
+      return;
+    }
+    sendMessage(ws, { ...snapshot, type: 'hunt_state', v: PROTOCOL_VERSION });
+  });
 }
 
 /**
@@ -186,16 +237,21 @@ function readRequestId(value: unknown): string | null {
 }
 
 /**
- * Reads the command of the hunt.
+ * Reads the command of the channel.
  *
- * The command is only read, never applied: the hunt is not in the game yet,
- * and a command that is not understood is refused instead of guessed.
+ * Only the walk and the commands of the hunt are applied; a command that is
+ * not understood is refused instead of guessed.
  */
 function readCommand(value: unknown): GameCommand | null {
   if (typeof value !== 'object' || value === null) {
     return null;
   }
-  const candidate = value as { creatureId?: unknown; slot?: unknown; type?: unknown };
+  const candidate = value as {
+    creatureId?: unknown;
+    slot?: unknown;
+    target?: unknown;
+    type?: unknown;
+  };
   if (candidate.type === 'finalize_hunt') {
     return { type: 'finalize_hunt' };
   }
@@ -211,6 +267,13 @@ function readCommand(value: unknown): GameCommand | null {
       return null;
     }
     return { slot, type: candidate.type };
+  }
+  if (candidate.type === 'move') {
+    const target = readMoveTarget(candidate.target);
+    if (target === null) {
+      return null;
+    }
+    return { target, type: 'move' };
   }
   return null;
 }

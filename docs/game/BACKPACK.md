@@ -10,6 +10,8 @@ A mochila é um modal aberto pelo primeiro botão do menu da esquerda da [toolba
 
 > A mochila é só de consulta, e vender item acontece fora dela: a venda é uma aba da [loja](STORE.md).
 
+A mochila abre normalmente durante a caçada, por cima do canvas, e a leitura é permitida. Ela não muda o time, então nenhuma ação dela é bloqueada pela caçada; as ações de time ficam no [armazenamento](STORAGE.md), onde são bloqueadas.
+
 O modal segue o mesmo layout do [modal de locais de caça](HUNT_AREA_SELECT.md): título no topo, conteúdo no corpo e rodapé com a busca. O que ele tem de diferente são os filtros por categoria e a grade de slots de itens no lugar da lista de áreas.
 
 > O modal não pausa o jogo. A simulação continua rodando com ele aberto, conforme a regra da [tela do jogo](PLAY_SCREEN.md): nenhum elemento da tela, inclusive os modais abertos a partir dela, pausa ou bloqueia o jogo.

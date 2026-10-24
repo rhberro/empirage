@@ -9,6 +9,8 @@ const MAX_TRAINERS_MESSAGE = 'max_trainers_reached';
 const STARTER_UNAVAILABLE_MESSAGE = 'starter_unavailable';
 const CREATURE_NOT_FOUND_MESSAGE = 'creature_not_found';
 const INVALID_TEAM_COMMAND_MESSAGE = 'invalid_team_command';
+const LAST_CREATURE_MESSAGE = 'last_creature';
+const LAST_TEAM_MEMBER_MESSAGE = 'last_team_member';
 const TEAM_FULL_MESSAGE = 'team_full';
 const TRAINER_NOT_FOUND_MESSAGE = 'trainer_not_found';
 const INTERNAL_ERROR_CODE = 'internal_error';
@@ -50,6 +52,12 @@ export function mapTeamOperationError(error: DatabaseError): ApiError {
     }
     if (error.message === INVALID_TEAM_COMMAND_MESSAGE) {
       return buildTrainerError(400, 'invalid_team_command');
+    }
+    if (error.message === LAST_CREATURE_MESSAGE) {
+      return buildTrainerError(409, 'last_creature');
+    }
+    if (error.message === LAST_TEAM_MEMBER_MESSAGE) {
+      return buildTrainerError(409, 'last_team_member');
     }
     if (error.message === TEAM_FULL_MESSAGE) {
       return buildTrainerError(409, 'team_full');

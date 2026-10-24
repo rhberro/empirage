@@ -22,6 +22,8 @@ const ERROR_MESSAGES: Record<TrainerErrorCode, string> = {
   invalid_starter: 'A criatura inicial informada é inválida.',
   invalid_team_command: 'Comando de time inválido.',
   invalid_trainer: 'Identificador de treinador inválido.',
+  last_creature: 'O treinador precisa ter pelo menos uma criatura.',
+  last_team_member: 'O time não pode ficar vazio.',
   max_trainers_reached: 'A conta já atingiu o limite de 5 treinadores.',
   name_taken: 'Já existe um treinador com esse nome.',
   starter_unavailable: 'A criatura inicial escolhida não está mais disponível.',

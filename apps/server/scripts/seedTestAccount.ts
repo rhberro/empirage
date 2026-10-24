@@ -19,6 +19,7 @@ import type { SpeciesRow } from './seedTestAccountSeeds';
 import {
   addToTeam,
   ensureAccount,
+  ensurePotions,
   ensureTrainer,
   insertCreatures,
   readSpecies,
@@ -40,6 +41,7 @@ function main(): Promise<void> {
     .then(insertCreatures)
     .then(equipSpeciesAbilities)
     .then(addToTeam)
+    .then(ensurePotions)
     .then(readTeam)
     .then(printSummary);
 }

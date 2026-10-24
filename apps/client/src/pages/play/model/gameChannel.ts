@@ -1,5 +1,9 @@
+import type { GameCommand } from '@creatures/contracts/game';
+import type { Tile } from '@creatures/contracts/world';
+
 import { buildChannelMachine } from '~/pages/play/model/gameChannelMachine';
 import type { GameChannelDeps } from '~/pages/play/model/gameChannelMachine';
+import type { CommandResult, MoveResult } from '~/pages/play/model/gameProtocol';
 
 export type { GameChannelDeps } from '~/pages/play/model/gameChannelMachine';
 
@@ -12,6 +16,10 @@ export type GameChannelController = {
   expectServerClose(): void;
   /** Opens the channel right away, without waiting for the backoff. */
   reconnectNow(): void;
+  /** Sends a command and resolves with the answer of the server. */
+  requestCommand(command: GameCommand, reqId?: string): Promise<CommandResult>;
+  /** Sends a move and resolves with the answer of the server. */
+  requestMove(target: Tile, reqId?: string): Promise<MoveResult>;
 };
 
 /**
@@ -30,5 +38,7 @@ export function openGameChannel(deps: GameChannelDeps): GameChannelController {
     close: machine.close,
     expectServerClose: machine.expectServerClose,
     reconnectNow: machine.reconnectNow,
+    requestCommand: machine.requestCommand,
+    requestMove: machine.requestMove,
   };
 }

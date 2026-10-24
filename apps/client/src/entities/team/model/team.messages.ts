@@ -9,6 +9,8 @@ import type { TeamErrorCode } from './team.types';
 export const TEAM_ERROR_MESSAGES: Record<TeamErrorCode, string> = {
   creature_not_found: 'Criatura não encontrada.',
   invalid_team_command: 'Comando de time inválido.',
+  last_creature: 'O treinador precisa ter pelo menos uma criatura.',
+  last_team_member: 'O time não pode ficar vazio.',
   team_full: 'O time já está com 5 criaturas.',
   trainer_not_found: 'Treinador não encontrado.',
   unauthenticated: 'Sessão expirada. Entre novamente.',

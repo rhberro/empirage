@@ -15,6 +15,7 @@ import { createCreatureRoutes } from '~/routes/creatures';
 import { createGearSlotRoutes } from '~/routes/gearSlots';
 import { createHealthRoutes } from '~/routes/health';
 import { createHuntAreaRoutes } from '~/routes/huntAreas';
+import { createHuntRoutes } from '~/routes/hunts';
 import { createLoadoutRoutes } from '~/routes/loadout';
 import { createPlayerRoutes } from '~/routes/player';
 import { createSpeciesRoutes } from '~/routes/species';
@@ -32,6 +33,8 @@ import type { SocketData } from '~/ws/connections';
 import type { StateBroadcaster } from '~/ws/stateBroadcaster';
 import { createTicketStore } from '~/ws/tickets';
 
+import { buildNoopHuntManager } from './huntStub';
+
 export { buildEmptyAdmin, buildTrainerAdmin } from './fakeAdmin';
 
 export const BASE_URL = 'http://localhost';
@@ -46,6 +49,8 @@ export const CREATURE_ABILITY_SLOTS_PATH = '/api/creatures/:id/ability-slots';
 export const GEAR_SLOT_PATH = '/api/gear-slots/:slot';
 export const HUNT_AREAS_PATH = '/api/hunt-areas';
 export const HUNT_AREA_PATH = '/api/hunt-areas/:id';
+export const HUNTS_PATH = '/api/hunts';
+export const CURRENT_HUNT_PATH = '/api/hunts/current';
 export const STORE_PATH = '/api/store';
 export const STORE_BUY_PATH = '/api/store/buy';
 export const STORE_SELL_PATH = '/api/store/sell';
@@ -129,6 +134,8 @@ export function buildRecordingBroadcaster(): BroadcastRecorder {
   };
 }
 
+export { buildHuntSnapshot, buildNoopHuntManager } from './huntStub';
+
 /**
  * The unit tests never reach the database: the repositories are only used by
  * the routes that require a real Postgres, covered by the integration suite.
@@ -139,6 +146,7 @@ export function buildDependencies(overrides?: Partial<ServerDependencies>): Serv
     broadcaster: buildRecordingBroadcaster().broadcaster,
     claims: CLAIMS,
     connections: createConnectionRegistry(),
+    hunts: buildNoopHuntManager(),
     idempotency: createIdempotencyStore(),
     limiter: createAttemptLimiter(),
     logger: pino({ level: 'silent' }),
@@ -187,6 +195,7 @@ export function buildHandler(deps: ServerDependencies = buildDependencies()): Ro
     .concat(createTeamRoutes(deps))
     .concat(createAuthRoutes(deps))
     .concat(createHuntAreaRoutes(deps))
+    .concat(createHuntRoutes(deps))
     .concat(createLoadoutRoutes(deps))
     .concat(createGearSlotRoutes(deps))
     .concat(createStoreRoutes(deps))

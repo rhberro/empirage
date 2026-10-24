@@ -10,6 +10,7 @@ import { HuntAreaSelectModal } from '~/features/hunt-area/ui/HuntAreaSelectModal
 export type HuntAreaFlowProps = {
   isOpen: boolean;
   onClose: () => void;
+  onStartHunt: (areaId: string) => Promise<boolean>;
   staminaMinutes: number;
 };
 
@@ -21,7 +22,7 @@ export type HuntAreaFlowProps = {
  * the list, in the same place.
  */
 export function HuntAreaFlow(props: HuntAreaFlowProps): ReactElement {
-  const { isOpen, onClose, staminaMinutes } = props;
+  const { isOpen, onClose, onStartHunt, staminaMinutes } = props;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const list = useHuntAreaList(isOpen);
   const detail = useHuntAreaDetail(selectedId);
@@ -33,6 +34,11 @@ export function HuntAreaFlow(props: HuntAreaFlowProps): ReactElement {
 
   function handleCloseDetails(): void {
     setSelectedId(null);
+  }
+
+  function handleStarted(): void {
+    setSelectedId(null);
+    onClose();
   }
 
   return (
@@ -48,6 +54,8 @@ export function HuntAreaFlow(props: HuntAreaFlowProps): ReactElement {
         area={detail.area}
         isOpen={detailsOpen}
         onClose={handleCloseDetails}
+        onStartHunt={onStartHunt}
+        onStarted={handleStarted}
         staminaMinutes={staminaMinutes}
         status={detail.status}
       />

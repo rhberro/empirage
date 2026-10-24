@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * Data access for the test account seed script.
  *
@@ -107,6 +108,57 @@ export function insertCreatures(ctx: SeedContext): Promise<SeedContext> {
 
 export function addToTeam(ctx: SeedContext): Promise<SeedContext> {
   return addCreatureToTeam(ctx, ctx.creatureIds, 0);
+}
+
+/**
+ * Gives the test trainer the healing potion the hunt consumes.
+ *
+ * The starter backpack is not part of the seed of this account, so a fresh
+ * run would leave the bar with the potion equipped and no unit to drink.
+ */
+export function ensurePotions(ctx: SeedContext): Promise<SeedContext> {
+  const query = ctx.admin.from('items').select('id').eq('slug', 'pocao-de-cura').limit(1);
+  return Promise.resolve(query).then(function withItem(
+    result: RowsResult<{ id: string }>,
+  ): Promise<SeedContext> {
+    if (result.error !== null) {
+      throw new Error(`Falha ao procurar a poção: ${result.error.message}`);
+    }
+    const item = result.data?.[0];
+    if (item === undefined) {
+      throw new Error('A poção de cura não está no catálogo.');
+    }
+    const items = ctx.admin
+      .from('trainer_items')
+      .upsert(
+        { item_id: item.id, quantity: 30, trainer_id: ctx.trainerId },
+        { onConflict: 'trainer_id,item_id' },
+      );
+    const gear = ctx.admin.from('trainer_gear_slots').upsert(
+      {
+        item_id: item.id,
+        kind: 'consumable',
+        slot: 4,
+        trainer_id: ctx.trainerId,
+        trigger_hp_percent: 40,
+      },
+      { onConflict: 'trainer_id,slot' },
+    );
+    return Promise.all([
+      Promise.resolve(items).then(readWriteFailure('a poção')),
+      Promise.resolve(gear).then(readWriteFailure('o slot da poção')),
+    ]).then(function done(): SeedContext {
+      return ctx;
+    });
+  });
+}
+
+function readWriteFailure(label: string): (result: { error: { message: string } | null }) => void {
+  return function check(result: { error: { message: string } | null }): void {
+    if (result.error !== null) {
+      throw new Error(`Falha ao gravar ${label}: ${result.error.message}`);
+    }
+  };
 }
 
 export function readTeam(ctx: SeedContext): Promise<SeedContext> {

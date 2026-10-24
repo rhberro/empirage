@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import pino from 'pino';
 
+import { buildNoopHuntManager } from '~/__tests__/support';
 import type { ServerDependencies } from '~/dependencies';
 import { createAttemptLimiter } from '~/ratelimit/attemptLimiter';
 import { createPublicLimiter } from '~/ratelimit/publicLimiter';
@@ -53,6 +54,7 @@ export function prepareEnvironment(): Promise<IntegrationEnvironment> {
       broadcaster: createStateBroadcaster(admin, connections, logger, revs),
       claims: supabase.claims,
       connections,
+      hunts: buildNoopHuntManager(),
       idempotency: createIdempotencyStore(),
       limiter: createAttemptLimiter(),
       logger,

@@ -88,13 +88,17 @@ As ações que mudam o time — enviar uma criatura capturada para o time e tira
 
 > A regra é a do [time durante a caçada](TRAINER.md#durante-a-caçada): o time que o treinador entra é o time que ele sai. A caçada é a atividade em andamento, e o modal não pode ser um caminho para mudar o time no meio dela. A consulta continua liberada de qualquer lugar, caçando ou não; o que muda é só a ação, que aparece desabilitada, sem resposta ao clique.
 
+O modal abre por cima do canvas durante a caçada. A leitura continua liberada, e a mensagem **Durante a caçada o time fica fechado.** aparece na seção do time para explicar por que as ações estão bloqueadas.
+
 A mudança aparece na hora: a criatura entra no time — ou sai dele — no mesmo instante do clique, sem esperar o servidor responder.
 
 ### Soltar uma Criatura
 
 **Soltar criatura** tira a criatura do armazenamento do treinador **para sempre**: ela não volta para o time, nem para a grade, e não existe mais.
 
-A ação pede uma confirmação, como a [exclusão do treinador](TRAINER.md#exclusão-do-treinador), e o aviso deixa claro que a ação não pode ser desfeita. Uma criatura do time não é solta: ela sai do time primeiro, e a soltura vem depois.
+A ação pede uma confirmação, como a [exclusão do treinador](TRAINER.md#exclusão-do-treinador), e o aviso deixa claro que a ação não pode ser desfeita. Uma criatura do time não é solta diretamente: ela sai do time primeiro, e a soltura vem depois. Se ela for a única do time, a saída é recusada e a soltura também não acontece.
+
+A última criatura do treinador não pode ser solta: a ação é recusada com **O treinador precisa ter pelo menos uma criatura.** O time também não pode ficar vazio: a ação de remover a única criatura do time fica indisponível, sem uma mensagem fixa na seção do time. A trava continua valendo, conforme as regras da [última criatura](TRAINER.md#última-criatura).
 
 > Soltar é o contrário de capturar: a criatura deixa de existir para o jogador. A confirmação existe porque não há volta.
 

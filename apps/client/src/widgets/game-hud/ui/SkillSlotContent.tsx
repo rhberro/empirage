@@ -1,13 +1,10 @@
 import { Box } from '@chakra-ui/react';
-import type {
-  EquippedAbility,
-  EquippedConsumable,
-  EquippedDevice,
-} from '@creatures/contracts/skill';
+import type { EquippedAbility, EquippedConsumable } from '@creatures/contracts/skill';
 import type { ReactElement } from 'react';
 
 import { Text } from '~/shared/ui/text';
 import { readElementPresentation } from '~/widgets/game-hud/model/element';
+import type { DeviceDisplay } from '~/widgets/game-hud/model/skillBar.types';
 
 /**
  * The color of the bar of an ability whose element the interface does not
@@ -26,8 +23,8 @@ type AbilityContentProps = {
 /**
  * The content of a slot of ability: the name of the ability and its element.
  *
- * The cooldown is not drawn: the hunt that puts it in motion does not exist
- * yet, and a number that never counts down would be a lie.
+ * The cooldown is drawn by the slot, not here: the content is only what the
+ * ability is.
  */
 export function AbilityContent(props: AbilityContentProps): ReactElement {
   const { ability } = props;
@@ -89,14 +86,25 @@ export function ConsumableContent(props: ConsumableContentProps): ReactElement {
 }
 
 type DeviceContentProps = {
-  device: EquippedDevice;
+  device: DeviceDisplay;
 };
 
 /**
  * The content of the slot of the capture device.
+ *
+ * The multiplier is what the device does to the chance of capture; the
+ * quantity is how many attempts the backpack still holds.
  */
 export function DeviceContent(props: DeviceContentProps): ReactElement {
   const { device } = props;
+  const quantity = `x${device.quantity}`;
+  const multiplier = device.multiplier === undefined ? null : `×${device.multiplier}`;
+  const multiplierNode =
+    multiplier === null ? null : (
+      <Text color="gold.fg" variant="meta">
+        {multiplier}
+      </Text>
+    );
   return (
     <Box display="flex" flexDirection="column" height="full" padding="1">
       <Box bg={DEVICE_COLOR} borderRadius="xs" height="0.1875rem" width="full" />
@@ -110,6 +118,12 @@ export function DeviceContent(props: DeviceContentProps): ReactElement {
       >
         {device.name}
       </Text>
+      <Box display="flex" justifyContent="space-between">
+        {multiplierNode}
+        <Text color="fg.subtle" variant="meta">
+          {quantity}
+        </Text>
+      </Box>
     </Box>
   );
 }

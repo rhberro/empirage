@@ -134,6 +134,7 @@ function handleDeleteTrainer(deps: ServerDependencies): RouteHandler {
       // The deleted trainer cannot stay as the active one: the player would
       // be left pointing at a trainer that no longer exists.
       if (deps.sessions.get(userId) === trainerId) {
+        closeHuntOf(deps, trainerId, userId);
         deps.sessions.clear(userId);
       }
       logRouteEvent(deps.logger, ctx, 'trainer deleted', { trainerId });
@@ -141,6 +142,23 @@ function handleDeleteTrainer(deps: ServerDependencies): RouteHandler {
       return new globalThis.Response(null, init);
     });
   };
+}
+
+/**
+ * Closes the hunt of the trainer that is leaving, when it is running.
+ *
+ * Deleting the active trainer ends the hunt before the session is cleared: the
+ * simulation writes its final state against a trainer that still exists.
+ */
+function closeHuntOf(deps: ServerDependencies, trainerId: string, userId: string): void {
+  if (!deps.hunts.has(trainerId)) {
+    return;
+  }
+  void deps.hunts.close(trainerId, 'trainer_switched').catch(function closeFailed(
+    error: unknown,
+  ): void {
+    deps.logger.error({ err: error, trainerId, userId }, 'hunt close failed');
+  });
 }
 
 function toCreatedResponse(value: TrainerStep<Trainer>): Response {

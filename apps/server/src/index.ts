@@ -1,6 +1,11 @@
+import type { ServerMessage } from '@creatures/contracts/game';
+import { PROTOCOL_VERSION } from '@creatures/contracts/game';
+import type { HuntDelta, HuntEndedMessage, HuntSnapshot } from '@creatures/contracts/huntSim';
 import { serve, type Server } from 'bun';
 
 import type { ServerDependencies } from '~/dependencies';
+import { createHuntManager } from '~/hunt/runtime/manager';
+import { startHuntRunner } from '~/hunt/runtime/runner';
 import { createServerLogger } from '~/logging/logger';
 import { createCorsMiddleware } from '~/middleware/cors';
 import { createLoggingMiddleware, createResponseLogger } from '~/middleware/logging';
@@ -18,6 +23,7 @@ import { createCreatureRoutes } from '~/routes/creatures';
 import { createGearSlotRoutes } from '~/routes/gearSlots';
 import { createHealthRoutes } from '~/routes/health';
 import { createHuntAreaRoutes } from '~/routes/huntAreas';
+import { createHuntRoutes } from '~/routes/hunts';
 import { createLoadoutRoutes } from '~/routes/loadout';
 import { createPlayerRoutes } from '~/routes/player';
 import { createSpeciesRoutes } from '~/routes/species';
@@ -34,6 +40,7 @@ import { createConnectionRegistry } from '~/ws/connections';
 import type { SocketData } from '~/ws/connections';
 import { createGameSocketHandler } from '~/ws/gameSocket';
 import { createLivenessScanner } from '~/ws/liveness';
+import { sendMessage } from '~/ws/protocol';
 import { createStateBroadcaster } from '~/ws/stateBroadcaster';
 import { createTicketStore } from '~/ws/tickets';
 import { createWebSocketUpgrade } from '~/ws/upgrade';
@@ -71,11 +78,33 @@ const logger = createServerLogger();
 const supabase = createSupabaseServer(readSupabaseEnv(globalThis.process.env));
 const connections = createConnectionRegistry();
 const revs = createRevCounter();
+const broadcaster = createStateBroadcaster(supabase.admin, connections, logger, revs);
+const hunts = createHuntManager({
+  admin: supabase.admin,
+  logger,
+  onDelta: function onDelta(accountId: string, _trainerId: string, delta: HuntDelta): void {
+    sendToAccount(accountId, { ...delta, type: 'hunt_delta', v: PROTOCOL_VERSION });
+  },
+  onEnded: function onEnded(accountId: string, trainerId: string, ended: HuntEndedMessage): void {
+    sendToAccount(accountId, { ...ended, type: 'hunt_ended', v: PROTOCOL_VERSION });
+    // The hunt wrote the life, the experience and the stamina: the city has
+    // to receive the new portrait, not the one from before the fight.
+    broadcaster.pushState(accountId, trainerId);
+  },
+  onSnapshot: function onSnapshot(
+    accountId: string,
+    _trainerId: string,
+    snapshot: HuntSnapshot,
+  ): void {
+    sendToAccount(accountId, { ...snapshot, type: 'hunt_state', v: PROTOCOL_VERSION });
+  },
+});
 const deps: ServerDependencies = {
   admin: supabase.admin,
-  broadcaster: createStateBroadcaster(supabase.admin, connections, logger, revs),
+  broadcaster,
   claims: supabase.claims,
   connections,
+  hunts,
   idempotency: createIdempotencyStore(),
   limiter: createAttemptLimiter(),
   logger,
@@ -93,6 +122,7 @@ const routes = createTrainerRoutes(deps)
   .concat(createTeamRoutes(deps))
   .concat(createAuthRoutes(deps))
   .concat(createHuntAreaRoutes(deps))
+  .concat(createHuntRoutes(deps))
   .concat(createLoadoutRoutes(deps))
   .concat(createGearSlotRoutes(deps))
   .concat(createStoreRoutes(deps))
@@ -123,6 +153,19 @@ serve({
 });
 
 /**
+ * The tick of the hunts and the catch-up of the sessions left open.
+ *
+ * The sweep runs once on the boot, after the server is listening: a hunt that
+ * was left open by a restart is resumed and then advanced by the same tick.
+ */
+startHuntRunner(hunts, logger);
+try {
+  await hunts.sweep();
+} catch (error) {
+  logger.error({ err: error }, 'hunt sweep failed');
+}
+
+/**
  * The net below the timer of the runtime.
  *
  * The idle timeout of the Bun closes a connection that went quiet, but the
@@ -133,6 +176,21 @@ serve({
 createLivenessScanner(connections, logger);
 
 logger.info({ port }, 'creatures server listening');
+
+/**
+ * Delivers a hunt message to the channel of the account, when there is one.
+ *
+ * The hunt outlives the connection: a hunt that advances with no channel open
+ * keeps running, and the next `hunt_state` gives the client the state it
+ * missed.
+ */
+function sendToAccount(accountId: string, message: ServerMessage): void {
+  const ws = connections.get(accountId);
+  if (ws === undefined) {
+    return;
+  }
+  sendMessage(ws, message);
+}
 
 function fetchHandler(req: Request, bunServer: Server<SocketData>): Promise<Response | undefined> {
   const url = new globalThis.URL(req.url);

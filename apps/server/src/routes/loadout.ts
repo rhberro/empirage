@@ -12,6 +12,7 @@ import {
   invalidCommandResponse,
   readJsonBody,
   readSessionTrainer,
+  refreshHuntLoadout,
   unauthenticatedResponse,
   writeOutcomeResponse,
 } from '~/routes/loadoutSupport';
@@ -106,6 +107,7 @@ function writeAbilitySlotsOfCreature(
               creatureId,
               slotCount: command.abilityIds.length,
             });
+            refreshHuntLoadout(deps, userId);
           }
           return response;
         },

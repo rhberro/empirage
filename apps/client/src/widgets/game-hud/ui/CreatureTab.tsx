@@ -1,5 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import type { SystemStyleObject } from '@chakra-ui/react';
+import type { HuntTeamMemberActor } from '@creatures/contracts/huntSim';
 import type { ReactElement } from 'react';
 
 import { useSelectionRing } from '~/shared/theme';
@@ -19,35 +20,53 @@ type CreatureTabProps = {
   cooldownRemainingMs?: number;
   /** The whole time of the cooldown of the manual swap. */
   cooldownTotalMs?: number;
-  creature: Creature;
+  creature?: Creature;
+  /** The live state of the creature during a hunt: fainted, level and name. */
+  huntMember?: HuntTeamMemberActor;
   isActive: boolean;
   onSelect: (id: string) => void;
 };
 
 export function CreatureTab(props: CreatureTabProps): ReactElement {
-  const { cooldownRemainingMs = 0, cooldownTotalMs = 0, creature, isActive, onSelect } = props;
+  const {
+    cooldownRemainingMs = 0,
+    cooldownTotalMs = 0,
+    creature,
+    huntMember,
+    isActive,
+    onSelect,
+  } = props;
   const selectionRing = useSelectionRing();
   const ring = isActive ? selectionRing : undefined;
   const borderColor = isActive ? 'transparent' : 'border';
   const nameColor = isActive ? 'fg' : 'fg.muted';
   const portraitColor = isActive ? 'arcane.fg' : 'fg.subtle';
+  const id = huntMember?.id ?? creature?.id ?? '';
+  const fainted = huntMember?.fainted ?? false;
+  const level = huntMember?.level ?? creature?.level ?? 1;
+  const speciesName = huntMember?.speciesName ?? readName(creature);
   // The mask of the cooldown belongs to the tabs that are not the active one:
   // the creature that is in the field is the one the swap already reached.
   const cooldown = isActive ? 0 : cooldownRemainingMs;
 
   function handleSelect(): void {
-    onSelect(creature.id);
+    if (fainted || id === '') {
+      return;
+    }
+    onSelect(id);
   }
   return (
-    <Pressable onPress={handleSelect}>
+    <Pressable disabled={fainted} onPress={handleSelect}>
       <CreatureTabBody
         borderColor={borderColor}
         cooldownRemainingMs={cooldown}
         cooldownTotalMs={cooldownTotalMs}
-        creature={creature}
+        fainted={fainted}
+        level={level}
         nameColor={nameColor}
         portraitColor={portraitColor}
         ring={ring}
+        speciesName={speciesName}
       />
     </Pressable>
   );
@@ -57,10 +76,12 @@ type CreatureTabBodyProps = {
   borderColor: string;
   cooldownRemainingMs: number;
   cooldownTotalMs: number;
-  creature: Creature;
+  fainted: boolean;
+  level: number;
   nameColor: string;
   portraitColor: string;
   ring: SystemStyleObject | undefined;
+  speciesName: string;
 };
 
 function CreatureTabBody(props: CreatureTabBodyProps): ReactElement {
@@ -68,19 +89,24 @@ function CreatureTabBody(props: CreatureTabBodyProps): ReactElement {
     borderColor,
     cooldownRemainingMs,
     cooldownTotalMs,
-    creature,
+    fainted,
+    level,
     nameColor,
     portraitColor,
     ring,
+    speciesName,
   } = props;
+  const background = fainted ? 'danger.subtle' : 'bg.panel';
+  const opacity = fainted ? 0.5 : 1;
   return (
     <Box
       _before={ring}
-      bg="bg.panel"
+      bg={background}
       borderColor={borderColor}
       borderRadius="sm"
       borderWidth="1px"
       boxShadow="raised"
+      opacity={opacity}
       paddingBlock="2"
       paddingInline="1"
       position="relative"
@@ -90,13 +116,9 @@ function CreatureTabBody(props: CreatureTabBodyProps): ReactElement {
       width={TAB_WIDTH}
     >
       <Box alignItems="center" display="flex" justifyContent="center">
-        <CreaturePortrait
-          borderColor={borderColor}
-          level={creature.level}
-          textColor={portraitColor}
-        />
+        <CreaturePortrait borderColor={borderColor} level={level} textColor={portraitColor} />
       </Box>
-      <CreatureTabName creature={creature} nameColor={nameColor} />
+      <CreatureTabName nameColor={nameColor} speciesName={speciesName} />
       <CooldownMask remainingMs={cooldownRemainingMs} totalMs={cooldownTotalMs} />
     </Box>
   );
@@ -140,22 +162,15 @@ function CooldownMask(props: CooldownMaskProps): ReactElement | null {
 }
 
 type CreatureTabNameProps = {
-  creature: Creature;
   nameColor: string;
+  speciesName: string;
 };
 
 /**
  * The name of the species, under the portrait.
- *
- * The tab leads with the species: it is what the player recognizes. The element
- * and the nickname of the creature are not here: the element is on the slot of
- * the ability in the skill bar, and the nickname of a creature that was just
- * captured is the name of its trainer.
  */
 function CreatureTabName(props: CreatureTabNameProps): ReactElement {
-  const { creature, nameColor } = props;
-  const identity = readCreatureIdentity(creature);
-  const speciesName = identity.speciesName ?? UNKNOWN_NAME;
+  const { nameColor, speciesName } = props;
   return (
     <Text
       color={nameColor}
@@ -170,4 +185,11 @@ function CreatureTabName(props: CreatureTabNameProps): ReactElement {
       {speciesName}
     </Text>
   );
+}
+
+function readName(creature: Creature | undefined): string {
+  if (creature === undefined) {
+    return UNKNOWN_NAME;
+  }
+  return readCreatureIdentity(creature).speciesName ?? UNKNOWN_NAME;
 }

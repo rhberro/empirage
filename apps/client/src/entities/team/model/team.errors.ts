@@ -3,6 +3,8 @@ import type { TeamErrorCode } from './team.types';
 const TEAM_ERROR_CODES: readonly string[] = [
   'creature_not_found',
   'invalid_team_command',
+  'last_creature',
+  'last_team_member',
   'team_full',
   'trainer_not_found',
   'unauthenticated',

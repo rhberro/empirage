@@ -32,4 +32,6 @@ export type TrainerErrorCode =
   | 'team_full'
   | 'invalid_team_command'
   | 'swap_cooldown'
+  | 'last_creature'
+  | 'last_team_member'
   | 'unauthenticated';

@@ -9,6 +9,8 @@ const ADD_LABEL = 'Adicionar ao time';
 const RELEASE_LABEL = 'Soltar criatura';
 
 type StorageCreatureCellProps = {
+  /** Whether the creature can be released: there is another one in the account. */
+  canRelease: boolean;
   creature: Creature;
   /** Whether the team is closed, which happens during the hunt. */
   isLocked: boolean;
@@ -31,7 +33,7 @@ type StorageCreatureCellProps = {
  * no time.
  */
 export function StorageCreatureCell(props: StorageCreatureCellProps): ReactElement {
-  const { creature, isLocked, isSelected, onAdd, onRelease, onSelect } = props;
+  const { canRelease, creature, isLocked, isSelected, onAdd, onRelease, onSelect } = props;
   const creatureId = creature.id;
 
   function handleAdd(): void {
@@ -59,7 +61,9 @@ export function StorageCreatureCell(props: StorageCreatureCellProps): ReactEleme
   );
   const actions = [
     { label: ADD_LABEL, onSelect: handleAdd },
-    { label: RELEASE_LABEL, onSelect: handleRelease, tone: 'danger' as const },
+    ...(canRelease
+      ? [{ label: RELEASE_LABEL, onSelect: handleRelease, tone: 'danger' as const }]
+      : []),
   ];
   return (
     <CreatureTrigger actions={actions} creature={creature} selected={isSelected}>

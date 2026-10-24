@@ -1,20 +1,28 @@
+import type { GameCommand } from '@creatures/contracts/game';
 import type { PlayerState } from '@creatures/contracts/player';
+import type { Tile } from '@creatures/contracts/world';
 import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 
 import { openGameChannel } from '~/pages/play/model/gameChannel';
 import type { GameChannelController } from '~/pages/play/model/gameChannel';
+import type { CommandResult, MoveResult } from '~/pages/play/model/gameProtocol';
 import type { PlayerStateLoadResult } from '~/pages/play/model/usePlayerState';
 
 const CONNECTION_WARNING = 'A conexão com o servidor está indisponível.';
 const TRAINERS_PATH = '/trainers';
+const CLOSED_CHANNEL_MESSAGE = 'A conexão com o servidor não está aberta.';
 
 export type GameChannel = {
   cancelExpectedClose: () => void;
   connectionLost: boolean;
   expectServerClose: () => void;
   onReconnect: () => void;
+  /** Sends a command of the player to the server. */
+  requestCommand: (command: GameCommand, reqId?: string) => Promise<CommandResult>;
+  /** Sends the move of the player to the server. */
+  requestMove: (target: Tile, reqId?: string) => Promise<MoveResult>;
 };
 
 export type GameChannelOptions = {
@@ -57,6 +65,8 @@ export function useGameChannel(options: GameChannelOptions): GameChannel {
     connectionLost,
     expectServerClose: buildExpectation(controllerRef, true),
     onReconnect: buildReconnect(controllerRef, refresh, navigate, onWarning),
+    requestCommand: buildCommandRequester(controllerRef),
+    requestMove: buildMoveRequester(controllerRef),
   };
 }
 
@@ -128,6 +138,36 @@ function buildReconnect(
     const controller = controllerRef.current;
     controller?.reconnectNow();
     refresh().then(handleRefreshResult(navigate, onWarning));
+  };
+}
+
+/**
+ * The move of the player, through the channel that is open.
+ */
+function buildMoveRequester(
+  controllerRef: RefObject<GameChannelController | null>,
+): (target: Tile, reqId?: string) => Promise<MoveResult> {
+  return function requestMove(target: Tile, reqId?: string): Promise<MoveResult> {
+    const controller = controllerRef.current;
+    if (controller === null) {
+      return Promise.reject(new Error(CLOSED_CHANNEL_MESSAGE));
+    }
+    return controller.requestMove(target, reqId);
+  };
+}
+
+/**
+ * A command of the player, through the channel that is open.
+ */
+function buildCommandRequester(
+  controllerRef: RefObject<GameChannelController | null>,
+): (command: GameCommand, reqId?: string) => Promise<CommandResult> {
+  return function requestCommand(command: GameCommand, reqId?: string): Promise<CommandResult> {
+    const controller = controllerRef.current;
+    if (controller === null) {
+      return Promise.reject(new Error(CLOSED_CHANNEL_MESSAGE));
+    }
+    return controller.requestCommand(command, reqId);
   };
 }
 

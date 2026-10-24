@@ -12,6 +12,8 @@ export type TeamErrorCode =
   | 'creature_not_found'
   | 'invalid_team_command'
   | 'team_full'
+  | 'last_creature'
+  | 'last_team_member'
   | 'trainer_not_found'
   | 'unauthenticated'
   | 'unknown';

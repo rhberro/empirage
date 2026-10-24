@@ -9,7 +9,7 @@
  * produz diff quando a arte muda.
  *
  * O encoder PNG mora aqui de proposito: canvas/sharp colocariam um build
- * nativo na toolchain do cliente por duas imagens pequenas. RGBA de 8 bits
+ * nativo na toolchain do cliente por poucas imagens pequenas. RGBA de 8 bits
  * mais o stream IDAT do `node:zlib` e tudo que esses sprites precisam.
  *
  * Run: `bun run scripts/gen-assets.ts` em `apps/client`.
@@ -119,6 +119,32 @@ const SHOE: Rgba = [58, 46, 42, 255];
 const BACKPACK: Rgba = [184, 140, 76, 255];
 const BACKPACK_LIGHT: Rgba = [216, 178, 112, 255];
 const STRAP: Rgba = [70, 46, 34, 255];
+
+const EMBER_CORE: Rgba = [255, 224, 96, 255];
+const EMBER_BODY: Rgba = [244, 128, 40, 255];
+const EMBER_DARK: Rgba = [188, 60, 40, 255];
+const EMBER_GLOW: Rgba = [255, 248, 190, 255];
+
+const DROP_BODY: Rgba = [86, 178, 226, 255];
+const DROP_DARK: Rgba = [44, 118, 188, 255];
+const DROP_LIGHT: Rgba = [178, 228, 255, 255];
+const DROP_GLOW: Rgba = [226, 248, 255, 255];
+
+const SPROUT_BODY: Rgba = [104, 178, 74, 255];
+const SPROUT_DARK: Rgba = [58, 122, 52, 255];
+const SPROUT_LEAF: Rgba = [140, 208, 92, 255];
+const SPROUT_EARTH: Rgba = [156, 108, 60, 255];
+const SPROUT_LIGHT: Rgba = [176, 226, 124, 255];
+
+const ASH_BODY: Rgba = [96, 96, 104, 255];
+const ASH_DARK: Rgba = [58, 56, 64, 255];
+const ASH_LIGHT: Rgba = [136, 134, 142, 255];
+const ASH_EMBER: Rgba = [240, 116, 40, 255];
+
+const ROCK_BODY: Rgba = [170, 162, 148, 255];
+const ROCK_DARK: Rgba = [120, 112, 102, 255];
+const ROCK_LIGHT: Rgba = [208, 200, 186, 255];
+const ROCK_CRACK: Rgba = [86, 82, 76, 255];
 
 const FLOWER_PETALS: readonly Rgba[] = [FLOWER_RED, FLOWER_WHITE, FLOWER_YELLOW, FLOWER_PURPLE];
 
@@ -823,6 +849,377 @@ export function generateTrainer(): GeneratedAsset {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Criaturas                                                                  */
+/* -------------------------------------------------------------------------- */
+
+type CreatureSpecies = 'brasa' | 'gota' | 'broto' | 'cinzarra' | 'pedrino';
+
+type CreaturePose = 'down' | 'up' | 'right' | 'left';
+
+const CREATURE_SIZE = 16;
+const CREATURE_IDLE_FRAMES = 2;
+const CREATURE_WALK_FRAMES = 4;
+const CREATURE_ATTACK_FRAMES = 2;
+const CREATURE_FRAMES_PER_POSE =
+  CREATURE_IDLE_FRAMES + CREATURE_WALK_FRAMES + CREATURE_ATTACK_FRAMES;
+const CREATURE_COLUMNS = CREATURE_FRAMES_PER_POSE;
+
+const CREATURE_POSES: readonly CreaturePose[] = ['down', 'up', 'right', 'left'];
+
+const CREATURE_SPECIES: readonly CreatureSpecies[] = [
+  'brasa',
+  'gota',
+  'broto',
+  'cinzarra',
+  'pedrino',
+];
+
+// Passada alternada: contato, suspensão, contato, suspensão.
+const CREATURE_WALK_STRIDE: readonly number[] = [-1, 0, 1, 0];
+
+type CreatureMotion = {
+  attack: number;
+  bob: number;
+  glow: boolean;
+  stride: number;
+};
+
+function resolveCreatureMotion(frame: number): CreatureMotion {
+  if (frame < CREATURE_IDLE_FRAMES) {
+    return { attack: -1, bob: frame, glow: false, stride: 0 };
+  }
+  if (frame < CREATURE_IDLE_FRAMES + CREATURE_WALK_FRAMES) {
+    const phase = frame - CREATURE_IDLE_FRAMES;
+    return { attack: -1, bob: 0, glow: false, stride: CREATURE_WALK_STRIDE[phase] };
+  }
+  const phase = frame - CREATURE_IDLE_FRAMES - CREATURE_WALK_FRAMES;
+  return { attack: phase, bob: 0, glow: phase === 1, stride: 0 };
+}
+
+type CreaturePainter = (sprite: Canvas, pose: CreaturePose, motion: CreatureMotion) => void;
+
+function drawBrasaWings(sprite: Canvas, profile: boolean, oy: number, stride: number): void {
+  if (profile) {
+    sprite.fill(1, 6 - oy + (stride === -1 ? 1 : 0), 2, 1, EMBER_DARK);
+    sprite.fill(1, 7 - oy + (stride === -1 ? 1 : 0), 2, 1, EMBER_BODY);
+    return;
+  }
+  sprite.fill(1, 7 - oy + (stride === -1 ? 1 : 0), 2, 1, EMBER_DARK);
+  sprite.fill(1, 8 - oy + (stride === -1 ? 1 : 0), 2, 1, EMBER_BODY);
+  sprite.fill(12, 7 - oy + (stride === 1 ? 1 : 0), 2, 1, EMBER_DARK);
+  sprite.fill(12, 8 - oy + (stride === 1 ? 1 : 0), 2, 1, EMBER_BODY);
+}
+
+function drawBrasa(sprite: Canvas, pose: CreaturePose, motion: CreatureMotion): void {
+  const back = pose === 'up';
+  const profile = pose === 'right';
+  const oy =
+    (motion.stride === 0 ? motion.bob : Math.abs(motion.stride)) - (motion.attack === 0 ? 1 : 0);
+
+  if (profile) {
+    paint(sprite, 6, 2 - oy, EMBER_CORE);
+    sprite.fill(5, 3 - oy, 3, 1, EMBER_CORE);
+    sprite.fill(4, 4 - oy, 3, 1, EMBER_BODY);
+    paint(sprite, 4, 4 - oy, EMBER_DARK);
+  } else {
+    paint(sprite, 8, 2 - oy, EMBER_CORE);
+    sprite.fill(7, 3 - oy, 3, 1, EMBER_CORE);
+    sprite.fill(6, 4 - oy, 5, 1, EMBER_BODY);
+    paint(sprite, 6, 4 - oy, EMBER_DARK);
+    paint(sprite, 10, 4 - oy, EMBER_DARK);
+  }
+
+  sprite.fill(5, 5 - oy, 7, 1, EMBER_BODY);
+  sprite.fill(4, 6 - oy, 9, 1, EMBER_BODY);
+  sprite.fill(4, 7 - oy, 9, 1, EMBER_BODY);
+  sprite.fill(4, 8 - oy, 9, 1, EMBER_BODY);
+  sprite.fill(4, 9 - oy, 9, 1, EMBER_BODY);
+  sprite.fill(5, 10 - oy, 7, 1, EMBER_BODY);
+  sprite.fill(6, 11 - oy, 5, 1, EMBER_BODY);
+  sprite.fill(6, 10 - oy, 5, 1, EMBER_DARK);
+  sprite.fill(6, 6 - oy, 5, 3, EMBER_CORE);
+
+  drawBrasaWings(sprite, profile, oy, motion.stride);
+
+  if (!back) {
+    if (profile) {
+      paint(sprite, 11, 7 - oy, OUTLINE);
+      paint(sprite, 12, 8 - oy, EMBER_BODY);
+    } else {
+      paint(sprite, 6, 8 - oy, OUTLINE);
+      paint(sprite, 9, 8 - oy, OUTLINE);
+    }
+  }
+
+  if (motion.glow) {
+    sprite.fill(2, 6 - oy, 2, 1, EMBER_GLOW);
+    sprite.fill(12, 6 - oy, 2, 1, EMBER_GLOW);
+    paint(sprite, 8, 2 - oy, EMBER_GLOW);
+  }
+}
+
+function drawGota(sprite: Canvas, pose: CreaturePose, motion: CreatureMotion): void {
+  const back = pose === 'up';
+  const profile = pose === 'right';
+  const oy =
+    (motion.stride === 0 ? motion.bob : Math.abs(motion.stride)) - (motion.attack === 0 ? 1 : 0);
+
+  sprite.fill(6, 4 - oy, 5, 1, DROP_BODY);
+  sprite.fill(5, 5 - oy, 7, 1, DROP_BODY);
+  sprite.fill(4, 6 - oy, 9, 1, DROP_BODY);
+  sprite.fill(4, 7 - oy, 9, 1, DROP_BODY);
+  sprite.fill(4, 8 - oy, 9, 1, DROP_BODY);
+  sprite.fill(5, 9 - oy, 7, 1, DROP_BODY);
+  sprite.fill(6, 10 - oy, 5, 1, DROP_BODY);
+  sprite.fill(7, 11 - oy, 3, 1, DROP_BODY);
+  sprite.fill(8, 12 - oy, 1, 1, DROP_DARK);
+
+  sprite.fill(5, 5 - oy, 2, 2, DROP_LIGHT);
+  paint(sprite, 6, 6 - oy, DROP_GLOW);
+  sprite.fill(5, 9 - oy, 6, 1, DROP_DARK);
+
+  const step = motion.stride;
+  if (profile) {
+    sprite.fill(2, 11 - oy + (step === 1 ? 0 : 1), 3, 2, DROP_DARK);
+  } else {
+    sprite.fill(3, 10 - oy + (step === -1 ? 0 : 1), 2, 2, DROP_DARK);
+    sprite.fill(11, 10 - oy + (step === 1 ? 0 : 1), 2, 2, DROP_DARK);
+  }
+
+  if (!back) {
+    if (profile) {
+      paint(sprite, 10, 7 - oy, OUTLINE);
+    } else {
+      paint(sprite, 6, 7 - oy, OUTLINE);
+      paint(sprite, 9, 7 - oy, OUTLINE);
+    }
+  }
+
+  if (motion.glow) {
+    paint(sprite, 8, 4 - oy, DROP_GLOW);
+    sprite.fill(4, 6 - oy, 2, 1, DROP_GLOW);
+    sprite.fill(10, 6 - oy, 2, 1, DROP_GLOW);
+  }
+}
+
+function drawBroto(sprite: Canvas, pose: CreaturePose, motion: CreatureMotion): void {
+  const back = pose === 'up';
+  const profile = pose === 'right';
+  const oy = motion.bob - (motion.attack === 0 ? 1 : 0);
+
+  if (profile) {
+    sprite.fill(7, 3 - oy, 3, 1, SPROUT_LEAF);
+    paint(sprite, 6, 3 - oy, SPROUT_LEAF);
+  } else {
+    sprite.fill(7, 3 - oy, 3, 2, SPROUT_LEAF);
+    paint(sprite, 6, 4 - oy, SPROUT_LEAF);
+    paint(sprite, 10, 4 - oy, SPROUT_LEAF);
+  }
+
+  sprite.fill(6, 5 - oy, 5, 1, SPROUT_BODY);
+  sprite.fill(5, 6 - oy, 7, 1, SPROUT_BODY);
+  sprite.fill(5, 7 - oy, 7, 1, SPROUT_BODY);
+  sprite.fill(5, 8 - oy, 7, 1, SPROUT_BODY);
+  sprite.fill(6, 9 - oy, 5, 1, SPROUT_BODY);
+  sprite.fill(6, 10 - oy, 5, 1, SPROUT_BODY);
+  sprite.fill(6, 11 - oy, 5, 1, SPROUT_EARTH);
+  sprite.fill(7, 12 - oy, 3, 1, SPROUT_EARTH);
+
+  sprite.fill(5, 6 - oy, 2, 1, SPROUT_DARK);
+  sprite.fill(6, 7 - oy, 2, 1, SPROUT_LIGHT);
+
+  const step = motion.stride;
+  if (profile) {
+    sprite.fill(6, 13 + (step === 1 ? 0 : 1), 3, 1, SPROUT_EARTH);
+  } else {
+    sprite.fill(6, 13 + (step === -1 ? 0 : 1), 2, 1, SPROUT_EARTH);
+    sprite.fill(9, 13 + (step === 1 ? 0 : 1), 2, 1, SPROUT_EARTH);
+  }
+
+  if (!back) {
+    if (profile) {
+      paint(sprite, 10, 7 - oy, OUTLINE);
+    } else {
+      paint(sprite, 6, 7 - oy, OUTLINE);
+      paint(sprite, 9, 7 - oy, OUTLINE);
+    }
+  }
+
+  if (motion.glow) {
+    sprite.fill(6, 3 - oy, 5, 1, SPROUT_LIGHT);
+  }
+}
+
+function drawCinzarraLegs(sprite: Canvas, profile: boolean, step: number): void {
+  if (profile) {
+    sprite.fill(3, 12 + (step === -1 ? 0 : 1), 2, 2, ASH_DARK);
+    sprite.fill(11, 12 + (step === 1 ? 0 : 1), 2, 2, ASH_DARK);
+    return;
+  }
+  sprite.fill(4, 12 + (step === -1 ? 0 : 1), 2, 2, ASH_DARK);
+  sprite.fill(10, 12 + (step === 1 ? 0 : 1), 2, 2, ASH_DARK);
+  sprite.fill(6, 13, 1, 1, ASH_DARK);
+  sprite.fill(9, 13, 1, 1, ASH_DARK);
+}
+
+function drawCinzarra(sprite: Canvas, pose: CreaturePose, motion: CreatureMotion): void {
+  const back = pose === 'up';
+  const profile = pose === 'right';
+  const oy = motion.bob - (motion.attack === 0 ? 1 : 0);
+
+  if (profile) {
+    sprite.fill(3, 5 - oy, 10, 1, ASH_BODY);
+    sprite.fill(2, 6 - oy, 12, 1, ASH_BODY);
+    sprite.fill(2, 7 - oy, 12, 1, ASH_BODY);
+    sprite.fill(2, 8 - oy, 12, 1, ASH_BODY);
+    sprite.fill(3, 9 - oy, 10, 1, ASH_BODY);
+    sprite.fill(4, 10 - oy, 8, 1, ASH_BODY);
+    sprite.fill(5, 11 - oy, 6, 1, ASH_BODY);
+    sprite.fill(3, 6 - oy, 3, 1, ASH_DARK);
+
+    drawCinzarraLegs(sprite, profile, motion.stride);
+
+    if (!back) {
+      paint(sprite, 12, 6 - oy, OUTLINE);
+    }
+  } else {
+    sprite.fill(5, 4 - oy, 7, 1, ASH_BODY);
+    sprite.fill(4, 5 - oy, 9, 1, ASH_BODY);
+    sprite.fill(4, 6 - oy, 9, 1, ASH_BODY);
+    sprite.fill(4, 7 - oy, 9, 1, ASH_BODY);
+    sprite.fill(4, 8 - oy, 9, 1, ASH_BODY);
+    sprite.fill(5, 9 - oy, 7, 1, ASH_BODY);
+    sprite.fill(6, 10 - oy, 5, 1, ASH_BODY);
+    sprite.fill(7, 11 - oy, 3, 1, ASH_BODY);
+
+    sprite.fill(4, 5 - oy, 2, 1, ASH_DARK);
+    paint(sprite, 6, 6 - oy, ASH_LIGHT);
+
+    drawCinzarraLegs(sprite, profile, motion.stride);
+
+    if (!back) {
+      paint(sprite, 5, 6 - oy, OUTLINE);
+      paint(sprite, 10, 6 - oy, OUTLINE);
+    }
+  }
+
+  if (motion.glow) {
+    paint(sprite, 5, 5 - oy, ASH_EMBER);
+    paint(sprite, 10, 5 - oy, ASH_EMBER);
+    sprite.fill(2, 6 - oy, 2, 1, ASH_EMBER);
+  }
+}
+
+function drawPedrino(sprite: Canvas, pose: CreaturePose, motion: CreatureMotion): void {
+  const back = pose === 'up';
+  const profile = pose === 'right';
+  const oy = motion.bob - (motion.attack === 0 ? 1 : 0);
+
+  sprite.fill(4, 5 - oy, 9, 1, ROCK_BODY);
+  sprite.fill(3, 6 - oy, 11, 1, ROCK_BODY);
+  sprite.fill(3, 7 - oy, 11, 1, ROCK_BODY);
+  sprite.fill(3, 8 - oy, 11, 1, ROCK_BODY);
+  sprite.fill(3, 9 - oy, 11, 1, ROCK_BODY);
+  sprite.fill(4, 10 - oy, 9, 1, ROCK_BODY);
+  sprite.fill(4, 11 - oy, 9, 1, ROCK_BODY);
+  sprite.fill(5, 12 - oy, 7, 1, ROCK_BODY);
+
+  sprite.fill(3, 6 - oy, 3, 1, ROCK_LIGHT);
+  sprite.fill(5, 7 - oy, 2, 2, ROCK_DARK);
+  sprite.fill(9, 8 - oy, 2, 2, ROCK_CRACK);
+
+  const step = motion.stride;
+  if (profile) {
+    sprite.fill(3, 13 + (step === 1 ? 0 : 1), 4, 2, ROCK_DARK);
+    sprite.fill(8, 13 + (step === -1 ? 0 : 1), 4, 2, ROCK_DARK);
+  } else {
+    sprite.fill(3, 13 + (step === -1 ? 0 : 1), 3, 2, ROCK_DARK);
+    sprite.fill(10, 13 + (step === 1 ? 0 : 1), 3, 2, ROCK_DARK);
+  }
+
+  if (!back) {
+    if (profile) {
+      paint(sprite, 10, 7 - oy, OUTLINE);
+    } else {
+      paint(sprite, 6, 7 - oy, OUTLINE);
+      paint(sprite, 9, 7 - oy, OUTLINE);
+    }
+  }
+
+  if (motion.glow) {
+    paint(sprite, 7, 6 - oy, ROCK_LIGHT);
+    paint(sprite, 8, 6 - oy, ROCK_LIGHT);
+  }
+}
+
+const CREATURE_PAINTERS: Record<CreatureSpecies, CreaturePainter> = {
+  brasa: drawBrasa,
+  broto: drawBroto,
+  cinzarra: drawCinzarra,
+  gota: drawGota,
+  pedrino: drawPedrino,
+};
+
+function creatureFrameKey(species: CreatureSpecies, pose: CreaturePose, frame: number): string {
+  return `creature/${species}/${pose}/${frame}`;
+}
+
+function createCreatureSprite(species: CreatureSpecies, pose: CreaturePose, frame: number): Canvas {
+  if (pose === 'left') {
+    return createCreatureSprite(species, 'right', frame).mirror();
+  }
+  const sprite = createCanvas(CREATURE_SIZE, CREATURE_SIZE);
+  CREATURE_PAINTERS[species](sprite, pose, resolveCreatureMotion(frame));
+  sprite.outline(OUTLINE);
+  return sprite;
+}
+
+export function generateCreatures(): GeneratedAsset {
+  const rows = CREATURE_SPECIES.length * CREATURE_POSES.length;
+  const sheet = createCanvas(CREATURE_COLUMNS * CREATURE_SIZE, rows * CREATURE_SIZE);
+  const frames: Record<string, AtlasFrame> = {};
+  const animations: Record<string, string[]> = {};
+
+  for (let speciesIndex = 0; speciesIndex < CREATURE_SPECIES.length; speciesIndex += 1) {
+    const species = CREATURE_SPECIES[speciesIndex];
+    for (let poseIndex = 0; poseIndex < CREATURE_POSES.length; poseIndex += 1) {
+      const pose = CREATURE_POSES[poseIndex];
+      const idleKeys: string[] = [];
+      const walkKeys: string[] = [];
+      const attackKeys: string[] = [];
+      for (let frame = 0; frame < CREATURE_FRAMES_PER_POSE; frame += 1) {
+        const column = frame;
+        const x = column * CREATURE_SIZE;
+        const y = (speciesIndex * CREATURE_POSES.length + poseIndex) * CREATURE_SIZE;
+        const sprite = createCreatureSprite(species, pose, frame);
+        sheet.blit(sprite, x, y);
+        const key = creatureFrameKey(species, pose, frame);
+        frames[key] = atlasFrame(x, y, CREATURE_SIZE, CREATURE_SIZE);
+        if (frame < CREATURE_IDLE_FRAMES) {
+          idleKeys.push(key);
+        } else if (frame < CREATURE_IDLE_FRAMES + CREATURE_WALK_FRAMES) {
+          walkKeys.push(key);
+        } else {
+          attackKeys.push(key);
+        }
+      }
+      animations[`creature/${species}/${pose}/idle`] = idleKeys;
+      animations[`creature/${species}/${pose}/walk`] = walkKeys;
+      animations[`creature/${species}/${pose}/attack`] = attackKeys;
+    }
+  }
+
+  return {
+    atlas: {
+      animations,
+      frames,
+      meta: atlasMeta('creatures.png', sheet.width, sheet.height),
+    },
+    png: encodePng(sheet),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
 /* Main                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -837,10 +1234,13 @@ function main(): void {
   mkdirSync(OUTPUT_DIRECTORY, { recursive: true });
   const tiles = generateTiles();
   const trainer = generateTrainer();
+  const creatures = generateCreatures();
   writeAsset('tiles.json', tiles);
   writeAsset('trainer.json', trainer);
+  writeAsset('creatures.json', creatures);
   process.stdout.write(
-    `world assets: tiles ${tiles.png.length} bytes, trainer ${trainer.png.length} bytes\n`,
+    `world assets: tiles ${tiles.png.length} bytes, trainer ${trainer.png.length} bytes, ` +
+      `creatures ${creatures.png.length} bytes\n`,
   );
 }
 

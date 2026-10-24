@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 
+import { selectHuntPhase, useHuntState } from '~/entities/hunt';
 import { BackpackModal } from '~/features/backpack';
 import { StorageModal } from '~/features/storage';
 import { StoreModal } from '~/features/store';
@@ -17,10 +18,16 @@ type GameModalsProps = {
  */
 export function GameModals(props: GameModalsProps): ReactElement {
   const { modals } = props;
+  const phase = useHuntState(selectHuntPhase);
+  const isHunting = phase === 'entering' || phase === 'active' || phase === 'leaving';
   return (
     <>
       <BackpackModal isOpen={modals.isBackpackOpen} onClose={modals.onCloseBackpack} />
-      <StorageModal isOpen={modals.isStorageOpen} onClose={modals.onCloseStorage} />
+      <StorageModal
+        isHunting={isHunting}
+        isOpen={modals.isStorageOpen}
+        onClose={modals.onCloseStorage}
+      />
       <StoreModal isOpen={modals.isStoreOpen} onClose={modals.onCloseStore} />
     </>
   );

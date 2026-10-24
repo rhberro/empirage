@@ -79,9 +79,9 @@ O estado do jogo é lido e escrito no Postgres do Supabase, pelo mesmo SDK.
 
 O que está persistido é a **conta e o treinador**: espécies, habilidades, itens, treinadores, criaturas, o inventário do treinador, a carga da barra de habilidades (os slots de habilidade de cada criatura e os slots de consumível e de dispositivo do treinador), a vida restante das criaturas e o catálogo de áreas de caça. A criação de treinador é uma RPC transacional, que grava o treinador e a criatura inicial na mesma transação — o motivo está em [API de Treinadores](TRAINERS.md#a-rpc-de-criação). As operações de time também são transações no Postgres, porque trocar a ordem do time toca em mais de uma linha de uma vez — o motivo está em [API de Treinadores](TRAINERS.md#as-funções-de-time).
 
-> **O estado de jogo ainda não existe.** Não há ciclo de avanço de tempo, nem estado de jogo em memória para persistir. A pergunta "como o estado em memória é persistido, e com que frequência" tem a seguinte resposta honesta: hoje não há estado de jogo em memória para persistir, e o que o Postgres guarda é a conta e o treinador, escritos em tempo real, a cada requisição que altera algo. A resposta definitiva depende do desenho do ciclo de simulação, que ainda não foi feito.
+> **O estado de jogo da caçada existe em memória, com checkpoint no banco.** O runtime mantém um `SimState` por treinador e grava `simulation_state` a cada 2 s e no close; o boot retoma as sessões abertas pelo sweep. Fora da caçada, o estado do jogador continua sendo lido do banco e empurrado pelo canal.
 >
-> O que existe é a **fundação** da caçada: uma função de avanço pura e determinística, e a sessão da caçada com o cursor que permite retomá-la. Não há rota que a use, e nada a executa. Está em [A Caçada](HUNT.md).
+> O motor da caçada é determinístico e event-driven; o detalhe está em [A Caçada](HUNT.md).
 
 Uma conta pode ter um treinador conectado por vez. Quando uma segunda conexão chega para o mesmo jogador, a anterior é derrubada.
 
@@ -124,27 +124,25 @@ O estado de um jogador fica no processo que atendeu a conexão dele.
 
 > Isso é o que torna a regra da conexão única simples de cumprir: o servidor mantém o registro de quem está conectado, e uma nova conexão para o mesmo jogador encontra e fecha a anterior. A origem dessa regra está na [tela do jogo](../../game/PLAY_SCREEN.md).
 
-> Isso vai mudar: a caçada sobrevive à conexão, e o estado do jogador vai virar um estado em memória com checkpoint no banco. É a pendência registrada abaixo.
+> A caçada já sobrevive à conexão: o runtime mantém o estado em memória com checkpoint no banco e o runner continua avançando sem canal aberto. Fora dela, o estado do jogador continua no processo e no banco.
 
 O servidor distingue o que é comando, que vem do cliente, do que é atualização de estado, que ele mesmo produz.
 
 > Comandos nunca alteram o estado diretamente: são validados e aplicados pelas mesmas regras que avançam a simulação. É isso que garante que o cliente não consiga sair do que as [regras do jogo](../../game/GAME.md) permitem.
 
-**O que o canal ainda não faz.** Não existe simulação de jogo: o canal abre a sessão do treinador, empurra o retrato do estado depois de cada comando, e nada mais. Os comandos de jogo — as ações que só existem dentro de uma caçada — e o ciclo de simulação são o marco do gameplay, e ainda não foram escritos. O envelope do protocolo já os comporta, e o servidor recusa um comando de caçada com `invalid_command`.
+**O que o canal faz hoje.** O canal abre a sessão do treinador, empurra o retrato do estado, aplica o `move` e encaminha `finalize_hunt` e `swap_creature` ao manager da caçada. A caçada tem o próprio ramo de mensagens e o próprio runtime; `use_ability` e `use_consumable` continuam recusados, porque a rotação e os consumíveis pertencem à simulação. O detalhe está em [A Caçada](HUNT.md#websocket).
 
 ## Simulação
 
 A simulação é executada por um ciclo do servidor, que avança o estado do jogo com o passar do tempo.
 
-> **A simulação ainda não existe.** Esta seção descreve o desenho que a stack pressupõe; o ciclo de simulação é o marco do gameplay e ainda não foi escrito. Hoje o servidor persiste a conta e o treinador no Postgres, e o estado que entrega ao cliente é lido do banco a cada requisição.
->
-> A **fundação** da caçada já está escrita: a função de avanço é pura e determinística, e a sessão da caçada guarda o cursor que permite retomá-la. O que falta é o ciclo que a chama e a rota que a inicia. Está em [A Caçada](HUNT.md).
+> **A simulação da caçada existe.** Cada runtime agenda o próximo instante com `nextInstant` e publica o delta ali; o `startHuntRunner` roda a cada 250 ms como watchdog e checkpoint. O motor `advanceUntil` avança cada caçada até o presente. O estado de cada caçada vive na memória do processo e tem checkpoint em `hunt_sessions.simulation_state`. O detalhe está em [A Caçada](HUNT.md).
 
 > O servidor é a única fonte de verdade porque é o único que sabe o tempo do jogo. O cliente não tem relógio próprio para nada que afete o estado, e nenhum temporizador do cliente tem autoridade sobre nada.
 
 Quando o jogador fecha o jogo, a simulação do treinador continua, se a atividade permitir.
 
-> Essa é a razão do servidor manter o estado em memória e persistir no banco: uma atividade que pode continuar sem o jogador precisa continuar rodando sem conexão nenhuma. O que isso exige do ciclo de simulação ainda não foi definido.
+> Essa é a razão do servidor manter o estado em memória e persistir no banco: uma atividade que pode continuar sem o jogador precisa continuar rodando sem conexão nenhuma. Na caçada, o runner e o checkpoint fazem isso; no boot, o sweep retoma as sessões abertas.
 
 Os tipos das mensagens trocadas entre cliente e servidor são compartilhados pelos dois lados, em `apps/shared/contracts/game.ts`.
 
@@ -164,12 +162,12 @@ O que já roda contra o Postgres de verdade é a suíte de integração, em `app
 
 Os pontos abaixo dizem respeito à stack e ainda estão em aberto:
 
-- **O estado de jogo não existe.** O que o servidor persiste hoje é a conta e o treinador, no Postgres, em tempo real. O que o ciclo de simulação vai persistir — e com que frequência — depende do desenho do ciclo, que ainda não foi feito. A **fundação** da caçada — a função de avanço e a sessão com o cursor — já existe e está em [A Caçada](HUNT.md).
-- **O estado do jogador é reconstruído do banco a cada push.** A caçada vai sobreviver à conexão, e o estado do jogador vai virar um estado **em memória com checkpoint no banco**, retomado no boot do servidor. É a Fase 2 do [plano da camada de tempo real](../../../plans/PLAN.md). Hoje o `rev`, o registro das conexões e a sessão do treinador são mapas na memória do processo: um restart zera o contador de revisões, e é por isso que o `epoch` existe.
+- **O estado do jogador fora da caçada é reconstruído do banco a cada push.** A caçada já tem estado em memória com checkpoint no banco; o estado do jogador na cidade continua lido do banco. Hoje o `rev`, o registro das conexões e a sessão do treinador são mapas na memória do processo: um restart zera o contador de revisões, e é por isso que o `epoch` existe.
+- **O runtime da caçada é de um processo só.** O `Map<trainerId, HuntRuntime>` não é compartilhado entre instâncias; como o estado do jogador, ele depende da decisão de instância única.
 - **O rate limit é por processo.** O contador das tentativas falhas mora na memória do processo, como a sessão do treinador e o registro das conexões. Com mais de uma instância, cada uma conta só as tentativas que ela viu, e o limite enfraquece na proporção do número de instâncias. A regra está em [Rate Limit](TRAINERS.md#rate-limit).
 
 Decisões que afetam a estrutura do servidor e ainda não foram tomadas:
 
 - Como o servidor se comporta com mais de uma instância, já que o estado de um jogador fica no processo dele. Hoje o registro do treinador ativo, o registro das conexões e o contador do rate limit são mapas na memória do processo: não sobrevivem a um reinício e não são compartilhados. Enquanto a decisão não sai, o servidor sobe em instância única, como manda o [runbook](../DEPLOY.md#o-que-ainda-não-está-pronto-para-o-público).
 - Como a cidade agrupa os jogadores em instâncias, e como a presença de outros jogadores aparece para quem está em outro processo.
-- Qual a frequência do ciclo de simulação.
+- Qual a frequência de um ciclo de simulação para atividades além da caçada; o da caçada é o scheduler por runtime, com watchdog de 250 ms.

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Logger } from 'pino';
 
+import type { HuntManager } from '~/hunt/runtime/manager';
 import type { AttemptLimiter } from '~/ratelimit/attemptLimiter';
 import type { PublicLimiter } from '~/ratelimit/publicLimiter';
 import type { TrainerSessionStore } from '~/session/trainerSession';
@@ -17,6 +18,8 @@ export type ServerDependencies = {
   claims: ClaimsReader;
   /** The open channels of the accounts. */
   connections: ConnectionRegistry;
+  /** The hunts of this process, one runtime per trainer. */
+  hunts: HuntManager;
   /** The results of the commands that cost money, per account. */
   idempotency: IdempotencyStore;
   /** The failed attempts of the accounts and of the addresses, per process. */

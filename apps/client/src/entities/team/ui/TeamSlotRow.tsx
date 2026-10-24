@@ -17,6 +17,8 @@ const REMOVE_LABEL = 'Remover do time';
 export type TeamSlotRowProps = {
   /** The creature in the field, the one the row highlights. */
   activeCreatureId: string | null;
+  /** Whether a creature can leave the team. */
+  canRemove: boolean;
   /** Whether the team is closed, which happens during the hunt. */
   isLocked: boolean;
   /** The command that takes a creature out of the team. */
@@ -40,8 +42,16 @@ export type TeamSlotRowProps = {
  * level and the attributes live in the popup.
  */
 export function TeamSlotRow(props: TeamSlotRowProps): ReactElement {
-  const { activeCreatureId, isLocked, onRemove, onSelect, selectedId, slots } = props;
-  const cells = buildCells(activeCreatureId, isLocked, onRemove, onSelect, selectedId, slots);
+  const { activeCreatureId, canRemove, isLocked, onRemove, onSelect, selectedId, slots } = props;
+  const cells = buildCells(
+    activeCreatureId,
+    canRemove,
+    isLocked,
+    onRemove,
+    onSelect,
+    selectedId,
+    slots,
+  );
   return (
     <Box display="flex" gap="1" height={ROW_HEIGHT}>
       {cells}
@@ -51,6 +61,7 @@ export function TeamSlotRow(props: TeamSlotRowProps): ReactElement {
 
 function buildCells(
   activeCreatureId: string | null,
+  canRemove: boolean,
   isLocked: boolean,
   onRemove: (creatureId: string) => void,
   onSelect: ((creatureId: string) => void) | undefined,
@@ -67,6 +78,7 @@ function buildCells(
     cells.push(
       <TeamSlotCell
         activeCreatureId={activeCreatureId}
+        canRemove={canRemove}
         creature={creature}
         isLocked={isLocked}
         key={key}
@@ -81,6 +93,7 @@ function buildCells(
 
 type TeamSlotCellProps = {
   activeCreatureId: string | null;
+  canRemove: boolean;
   creature: Creature | null;
   isLocked: boolean;
   onRemove(creatureId: string): void;
@@ -89,7 +102,7 @@ type TeamSlotCellProps = {
 };
 
 function TeamSlotCell(props: TeamSlotCellProps): ReactElement {
-  const { activeCreatureId, creature, isLocked, onRemove, onSelect, selectedId } = props;
+  const { activeCreatureId, canRemove, creature, isLocked, onRemove, onSelect, selectedId } = props;
   if (creature === null) {
     return (
       <Box width={SLOT_SIZE}>
@@ -100,6 +113,7 @@ function TeamSlotCell(props: TeamSlotCellProps): ReactElement {
   return (
     <CreatureSlot
       activeCreatureId={activeCreatureId}
+      canRemove={canRemove}
       creature={creature}
       isLocked={isLocked}
       onRemove={onRemove}
@@ -111,6 +125,7 @@ function TeamSlotCell(props: TeamSlotCellProps): ReactElement {
 
 type CreatureSlotProps = {
   activeCreatureId: string | null;
+  canRemove: boolean;
   creature: Creature;
   isLocked: boolean;
   onRemove(creatureId: string): void;
@@ -127,7 +142,7 @@ type CreatureSlotProps = {
  * separado pelo divider.
  */
 function CreatureSlot(props: CreatureSlotProps): ReactElement {
-  const { activeCreatureId, creature, isLocked, onRemove, onSelect, selectedId } = props;
+  const { activeCreatureId, canRemove, creature, isLocked, onRemove, onSelect, selectedId } = props;
   const creatureId = creature.id;
   const isActive = activeCreatureId === creatureId;
   const isSelected = selectedId === creatureId;
@@ -155,7 +170,7 @@ function CreatureSlot(props: CreatureSlotProps): ReactElement {
     </NativeButton>
   );
   const status = isActive ? ACTIVE_STATUS : null;
-  const actions = isLocked ? [] : [{ label: REMOVE_LABEL, onSelect: handleRemove }];
+  const actions = isLocked || !canRemove ? [] : [{ label: REMOVE_LABEL, onSelect: handleRemove }];
   return (
     <CreatureTrigger actions={actions} creature={creature} selected={isSelected} status={status}>
       {trigger}

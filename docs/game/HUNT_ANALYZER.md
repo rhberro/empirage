@@ -57,22 +57,26 @@ A análise tem três partes: as estatísticas, sempre visíveis, e as seções d
 
 As estatísticas mostram quatro números da sessão:
 
-- **Experiência / hora** e **experiência total:** a experiência que a criatura ativa ganhou na sessão, no ritmo por hora e no total, conforme as regras de [experiência das criaturas](TRAINER.md#experiência-das-criaturas).
-- **Abates / hora** e **abates totais:** as criaturas selvagens derrotadas na sessão, no ritmo por hora e no total.
+- **Experiência / hora** e **experiência total:** a experiência que a criatura ativa ganhou na sessão, no ritmo por hora e no total, conforme as regras de [experiência das criaturas](TRAINER.md#experiência-das-criaturas). O total vem do ledger da simulação, e a taxa por hora é o total dividido pelo tempo decorrido da sessão, em horas.
+- **Abates / hora** e **abates totais:** as criaturas selvagens derrotadas na sessão, no ritmo por hora e no total. O total também vem do ledger da simulação, e a taxa por hora usa o mesmo tempo decorrido.
 
 > Por enquanto são só essas quatro informações. A análise é o painel que mais vai crescer, e novas contas e estatísticas entram nela conforme o jogo evolui.
 
+> As taxas por hora podem ser calculadas a qualquer momento sobre o tempo decorrido, então elas sobem e descem durante a caçada, em vez de esperar o fim da sessão.
+
 #### Ganhos
 
-A seção **Ganhos** lista os itens que as criaturas droparam durante a sessão. Itens iguais são agrupados em um slot só, com a quantidade na label: 150 unidades do mesmo item aparecem como um slot com 150, e não como 150 slots.
+A seção **Ganhos** lista os itens que as criaturas droparam durante a sessão. Itens iguais são agrupados em um slot só, com a quantidade na label: 150 unidades do mesmo item aparecem como um slot com 150, e não como 150 slots. A lista vem do ledger da simulação, que registra cada drop no abate.
 
 #### Gastos
 
-A seção **Gastos** lista os itens consumidos durante a sessão, no mesmo formato de slots agrupados. Por enquanto, os gastos são os itens de cura usados e os dispositivos de captura usados, e novos tipos de item entram na seção conforme o jogo cresce.
+A seção **Gastos** lista os itens consumidos durante a sessão, no mesmo formato de slots agrupados. Por enquanto, os gastos são os itens de cura usados pela criatura ativa, também vindos do ledger da simulação. Dispositivos de captura não entram porque a captura está fora de escopo nesta fase, e novos tipos de item entram na seção conforme o jogo cresce.
 
 #### Criaturas Capturadas
 
 A seção **Criaturas** lista as criaturas capturadas durante a sessão, no mesmo formato das seções de itens: criaturas iguais ficam em um slot só, com a quantidade na label, então 56 criaturas iguais capturadas aparecem como um slot com 56.
+
+> Nesta fase a captura está fora de escopo, então a seção fica vazia. Ela existe para quando a captura estiver em jogo.
 
 #### Rolagem
 
@@ -105,11 +109,11 @@ Se a conexão com o servidor cai, os painéis são fechados junto com o restante
 Os pontos abaixo ainda estão em aberto ou são provisórios nesta fase e devem ser revistos conforme o jogo evolui:
 
 - A análise tem apenas as quatro estatísticas definidas. Novas contas e estatísticas entrarão nela.
-- Os gastos cobrem apenas itens de cura e dispositivos de captura. Novos tipos de item entram na seção conforme o jogo cresce.
+- Os gastos cobrem apenas itens de cura. Dispositivos de captura não entram porque a captura está fora de escopo nesta fase, e novos tipos de item entram na seção conforme o jogo cresce.
+- A seção de criaturas capturadas fica vazia enquanto a captura estiver fora de escopo.
 
 ## Pendências
 
 Os pontos abaixo ainda não foram decididos:
 
-- Como cada número é calculado, em especial as taxas por hora.
 - Se as seções de ganhos, gastos e criaturas exibem slots vazios quando a sessão não tem nada nelas.

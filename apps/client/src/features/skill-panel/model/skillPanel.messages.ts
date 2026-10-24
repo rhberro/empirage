@@ -13,6 +13,8 @@ export const SKILL_COMMAND_MESSAGES: Record<TrainerClientErrorCode, string> = {
   invalid_starter: 'A criatura inicial informada é inválida.',
   invalid_team_command: 'Comando de time inválido.',
   invalid_trainer: 'Identificador de treinador inválido.',
+  last_creature: 'O treinador precisa ter pelo menos uma criatura.',
+  last_team_member: 'O time não pode ficar vazio.',
   max_trainers_reached: 'Você atingiu o limite de 5 treinadores.',
   name_taken: 'Nome indisponível.',
   rate_limited: 'Muitas tentativas. Tente novamente em alguns minutos.',

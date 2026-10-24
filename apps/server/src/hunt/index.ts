@@ -10,7 +10,30 @@
 export { advance } from '~/hunt/clock';
 export type { HuntAdvanceResult } from '~/hunt/clock';
 
+export {
+  loadHuntAreaContent,
+  loadHuntTeam,
+  loadHuntTrainer,
+  mapAbilityRow,
+  mapDropRow,
+  mapEffectivenessRow,
+  mapHuntAreaContent,
+  mapHuntTeam,
+  mapSpeciesAbility,
+  mapSpeciesRow,
+  mapTeamMember,
+} from '~/hunt/content';
+export type { HuntAreaContent, HuntTeamLoad, HuntTrainerLoad } from '~/hunt/content';
+
+export { HuntStartError } from '~/hunt/errors';
+export type { HuntStartErrorCode } from '~/hunt/errors';
+
 export type { HuntEvent } from '~/hunt/events';
+
+export { createHuntManager } from '~/hunt/runtime/manager';
+export type { HuntManager, HuntManagerDeps, HuntRuntime } from '~/hunt/runtime/manager';
+
+export { toDelta, toSnapshot } from '~/hunt/runtime/wire';
 
 export { createHuntSeed, drawInt, drawUnit, drawWeighted } from '~/hunt/rng';
 export type { HuntRandomDraw, HuntRandomState, WeightedEntry } from '~/hunt/rng';

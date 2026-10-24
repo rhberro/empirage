@@ -10,21 +10,14 @@ import type { HuntAreaStatus } from '~/features/hunt-area/model/useHuntAreaList'
 import { HuntAreaGallery } from '~/features/hunt-area/ui/HuntAreaGallery';
 import { HuntAreaHeader } from '~/features/hunt-area/ui/HuntAreaHeader';
 import { StartHuntButton } from '~/features/hunt-area/ui/StartHuntButton';
-import { useAlerts } from '~/shared/ui/alert';
-import type { AlertInput } from '~/shared/ui/alert';
-import { IconBadge } from '~/shared/ui/badge';
 import { Drawer, DrawerBody, DrawerFooter } from '~/shared/ui/drawer';
 import { PanelState } from '~/shared/ui/empty';
 import { ScrollArea } from '~/shared/ui/scroll';
-import { Text } from '~/shared/ui/text';
 
 const CREATURES_TITLE = 'Criaturas';
 const ITEMS_TITLE = 'Itens';
 const DRAWER_WIDTH = '23.75rem';
 const DRAWER_HEIGHT = '45rem';
-const ALERT_DURATION = 4000;
-const ALERT_ICON = 'i';
-const HUNT_UNAVAILABLE_MESSAGE = 'Caçada em breve.';
 const LOADING_TITLE = 'Carregando os detalhes do local...';
 const LOADING_DESCRIPTION = 'As criaturas e os itens da área estão chegando.';
 const ERROR_TITLE = 'Não foi possível carregar os detalhes do local.';
@@ -35,6 +28,8 @@ export type HuntAreaDetailsDrawerProps = {
   contained?: boolean;
   isOpen: boolean;
   onClose: () => void;
+  onStartHunt: (areaId: string) => Promise<boolean>;
+  onStarted: () => void;
   staminaMinutes: number;
   status?: HuntAreaStatus;
 };
@@ -47,15 +42,21 @@ export type HuntAreaDetailsDrawerProps = {
  * footer stay put, and only the body scrolls.
  */
 export function HuntAreaDetailsDrawer(props: HuntAreaDetailsDrawerProps): ReactElement {
-  const { area, contained = false, isOpen, onClose, staminaMinutes, status = 'ready' } = props;
-  const { show } = useAlerts();
+  const {
+    area,
+    contained = false,
+    isOpen,
+    onClose,
+    onStartHunt,
+    onStarted,
+    staminaMinutes,
+    status = 'ready',
+  } = props;
   const label = area === null ? '' : area.name;
   const header = area === null ? null : <HuntAreaHeader area={area} />;
   const body = renderBody(area, status);
-
-  function handleUnavailable(): void {
-    show(buildAlert());
-  }
+  const startDisabled = status !== 'ready' || area === null;
+  const handleStart = buildStartHandler(area, onStartHunt, onStarted);
 
   return (
     <Drawer
@@ -71,17 +72,31 @@ export function HuntAreaDetailsDrawer(props: HuntAreaDetailsDrawerProps): ReactE
         <ScrollArea height="full">{body}</ScrollArea>
       </DrawerBody>
       <DrawerFooter>
-        <StartHuntButton onUnavailable={handleUnavailable} staminaMinutes={staminaMinutes} />
+        <StartHuntButton
+          disabled={startDisabled}
+          onStart={handleStart}
+          staminaMinutes={staminaMinutes}
+        />
       </DrawerFooter>
     </Drawer>
   );
 }
 
-function buildAlert(): AlertInput {
-  return {
-    content: <Text color="fg">{HUNT_UNAVAILABLE_MESSAGE}</Text>,
-    duration: ALERT_DURATION,
-    icon: <IconBadge>{ALERT_ICON}</IconBadge>,
+function buildStartHandler(
+  area: HuntAreaDetail | null,
+  onStartHunt: (areaId: string) => Promise<boolean>,
+  onStarted: () => void,
+): () => Promise<boolean> {
+  return function handleStart(): Promise<boolean> {
+    if (area === null) {
+      return Promise.resolve(false);
+    }
+    return onStartHunt(area.id).then(function afterStart(started: boolean): boolean {
+      if (started) {
+        onStarted();
+      }
+      return started;
+    });
   };
 }
 

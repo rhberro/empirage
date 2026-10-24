@@ -138,7 +138,7 @@ function readEquippedLookup(result: QueryResult<ItemRow[]>): EquippedLookup {
   return { equipped: rows.length > 0, error: null };
 }
 
-function readRemovalOutcome(result: QueryResult<QuantityRow[]>): DestroyItemOutcome {
+function readRemovalOutcome(result: QueryResult<ItemRow[]>): DestroyItemOutcome {
   if (result.error !== null) {
     return { error: readError(result.error), status: 'failed' };
   }

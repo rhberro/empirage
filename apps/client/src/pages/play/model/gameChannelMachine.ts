@@ -1,7 +1,10 @@
+import type { GameCommand } from '@creatures/contracts/game';
 import type { PlayerState } from '@creatures/contracts/player';
+import type { Tile } from '@creatures/contracts/world';
 
 import { buildHandlers } from '~/pages/play/model/gameChannelHandlers';
 import type { Attempt, ChannelState } from '~/pages/play/model/gameChannelHandlers';
+import type { CommandResult, MoveResult } from '~/pages/play/model/gameProtocol';
 import { connectGameSocket } from '~/pages/play/model/gameSocket';
 import type { GameSocket, GameSocketOptions } from '~/pages/play/model/gameSocket';
 import { computeBackoffDelay } from '~/pages/play/model/reconnectionBackoff';
@@ -27,6 +30,8 @@ export type GameChannelDeps = {
   backoffDelay?: (attempt: number) => number;
   /** How the channel is opened. The tests give a channel of their own. */
   connect?: (options: GameSocketOptions) => GameSocket;
+  /** The hunt ended: the state of the player is out of date. */
+  onHuntEnded?: () => void;
   /** The channel is gone for good: the screen asks the player to reconnect. */
   onLost: () => void;
   /** The channel is open. */
@@ -54,6 +59,10 @@ export type ChannelMachine = {
   expectServerClose(): void;
   /** Opens the channel right away, without waiting for the backoff. */
   reconnectNow(): void;
+  /** Sends a command through the channel that is open. */
+  requestCommand(command: GameCommand, reqId?: string): Promise<CommandResult>;
+  /** Sends a move through the channel that is open. */
+  requestMove(target: Tile, reqId?: string): Promise<MoveResult>;
   /** Waits and opens the channel again. */
   retry(): void;
 };
@@ -77,6 +86,8 @@ export function buildChannelMachine(deps: GameChannelDeps): ChannelMachine {
     close: buildClose(state),
     expectServerClose: buildExpectServerClose(state),
     reconnectNow: noop,
+    requestCommand: buildRequestCommand(state),
+    requestMove: buildRequestMove(state),
     retry: noop,
   };
   machine.attempt = buildAttempt(deps, state, machine);
@@ -146,6 +157,42 @@ function openChannel(
     ticket,
     trainerId: deps.trainerId ?? '',
   });
+}
+
+/**
+ * A move asked before the channel is open is refused: the move dies with the
+ * channel, and a promise that waits for an answer that cannot come would hang.
+ */
+const CHANNEL_CLOSED_MESSAGE = 'A conexão com o servidor não está aberta.';
+
+/**
+ * The move of the player, through the socket of the attempt that is open.
+ */
+function buildRequestMove(
+  state: ChannelState,
+): (target: Tile, reqId?: string) => Promise<MoveResult> {
+  return function requestMove(target: Tile, reqId?: string): Promise<MoveResult> {
+    const socket = state.attempt?.socket ?? null;
+    if (socket === null) {
+      return Promise.reject(new Error(CHANNEL_CLOSED_MESSAGE));
+    }
+    return socket.requestMove(target, reqId);
+  };
+}
+
+/**
+ * A command of the player, through the socket of the attempt that is open.
+ */
+function buildRequestCommand(
+  state: ChannelState,
+): (command: GameCommand, reqId?: string) => Promise<CommandResult> {
+  return function requestCommand(command: GameCommand, reqId?: string): Promise<CommandResult> {
+    const socket = state.attempt?.socket ?? null;
+    if (socket === null) {
+      return Promise.reject(new Error(CHANNEL_CLOSED_MESSAGE));
+    }
+    return socket.requestCommand(command, reqId);
+  };
 }
 
 /**

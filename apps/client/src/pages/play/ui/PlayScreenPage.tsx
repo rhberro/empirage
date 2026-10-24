@@ -1,29 +1,25 @@
-import { Box } from '@chakra-ui/react';
 import type { PlayerState } from '@creatures/contracts/player';
-import type { SkillSlot } from '@creatures/contracts/skill';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
+import { huntStore } from '~/entities/hunt';
+import type { HuntPhase } from '~/entities/hunt';
 import { useTeam } from '~/entities/team';
 import { HuntAreaFlow } from '~/features/hunt-area';
-import type { SkillPanelView } from '~/features/skill-panel';
 import { buildTeamSlots, resolveActiveId } from '~/pages/play/model/teamSlots';
 import { useGameSession } from '~/pages/play/model/useGameSession';
-import type { HuntOverlayView } from '~/pages/play/model/useGameSession';
+import type { GameSession, HuntView } from '~/pages/play/model/useGameSession';
 import type { PlayerStateLoadResult, PlayerStateStatus } from '~/pages/play/model/usePlayerState';
 import { useAuth } from '~/shared/auth';
 import { useAlerts } from '~/shared/ui/alert';
 import type { CreatureSlot } from '~/widgets/game-hud';
 
-import { CanvasPlaceholder } from './CanvasPlaceholder';
-import { GameHud } from './GameHud';
 import { GameModals } from './GameModals';
-import { GameToolbar } from './GameToolbar';
+import { GameScreen } from './GameScreen';
 import { PlayLoadingState } from './PlayLoadingState';
 import { PlayReconnectState } from './PlayReconnectState';
-import { SkillPanelHost } from './SkillPanelHost';
 
 const TRAINERS_PATH = '/trainers';
 
@@ -76,8 +72,7 @@ function PlayScreenBody(): ReactElement {
   const team = useTeamSlots();
 
   useEffect(loadInitialState(game.load, navigate), [game.load, navigate]);
-
-  // Mantém a tela acesa durante o jogo idle (Screen Wake Lock API).
+  useEffect(handleHuntLeaving(game.hunt.phase, game.refresh), [game.hunt.phase, game.refresh]);
   useEffect(setupWakeLock, []);
 
   if (game.state === null) {
@@ -88,19 +83,22 @@ function PlayScreenBody(): ReactElement {
     return <PlayReconnectState detail={game.error} onRetry={game.onReconnect} />;
   }
 
-  const state = game.state;
+  return renderGameScreen(game, team, game.state);
+}
+
+function renderGameScreen(game: GameSession, team: TeamSlots, state: PlayerState): ReactElement {
   const handleSelectCreature = buildCreatureSelector(
     team.select,
     game.swap.swapCreature,
     team.activeId,
   );
-
   return (
     <GameScreen
       actions={game.actions}
       activeId={team.activeId}
       cooldownRemainingMs={game.swap.cooldownRemainingMs}
       cooldownTotalMs={game.swap.cooldownTotalMs}
+      hunt={game.hunt}
       panel={game.skillPanel}
       slots={team.slots}
       state={state}
@@ -109,8 +107,13 @@ function PlayScreenBody(): ReactElement {
       onSignOut={game.session.onSignOut}
       onSwitchTrainer={game.session.onSwitchTrainer}
       openSlot={game.skillPanel.openSlot}
+      requestMove={game.requestMove}
     >
-      <HuntAreas hunt={game.hunt} staminaMinutes={state.staminaMinutes} />
+      <HuntAreas
+        hunt={game.hunt}
+        onStartHunt={game.hunt.startHunt}
+        staminaMinutes={state.staminaMinutes}
+      />
       <GameModals modals={game.modals} />
     </GameScreen>
   );
@@ -141,11 +144,25 @@ type TeamSlots = {
 
 /**
  * The hunt areas: the modal of the list and the drawer of the details.
+ *
+ * The flow stays mounted for the city and the hunt, but it never opens during
+ * a hunt: the play button is gone there, and a start that is still closing
+ * must not cover the hunt scene.
  */
-function HuntAreas(props: { hunt: HuntOverlayView; staminaMinutes: number }): ReactElement {
-  const { hunt, staminaMinutes } = props;
+function HuntAreas(props: {
+  hunt: HuntView;
+  onStartHunt: (areaId: string) => Promise<boolean>;
+  staminaMinutes: number;
+}): ReactElement {
+  const { hunt, onStartHunt, staminaMinutes } = props;
+  const isOpen = hunt.isOpen && hunt.phase === 'idle';
   return (
-    <HuntAreaFlow isOpen={hunt.isOpen} onClose={hunt.onClose} staminaMinutes={staminaMinutes} />
+    <HuntAreaFlow
+      isOpen={isOpen}
+      onClose={hunt.onClose}
+      onStartHunt={onStartHunt}
+      staminaMinutes={staminaMinutes}
+    />
   );
 }
 
@@ -162,78 +179,6 @@ function renderPendingState(
     return <PlayReconnectState detail={error} onRetry={onReconnect} />;
   }
   return <PlayLoadingState />;
-}
-
-type GameScreenProps = {
-  actions: GameActions;
-  activeId: string | null;
-  children?: ReactNode;
-  /** The time left of the cooldown of the manual swap. */
-  cooldownRemainingMs: number;
-  /** The whole time of the cooldown of the manual swap. */
-  cooldownTotalMs: number;
-  /** The panel of selection that is open, over the bar. */
-  panel: SkillPanelView;
-  onOpenSlot: (slot: SkillSlot) => void;
-  onSelectCreature: (id: string) => void;
-  onSignOut: () => void;
-  onSwitchTrainer: () => void;
-  openSlot: SkillSlot | null;
-  slots: CreatureSlot[];
-  state: PlayerState;
-};
-
-type GameActions = {
-  onOpenBackpack: () => void;
-  onOpenStore: () => void;
-  onOpenStorage: () => void;
-  onStartHunt: () => void;
-};
-
-function GameScreen(props: GameScreenProps): ReactElement {
-  const {
-    actions,
-    activeId,
-    children,
-    cooldownRemainingMs,
-    cooldownTotalMs,
-    onOpenSlot,
-    onSelectCreature,
-    onSignOut,
-    onSwitchTrainer,
-    openSlot,
-    panel,
-    slots,
-    state,
-  } = props;
-  return (
-    <Box display="flex" flexDirection="column" h="100dvh" overflow="hidden" w="full">
-      <GameToolbar
-        onOpenBackpack={actions.onOpenBackpack}
-        onOpenStorage={actions.onOpenStorage}
-        onSignOut={onSignOut}
-        onSwitchTrainer={onSwitchTrainer}
-        state={state}
-      />
-      <Box display="flex" flex="1" position="relative" touchAction="none">
-        <CanvasPlaceholder />
-        <GameHud
-          activeId={activeId}
-          cooldownRemainingMs={cooldownRemainingMs}
-          cooldownTotalMs={cooldownTotalMs}
-          onOpenSlot={onOpenSlot}
-          onOpenStore={actions.onOpenStore}
-          onSelectCreature={onSelectCreature}
-          onStartHunt={actions.onStartHunt}
-          openSlot={openSlot}
-          panel={<SkillPanelHost panel={panel} />}
-          slots={slots}
-          state={state}
-        />
-        {children}
-      </Box>
-    </Box>
-  );
 }
 
 /**
@@ -271,5 +216,24 @@ function loadInitialState(
         navigate(TRAINERS_PATH, { replace: true });
       }
     });
+  };
+}
+
+/**
+ * The hunt ended: the store forgets it and the player state is read again.
+ *
+ * The server already sent the final ledger; the state of the player is the
+ * only thing the screen still has to catch up with.
+ */
+function handleHuntLeaving(
+  phase: HuntPhase,
+  refresh: () => Promise<PlayerStateLoadResult>,
+): () => void {
+  return function finishLeaving(): void {
+    if (phase !== 'leaving') {
+      return;
+    }
+    huntStore.getState().resetHunt();
+    void refresh();
   };
 }

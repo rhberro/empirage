@@ -13,6 +13,7 @@ import { Vitals } from './Vitals';
 // eslint-disable-next-line max-lines-per-function
 export function SkillBar(props: SkillBarProps): ReactElement {
   const {
+    abilityCooldowns,
     children,
     collapsed: controlledCollapsed,
     equippedAbilities,
@@ -38,6 +39,7 @@ export function SkillBar(props: SkillBarProps): ReactElement {
     <>
       <SkillSlots
         abilities={equippedAbilities}
+        cooldowns={abilityCooldowns}
         consumables={equippedConsumables}
         device={equippedDevice}
         onSlotPress={onSlotPress}
