@@ -16,3 +16,7 @@ dist/
 .bun/
 bun.lock
 bun.lockb
+
+# Supabase CLI
+supabase/.temp/
+supabase/.branches/

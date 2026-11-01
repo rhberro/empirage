@@ -1,8 +1,11 @@
-import { oxfmt, OxfmtPreset } from "@rhberro/oxsome";
-import { defineConfig, type OxfmtConfig } from "oxfmt";
+import { oxfmt } from '@rhberro/oxsome';
+import type { OxfmtPreset } from '@rhberro/oxsome';
+import { defineConfig } from 'oxfmt';
+import type { OxfmtConfig } from 'oxfmt';
 
-const base = { ignorePatterns: ["*.md"] };
-
-const config: OxfmtConfig = Object.assign<OxfmtPreset, OxfmtConfig>(oxfmt, base);
+const base = {
+    ignorePatterns: ['*.md'],
+  },
+  config: OxfmtConfig = Object.assign<OxfmtPreset, OxfmtConfig>(oxfmt, base);
 
 export default defineConfig(config);
