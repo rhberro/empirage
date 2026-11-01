@@ -1,4 +1,4 @@
-# Agentes
+# Creatures
 
 Este documento é a porta de entrada para todas as instruções dos agentes que trabalham neste projeto. Tudo o que está aqui obrigatoriamente deve ser seguido pelos agentes, sem exceções.
 
@@ -10,7 +10,6 @@ A tabela a seguir lista todas as documentações disponíveis para consulta pelo
 | --- | --- | --- | --- |
 | Coding Styles | Convenções de código do projeto: padrões de estilo, nomenclatura, organização e boas práticas que o código deve seguir. | Sempre que for escrever, alterar ou revisar código, antes de criar novos arquivos ou módulos, e diante de qualquer dúvida sobre como algo deve ser escrito ou estruturado. | `docs/CODING_STYLES.md` |
 | Game Design | Fonte de verdade sobre como o jogo funciona no nível de produto: regras, entidades, mecânicas e opções disponíveis. | Sempre que a tarefa envolver comportamento, regras ou conteúdo do jogo, ou quando houver dúvida sobre alguma mecânica ou regra. | `docs/game/GAME.md` |
-| Technical | Porta de entrada da documentação técnica: arquitetura do projeto e stack, com o índice dos demais documentos técnicos. | Sempre que a tarefa envolver a estrutura do código, a arquitetura entre cliente e servidor, as tecnologias escolhidas ou decisões de implementação. | `docs/technical/ARCHITECTURE.md` |
 
 ## Context7
 
@@ -24,7 +23,7 @@ A tabela a seguir lista as aplicações disponíveis no projeto, onde encontrar 
 
 | Aplicação | Descrição | Quando consultar | Documentação |
 | --- | --- | --- | --- |
-| Cliente | A aplicação web que o jogador utiliza para interagir com o jogo. | Quando precisar de informações sobre a interface do usuário. | `apps/client/README.md` |
+| Web | A aplicação web que o jogador utiliza para interagir com o jogo. | Quando precisar de informações sobre a interface do usuário. | `apps/web/README.md` |
 | Servidor | O servidor que gerencia as conexões e a lógica do jogo. | Quando precisar de informações sobre o servidor. | `apps/server/README.md` |
 
 ## Comandos
@@ -41,11 +40,15 @@ bun install
 
 ### Inicialização
 
-Para iniciar ambas as aplicações (cliente e servidor), execute o seguinte comando:
+Para iniciar ambas as aplicações (web e servidor), execute o seguinte comando:
 
 ```
 bun run dev
 ```
+
+## Testes
+
+Nunca escrever testes automatizados incluindo testes unitário, integração e end-to-end, em nenhuma aplicação, em nenhum momento.
 
 ## Pós-edição
 
@@ -53,7 +56,7 @@ O que fazer (e o que não fazer) depois de alterar código, antes de declarar a 
 
 ### Setup
 
-Antes de rodar os scripts que iniciam o cliente ou o servidor, verifique se eles já estão em execução consultando a disponibilidade das portas que utilizam. Se estiverem, reutilize o processo existente. Não inicie outro em uma porta diferente.
+Antes de rodar os scripts que iniciam o web ou o servidor, verifique se eles já estão em execução consultando a disponibilidade das portas que utilizam. Se estiverem, reutilize o processo existente. Não inicie outro em uma porta diferente.
 
 ### Formatação
 
@@ -65,9 +68,7 @@ Depois de usar `write` ou `edit` em arquivos de código (`.js`, `.jsx`, `.ts`, `
 
 Se ainda restarem erros de lint, corrija-os. Não pule esta etapa mesmo que o pre-commit hook rode no commit: o objetivo é evitar ciclos de retrabalho.
 
-### Tokens
-
-Se você alterou o cliente, rode também `bun run --filter @creatures/client typecheck`. Ele executa o **guarda de tokens**, que falha quando um componente usa uma cor inexistente no tema, uma cor crua ou um passo cru de escala no lugar de um token semântico.
+> Nunca alterar regras de formatação ou linting sem antes questionar o usuário e confirmar a modificação.
 
 ### Validação
 

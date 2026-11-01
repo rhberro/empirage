@@ -1,0 +1,30 @@
+import { ChakraProvider } from '@chakra-ui/react';
+import { system } from '@chakra-ui/react/preset';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+
+import { QueryProvider } from './query';
+import { router } from './routes';
+
+const rootEl = document.querySelector('#root');
+
+if (!rootEl) {
+  throw new Error('Root element #root not found.');
+}
+
+function preventGestureStart(event: Event): void {
+  event.preventDefault();
+}
+
+document.addEventListener('gesturestart', preventGestureStart);
+
+createRoot(rootEl).render(
+  <StrictMode>
+    <ChakraProvider value={system}>
+      <QueryProvider>
+        <RouterProvider router={router} />
+      </QueryProvider>
+    </ChakraProvider>
+  </StrictMode>,
+);

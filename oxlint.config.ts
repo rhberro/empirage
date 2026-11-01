@@ -1,5 +1,6 @@
 import { oxsome } from '@rhberro/oxsome';
-import { type OxlintConfig, defineConfig } from 'oxlint';
+import { defineConfig } from 'oxlint';
+import type { OxlintConfig } from 'oxlint';
 
 const config: OxlintConfig = {
   categories: {
@@ -7,24 +8,12 @@ const config: OxlintConfig = {
     nursery: 'error',
     pedantic: 'error',
     restriction: 'error',
-    // style: "error",
+    // Style: "error",
     suspicious: 'error',
   },
   extends: [oxsome.recommended],
   globals: {
-    Bun: 'readonly',
-    DOMRect: 'readonly',
-    Node: 'readonly',
-    ResizeObserver: 'readonly',
-    URL: 'readonly',
-    clearInterval: 'readonly',
-    clearTimeout: 'readonly',
     document: 'readonly',
-    getComputedStyle: 'readonly',
-    process: 'readonly',
-    setInterval: 'readonly',
-    setTimeout: 'readonly',
-    window: 'readonly',
   },
   ignorePatterns: ['.opencode/', '.zed/', '*.d.ts'],
   jsPlugins: ['@rhberro/oxsome/plugin'],
@@ -50,19 +39,10 @@ const config: OxlintConfig = {
     'eslint/func-style': ['error', 'declaration'],
     'eslint/no-undefined': 'off',
     'eslint/no-use-before-define': 'off',
-    'eslint/no-void': 'off',
     'eslint/sort-keys': 'error',
     'eslint/sort-vars': 'error',
-    'import/max-dependencies': 'off',
-    'oxc/no-optional-chaining': 'off',
+    'import/no-relative-parent-imports': 'off',
     'oxc/no-rest-spread-properties': 'off',
-    'oxsome/no-inline-functions-objects-arrays': 'off',
-    'react-hooks/exhaustive-deps': 'off',
-    'react/no-clone-element': 'off',
-    'react/no-multi-comp': 'off',
-    'react/refs': 'off',
-    'react/use-memo': 'off',
-    'unicorn/no-array-callback-reference': 'off',
   },
 };
 

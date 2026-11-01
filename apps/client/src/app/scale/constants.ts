@@ -1,5 +1,0 @@
-export const INTERFACE_BASE_FONT_SIZE = 16;
-export const INTERFACE_MAX_SCALE = 1.2;
-export const INTERFACE_MIN_SCALE = 0.85;
-export const INTERFACE_REFERENCE_WIDTH = 1280;
-export const INTERFACE_REFERENCE_HEIGHT = 720;

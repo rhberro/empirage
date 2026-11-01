@@ -1,1 +1,0 @@
-export { InterfaceScale } from './InterfaceScale';
