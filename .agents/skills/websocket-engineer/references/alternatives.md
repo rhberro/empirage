@@ -2,14 +2,14 @@
 
 ## Technology Comparison
 
-| Feature | WebSocket | SSE | Long Polling | HTTP/2 Push | WebRTC |
-|---------|-----------|-----|--------------|-------------|--------|
-| Bidirectional | Yes | No | Yes | No | Yes |
-| Real-time | Yes | Yes | Near | Yes | Yes |
-| Browser Support | Excellent | Good | Universal | Good | Good |
-| Proxy Issues | Some | Rare | Rare | Some | Some |
-| Overhead | Low | Low | High | Medium | Medium |
-| Use Case | Chat, games | Feeds, updates | Legacy | Assets | Audio/video |
+| Feature         | WebSocket   | SSE            | Long Polling | HTTP/2 Push | WebRTC      |
+| --------------- | ----------- | -------------- | ------------ | ----------- | ----------- |
+| Bidirectional   | Yes         | No             | Yes          | No          | Yes         |
+| Real-time       | Yes         | Yes            | Near         | Yes         | Yes         |
+| Browser Support | Excellent   | Good           | Universal    | Good        | Good        |
+| Proxy Issues    | Some        | Rare           | Rare         | Some        | Some        |
+| Overhead        | Low         | Low            | High         | Medium      | Medium      |
+| Use Case        | Chat, games | Feeds, updates | Legacy       | Assets      | Audio/video |
 
 ## Server-Sent Events (SSE)
 
@@ -24,15 +24,15 @@
 ### SSE Server (Node.js)
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
-app.get('/events', (req, res) => {
+app.get("/events", (req, res) => {
   // Set SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   // Send initial connection message
   res.write('data: {"message": "Connected"}\n\n');
@@ -41,14 +41,14 @@ app.get('/events', (req, res) => {
   const intervalId = setInterval(() => {
     const data = {
       timestamp: Date.now(),
-      value: Math.random()
+      value: Math.random(),
     };
 
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   }, 5000);
 
   // Cleanup on client disconnect
-  req.on('close', () => {
+  req.on("close", () => {
     clearInterval(intervalId);
     res.end();
   });
@@ -60,21 +60,21 @@ app.listen(3000);
 ### SSE Client
 
 ```javascript
-const eventSource = new EventSource('http://localhost:3000/events');
+const eventSource = new EventSource("http://localhost:3000/events");
 
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log('Received:', data);
+  console.log("Received:", data);
 };
 
 eventSource.onerror = (error) => {
-  console.error('SSE error:', error);
+  console.error("SSE error:", error);
   // Automatically reconnects
 };
 
 // Named events
-eventSource.addEventListener('update', (event) => {
-  console.log('Update:', event.data);
+eventSource.addEventListener("update", (event) => {
+  console.log("Update:", event.data);
 });
 
 // Close connection
@@ -84,7 +84,7 @@ eventSource.close();
 ### SSE with Express
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
 class SSEManager {
@@ -103,7 +103,7 @@ class SSEManager {
   broadcast(event, data) {
     const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 
-    this.clients.forEach(client => {
+    this.clients.forEach((client) => {
       client.write(message);
     });
   }
@@ -111,23 +111,23 @@ class SSEManager {
 
 const sseManager = new SSEManager();
 
-app.get('/events', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+app.get("/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
 
   sseManager.addClient(res);
 
-  req.on('close', () => {
+  req.on("close", () => {
     sseManager.removeClient(res);
   });
 });
 
 // Broadcast to all clients
 setInterval(() => {
-  sseManager.broadcast('update', {
+  sseManager.broadcast("update", {
     timestamp: Date.now(),
-    activeClients: sseManager.clients.size
+    activeClients: sseManager.clients.size,
   });
 }, 10000);
 
@@ -146,13 +146,13 @@ app.listen(3000);
 ### Long Polling Server
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
 const pendingRequests = new Map();
 const messages = [];
 
-app.get('/poll', (req, res) => {
+app.get("/poll", (req, res) => {
   const clientId = req.query.clientId;
 
   // If messages available, send immediately
@@ -170,13 +170,13 @@ app.get('/poll', (req, res) => {
 
   pendingRequests.set(clientId, { res, timeout });
 
-  req.on('close', () => {
+  req.on("close", () => {
     clearTimeout(timeout);
     pendingRequests.delete(clientId);
   });
 });
 
-app.post('/send', express.json(), (req, res) => {
+app.post("/send", express.json(), (req, res) => {
   messages.push(req.body.message);
 
   // Respond to all pending requests
@@ -200,21 +200,20 @@ const clientId = Math.random().toString(36);
 
 async function poll() {
   try {
-    const response = await fetch(
-      `http://localhost:3000/poll?clientId=${clientId}`,
-      { signal: AbortSignal.timeout(35000) }
-    );
+    const response = await fetch(`http://localhost:3000/poll?clientId=${clientId}`, {
+      signal: AbortSignal.timeout(35000),
+    });
 
     const data = await response.json();
 
     if (data.messages.length > 0) {
-      console.log('Received messages:', data.messages);
+      console.log("Received messages:", data.messages);
     }
 
     // Immediately poll again
     poll();
   } catch (error) {
-    console.error('Polling error:', error);
+    console.error("Polling error:", error);
     // Retry after delay
     setTimeout(poll, 5000);
   }
@@ -229,24 +228,24 @@ Note: HTTP/2 Server Push is deprecated and removed from Chrome. Use 103 Early Hi
 
 ```javascript
 // Example for historical context only
-const http2 = require('http2');
-const fs = require('fs');
+const http2 = require("http2");
+const fs = require("fs");
 
 const server = http2.createSecureServer({
-  key: fs.readFileSync('server.key'),
-  cert: fs.readFileSync('server.crt')
+  key: fs.readFileSync("server.key"),
+  cert: fs.readFileSync("server.crt"),
 });
 
-server.on('stream', (stream, headers) => {
-  if (headers[':path'] === '/') {
+server.on("stream", (stream, headers) => {
+  if (headers[":path"] === "/") {
     // Push assets before HTML response
-    stream.pushStream({ ':path': '/style.css' }, (err, pushStream) => {
+    stream.pushStream({ ":path": "/style.css" }, (err, pushStream) => {
       if (!err) {
-        pushStream.respondWithFile('style.css');
+        pushStream.respondWithFile("style.css");
       }
     });
 
-    stream.respondWithFile('index.html');
+    stream.respondWithFile("index.html");
   }
 });
 
@@ -299,17 +298,17 @@ server.listen(3000);
 
 ```javascript
 // Socket.IO with automatic fallback
-const io = require('socket.io')(3000, {
-  transports: ['websocket', 'polling'], // Try WebSocket first
+const io = require("socket.io")(3000, {
+  transports: ["websocket", "polling"], // Try WebSocket first
   upgrade: true,
-  allowUpgrades: true
+  allowUpgrades: true,
 });
 
-io.on('connection', (socket) => {
-  console.log('Connected via:', socket.conn.transport.name);
+io.on("connection", (socket) => {
+  console.log("Connected via:", socket.conn.transport.name);
 
-  socket.conn.on('upgrade', () => {
-    console.log('Upgraded to:', socket.conn.transport.name);
+  socket.conn.on("upgrade", () => {
+    console.log("Upgraded to:", socket.conn.transport.name);
   });
 });
 ```
@@ -347,14 +346,14 @@ io.on('connection', (socket) => {
 
 ```javascript
 // Step 1: Support both
-app.get('/api/messages', (req, res) => {
+app.get("/api/messages", (req, res) => {
   // Legacy polling endpoint
   res.json({ messages: getRecentMessages() });
 });
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   // New WebSocket endpoint
-  socket.on('subscribe', (channel) => {
+  socket.on("subscribe", (channel) => {
     socket.join(channel);
   });
 });
@@ -367,10 +366,10 @@ io.on('connection', (socket) => {
 
 ```javascript
 // SSE provides read-only, add WebSocket for writes
-app.get('/events', sseHandler);  // Keep for reads
+app.get("/events", sseHandler); // Keep for reads
 
-io.on('connection', (socket) => {
-  socket.on('action', (data) => {
+io.on("connection", (socket) => {
+  socket.on("action", (data) => {
     // Handle writes via WebSocket
     processAction(data);
   });

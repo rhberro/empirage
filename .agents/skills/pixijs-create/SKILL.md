@@ -192,11 +192,9 @@ npm create pixi.js@latest my-game -- --template bundler-vite
 
 npm 7+ consumes flags after the package spec unless you pass `--` to forward them. Without the separator, the CLI ignores `--template` and drops back to the interactive prompt. Yarn, pnpm, and bun don't need the separator.
 
-
 ### [MEDIUM] Running with an old Node version
 
 PixiJS requires Node 18+ or 20+. Some templates (framework-react, creation-web) expect a newer Node for their tooling. Upgrade Node before re-running the CLI if you see an "engines" warning from your package manager.
-
 
 ### [MEDIUM] Top-level `await app.init()` broken in Vite production builds
 
@@ -219,7 +217,6 @@ Wrap the init in an async IIFE instead:
 
 Upgrading Vite past 6.0.6 also resolves it, but the IIFE pattern is safe on every version and matches the PixiJS quick-start guide.
 
-
 ### [HIGH] Keeping `@webgpu/types` in `types` on TypeScript 6 or 7
 
 Wrong:
@@ -236,11 +233,9 @@ Correct: remove the `"@webgpu/types"` entry and keep any others.
 
 TypeScript 6 and 7 declare the WebGPU types in their built-in `"dom"` library, so `@webgpu/types` declares them a second time. With `skipLibCheck: false` that produces dozens of conflicting-declaration errors inside `lib.dom.d.ts` and `@webgpu/types`. Keep it on TypeScript 5 only, where PixiJS loads it for you anyway.
 
-
 ### [MEDIUM] `Cannot find name 'GPUTextureUsage'` on TypeScript 6 or 7
 
 Up to TypeScript 6.0.3 and 7.0.2, the built-in `"dom"` library has no WebGPU flag constants (`GPUBufferUsage`, `GPUColorWrite`, `GPUMapMode`, `GPUShaderStage`, `GPUTextureUsage`), so raw WebGPU code that uses them fails with `TS2552`. Adding `@webgpu/types` back only compiles with `skipLibCheck: true`, because it conflicts with the built-in types. Install `@types/web` 0.0.352 or later, drop `"dom"` from `lib`, and add `"@types/web"` to `types` alongside any existing entries, as shown in [TypeScript setup](#typescript-setup).
-
 
 ### [MEDIUM] `moduleResolution: "node"` breaks subpath imports
 
@@ -266,7 +261,6 @@ Correct:
 ```
 
 `"node"` (also called `"node10"`) ignores the `exports` field in the PixiJS `package.json`, so `import 'pixi.js/advanced-blend-modes'` and other subpath imports don't resolve. TypeScript 6 reports `TS2882` for them and deprecates the setting (`TS5107`); TypeScript 7 removes it (`TS5108`). Use `"bundler"` if you use a bundler, or `"nodenext"` otherwise.
-
 
 ## API Reference
 

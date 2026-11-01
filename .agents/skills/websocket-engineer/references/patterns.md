@@ -5,56 +5,56 @@
 ### Rooms (Channel Grouping)
 
 ```javascript
-const io = require('socket.io')(3000);
+const io = require("socket.io")(3000);
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   // Join a room
-  socket.on('join-room', (roomId) => {
+  socket.on("join-room", (roomId) => {
     socket.join(roomId);
-    socket.emit('joined', { room: roomId });
+    socket.emit("joined", { room: roomId });
 
     // Notify others in room
-    socket.to(roomId).emit('user-joined', {
+    socket.to(roomId).emit("user-joined", {
       userId: socket.id,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 
   // Leave a room
-  socket.on('leave-room', (roomId) => {
+  socket.on("leave-room", (roomId) => {
     socket.leave(roomId);
-    socket.to(roomId).emit('user-left', { userId: socket.id });
+    socket.to(roomId).emit("user-left", { userId: socket.id });
   });
 
   // Send to specific room
-  socket.on('message', ({ roomId, text }) => {
-    io.to(roomId).emit('message', {
+  socket.on("message", ({ roomId, text }) => {
+    io.to(roomId).emit("message", {
       userId: socket.id,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 
   // Get all rooms a socket is in
-  console.log('Socket rooms:', socket.rooms); // Set { socketId, roomId1, roomId2 }
+  console.log("Socket rooms:", socket.rooms); // Set { socketId, roomId1, roomId2 }
 
   // Disconnect from all rooms
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     // Automatically leaves all rooms
   });
 });
 
 // Broadcast to all sockets in a room
-io.to('room123').emit('announcement', 'Hello room!');
+io.to("room123").emit("announcement", "Hello room!");
 
 // Broadcast to multiple rooms
-io.to('room1').to('room2').emit('multi-room', 'data');
+io.to("room1").to("room2").emit("multi-room", "data");
 
 // Broadcast to room except specific socket
-socket.to('room123').emit('message', 'Others see this');
+socket.to("room123").emit("message", "Others see this");
 
 // Get all sockets in a room
-const sockets = await io.in('room123').fetchSockets();
+const sockets = await io.in("room123").fetchSockets();
 console.log(`Room has ${sockets.length} connections`);
 ```
 
@@ -62,32 +62,32 @@ console.log(`Room has ${sockets.length} connections`);
 
 ```javascript
 // Admin namespace
-const adminNs = io.of('/admin');
-adminNs.on('connection', (socket) => {
-  console.log('Admin connected:', socket.id);
+const adminNs = io.of("/admin");
+adminNs.on("connection", (socket) => {
+  console.log("Admin connected:", socket.id);
 
-  socket.on('admin-action', (data) => {
+  socket.on("admin-action", (data) => {
     // Admin-only events
   });
 });
 
 // Chat namespace
-const chatNs = io.of('/chat');
-chatNs.on('connection', (socket) => {
-  console.log('Chat user connected:', socket.id);
+const chatNs = io.of("/chat");
+chatNs.on("connection", (socket) => {
+  console.log("Chat user connected:", socket.id);
 
-  socket.on('message', (msg) => {
-    chatNs.emit('message', msg); // Broadcast to all in /chat
+  socket.on("message", (msg) => {
+    chatNs.emit("message", msg); // Broadcast to all in /chat
   });
 });
 
 // Dynamic namespaces
-io.of(/^\/workspace-\d+$/).on('connection', (socket) => {
+io.of(/^\/workspace-\d+$/).on("connection", (socket) => {
   const namespace = socket.nsp;
   console.log(`Connected to ${namespace.name}`);
 
-  socket.on('message', (data) => {
-    namespace.emit('message', data);
+  socket.on("message", (data) => {
+    namespace.emit("message", data);
   });
 });
 ```
@@ -96,32 +96,32 @@ io.of(/^\/workspace-\d+$/).on('connection', (socket) => {
 
 ```javascript
 // Broadcast to everyone including sender
-io.emit('event', data);
+io.emit("event", data);
 
 // Broadcast to everyone except sender
-socket.broadcast.emit('event', data);
+socket.broadcast.emit("event", data);
 
 // Broadcast to specific room
-io.to('room1').emit('event', data);
+io.to("room1").emit("event", data);
 
 // Broadcast to room except sender
-socket.to('room1').emit('event', data);
+socket.to("room1").emit("event", data);
 
 // Broadcast to multiple rooms
-io.to('room1').to('room2').emit('event', data);
+io.to("room1").to("room2").emit("event", data);
 
 // Broadcast to all connected clients in namespace
-io.of('/namespace').emit('event', data);
+io.of("/namespace").emit("event", data);
 
 // Volatile messages (ok to drop if client not ready)
-socket.volatile.emit('high-frequency', data);
+socket.volatile.emit("high-frequency", data);
 
 // Broadcast with acknowledgment (to all clients)
-io.timeout(5000).emit('event', data, (err, responses) => {
+io.timeout(5000).emit("event", data, (err, responses) => {
   if (err) {
-    console.log('Some clients did not acknowledge');
+    console.log("Some clients did not acknowledge");
   } else {
-    console.log('All clients acknowledged:', responses);
+    console.log("All clients acknowledged:", responses);
   }
 });
 ```
@@ -130,27 +130,27 @@ io.timeout(5000).emit('event', data, (err, responses) => {
 
 ```javascript
 // Server expects acknowledgment
-socket.emit('question', 'Do you agree?', (answer) => {
-  console.log('Client answered:', answer);
+socket.emit("question", "Do you agree?", (answer) => {
+  console.log("Client answered:", answer);
 });
 
 // Client sends acknowledgment
-socket.on('question', (data, callback) => {
-  console.log('Server asked:', data);
-  callback('Yes, I agree');
+socket.on("question", (data, callback) => {
+  console.log("Server asked:", data);
+  callback("Yes, I agree");
 });
 
 // Timeout for acknowledgment
-socket.timeout(5000).emit('request', data, (err, response) => {
+socket.timeout(5000).emit("request", data, (err, response) => {
   if (err) {
-    console.log('Client did not acknowledge in time');
+    console.log("Client did not acknowledge in time");
   } else {
-    console.log('Got response:', response);
+    console.log("Got response:", response);
   }
 });
 
 // Error handling in acknowledgment
-socket.on('save-data', (data, callback) => {
+socket.on("save-data", (data, callback) => {
   try {
     saveToDatabase(data);
     callback({ success: true });
@@ -163,7 +163,7 @@ socket.on('save-data', (data, callback) => {
 ## Presence System
 
 ```javascript
-const redis = require('ioredis');
+const redis = require("ioredis");
 const redisClient = new redis();
 
 class PresenceManager {
@@ -181,17 +181,21 @@ class PresenceManager {
 
     // If first connection, mark user as online
     if (socketCount === 1) {
-      await redisClient.hset('presence', userId, JSON.stringify({
-        status: 'online',
-        lastSeen: Date.now()
-      }));
+      await redisClient.hset(
+        "presence",
+        userId,
+        JSON.stringify({
+          status: "online",
+          lastSeen: Date.now(),
+        }),
+      );
 
       // Notify friends
       const friends = await this.getUserFriends(userId);
-      friends.forEach(friendId => {
-        io.to(`user:${friendId}`).emit('presence', {
+      friends.forEach((friendId) => {
+        io.to(`user:${friendId}`).emit("presence", {
           userId,
-          status: 'online'
+          status: "online",
         });
       });
     }
@@ -209,17 +213,21 @@ class PresenceManager {
 
     // If no more connections, mark offline
     if (socketCount === 0) {
-      await redisClient.hset('presence', userId, JSON.stringify({
-        status: 'offline',
-        lastSeen: Date.now()
-      }));
+      await redisClient.hset(
+        "presence",
+        userId,
+        JSON.stringify({
+          status: "offline",
+          lastSeen: Date.now(),
+        }),
+      );
 
       const friends = await this.getUserFriends(userId);
-      friends.forEach(friendId => {
-        io.to(`user:${friendId}`).emit('presence', {
+      friends.forEach((friendId) => {
+        io.to(`user:${friendId}`).emit("presence", {
           userId,
-          status: 'offline',
-          lastSeen: Date.now()
+          status: "offline",
+          lastSeen: Date.now(),
         });
       });
     }
@@ -228,18 +236,18 @@ class PresenceManager {
   }
 
   async getUserStatus(userId) {
-    const data = await redisClient.hget('presence', userId);
-    return data ? JSON.parse(data) : { status: 'offline' };
+    const data = await redisClient.hget("presence", userId);
+    return data ? JSON.parse(data) : { status: "offline" };
   }
 
   async getBulkPresence(userIds) {
     const pipeline = redisClient.pipeline();
-    userIds.forEach(id => pipeline.hget('presence', id));
+    userIds.forEach((id) => pipeline.hget("presence", id));
 
     const results = await pipeline.exec();
     return userIds.map((id, i) => ({
       userId: id,
-      ...JSON.parse(results[i][1] || '{"status":"offline"}')
+      ...JSON.parse(results[i][1] || '{"status":"offline"}'),
     }));
   }
 }
@@ -247,18 +255,18 @@ class PresenceManager {
 // Usage
 const presence = new PresenceManager();
 
-io.on('connection', async (socket) => {
+io.on("connection", async (socket) => {
   const userId = socket.handshake.auth.userId;
 
   await presence.userConnected(userId, socket.id);
   socket.join(`user:${userId}`);
 
-  socket.on('disconnect', async () => {
+  socket.on("disconnect", async () => {
     await presence.userDisconnected(userId, socket.id);
   });
 
   // Get presence for user's friends
-  socket.on('get-presence', async (friendIds, callback) => {
+  socket.on("get-presence", async (friendIds, callback) => {
     const presenceData = await presence.getBulkPresence(friendIds);
     callback(presenceData);
   });
@@ -271,22 +279,23 @@ io.on('connection', async (socket) => {
 // Queue messages when client disconnected
 const messageQueue = new Map();
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   const userId = socket.handshake.auth.userId;
 
   // Deliver queued messages on connect
   const queuedMessages = messageQueue.get(userId) || [];
   if (queuedMessages.length > 0) {
-    socket.emit('queued-messages', queuedMessages);
+    socket.emit("queued-messages", queuedMessages);
     messageQueue.delete(userId);
   }
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     // Mark user as disconnected
     setTimeout(() => {
       const userSockets = io.sockets.sockets;
-      const hasOtherConnection = Array.from(userSockets.values())
-        .some(s => s.handshake.auth.userId === userId);
+      const hasOtherConnection = Array.from(userSockets.values()).some(
+        (s) => s.handshake.auth.userId === userId,
+      );
 
       if (!hasOtherConnection) {
         // User fully disconnected, queue new messages
@@ -301,7 +310,7 @@ async function sendMessage(userId, message) {
   const userOnline = await isUserOnline(userId);
 
   if (userOnline) {
-    io.to(`user:${userId}`).emit('message', message);
+    io.to(`user:${userId}`).emit("message", message);
   } else {
     const queue = messageQueue.get(userId) || [];
     queue.push(message);
@@ -316,7 +325,7 @@ async function sendMessage(userId, message) {
 ## Pub/Sub Pattern
 
 ```javascript
-const EventEmitter = require('events');
+const EventEmitter = require("events");
 
 class MessageBus extends EventEmitter {
   constructor(io, redis) {
@@ -328,13 +337,13 @@ class MessageBus extends EventEmitter {
 
   setupSubscriptions() {
     // Subscribe to Redis channels
-    this.redis.psubscribe('room:*', (err, count) => {
+    this.redis.psubscribe("room:*", (err, count) => {
       console.log(`Subscribed to ${count} channels`);
     });
 
-    this.redis.on('pmessage', (pattern, channel, message) => {
+    this.redis.on("pmessage", (pattern, channel, message) => {
       const data = JSON.parse(message);
-      const roomId = channel.split(':')[1];
+      const roomId = channel.split(":")[1];
 
       // Emit to Socket.IO room
       this.io.to(roomId).emit(data.event, data.payload);
@@ -343,23 +352,20 @@ class MessageBus extends EventEmitter {
 
   publish(roomId, event, payload) {
     // Publish to Redis (distributed across servers)
-    this.redis.publish(
-      `room:${roomId}`,
-      JSON.stringify({ event, payload })
-    );
+    this.redis.publish(`room:${roomId}`, JSON.stringify({ event, payload }));
   }
 }
 
 // Usage
 const messageBus = new MessageBus(io, redisClient);
 
-io.on('connection', (socket) => {
-  socket.on('send-message', ({ roomId, text }) => {
+io.on("connection", (socket) => {
+  socket.on("send-message", ({ roomId, text }) => {
     // Publish to all servers via Redis
-    messageBus.publish(roomId, 'message', {
+    messageBus.publish(roomId, "message", {
       userId: socket.id,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 });
@@ -368,24 +374,24 @@ io.on('connection', (socket) => {
 ## Backpressure Handling
 
 ```javascript
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   const MAX_BUFFER_SIZE = 10000;
   let bufferSize = 0;
 
   const originalEmit = socket.emit.bind(socket);
 
-  socket.emit = function(event, ...args) {
+  socket.emit = function (event, ...args) {
     bufferSize++;
 
     if (bufferSize > MAX_BUFFER_SIZE) {
-      console.warn('Buffer overflow, dropping message');
+      console.warn("Buffer overflow, dropping message");
       return false;
     }
 
     const result = originalEmit(event, ...args);
 
     // Track buffer drain
-    socket.once('drain', () => {
+    socket.once("drain", () => {
       bufferSize = 0;
     });
 
@@ -393,8 +399,8 @@ io.on('connection', (socket) => {
   };
 
   // Monitor buffer size
-  socket.on('drain', () => {
-    console.log('Socket buffer drained');
+  socket.on("drain", () => {
+    console.log("Socket buffer drained");
   });
 });
 ```

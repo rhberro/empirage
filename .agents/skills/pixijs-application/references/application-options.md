@@ -8,21 +8,20 @@ Every option accepted by `app.init(options)`. Options come from three type sourc
 
 Options with no default are unset unless you pass them. `Partial<ApplicationOptions>` means everything is optional.
 
-
 ## View / canvas
 
 Configures the main canvas and how it maps to CSS pixels.
 
-| Option        | Type      | Default | Description                                                                                                                                                                                 |
-| ------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `width`       | `number`  | `800`   | Initial width in CSS pixels.                                                                                                                                                                |
-| `height`      | `number`  | `600`   | Initial height in CSS pixels.                                                                                                                                                               |
-| `canvas`      | `ICanvas` | —       | Existing `HTMLCanvasElement` (or `OffscreenCanvas`) to render into instead of creating one.                                                                                                 |
-| `view`        | `ICanvas` | —       | **Deprecated since 8.0.0.** Alias for `canvas`.                                                                                                                                             |
-| `resolution`  | `number`  | `1`     | Device pixel ratio. Set to `window.devicePixelRatio` for HiDPI.                                                                                                                             |
-| `autoDensity` | `boolean` | `false` | Scale CSS dimensions of the canvas so `width`/`height` stay in CSS pixels while the backing store matches `resolution`. Only honored on `HTMLCanvasElement` (ignored on `OffscreenCanvas`). |
-| `antialias`   | `boolean` | `false` | GPU MSAA where supported. On WebGL, this only affects the main context — use `useBackBuffer: true` if you need antialiased filtering.                                                       |
-| `depth`       | `boolean` | —       | Allocate a depth buffer for the main view. Always on for WebGL; needed for z-ordered rendering.                                                                                             |
+| Option        | Type      | Default | Description                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `width`       | `number`  | `800`   | Initial width in CSS pixels.                                                                                                                                                                                                                                                                                                                                                |
+| `height`      | `number`  | `600`   | Initial height in CSS pixels.                                                                                                                                                                                                                                                                                                                                               |
+| `canvas`      | `ICanvas` | —       | Existing `HTMLCanvasElement` (or `OffscreenCanvas`) to render into instead of creating one.                                                                                                                                                                                                                                                                                 |
+| `view`        | `ICanvas` | —       | **Deprecated since 8.0.0.** Alias for `canvas`.                                                                                                                                                                                                                                                                                                                             |
+| `resolution`  | `number`  | `1`     | Device pixel ratio. Set to `window.devicePixelRatio` for HiDPI.                                                                                                                                                                                                                                                                                                             |
+| `autoDensity` | `boolean` | `false` | Scale CSS dimensions of the canvas so `width`/`height` stay in CSS pixels while the backing store matches `resolution`. Only honored on `HTMLCanvasElement` (ignored on `OffscreenCanvas`).                                                                                                                                                                                 |
+| `antialias`   | `boolean` | `false` | GPU MSAA where supported. On WebGL, this only affects the main context — use `useBackBuffer: true` if you need antialiased filtering.                                                                                                                                                                                                                                       |
+| `depth`       | `boolean` | —       | Allocate a depth buffer for the main view. Always on for WebGL; needed for z-ordered rendering.                                                                                                                                                                                                                                                                             |
 | `transient`   | `boolean` | `false` | WebGPU only, with `antialias`. Discard the canvas's multisample depth/stencil buffer at the end of each pass, and its colour buffer on GPUs that aren't tile-based (tile-based GPUs already discard colour). Only for apps that never reopen the canvas pass while still needing depth or stencil: no filters or masks popping back onto it, no render with `clear: false`. |
 
 ```ts
@@ -88,17 +87,16 @@ await app.init({ preference: "webgpu" });
 
 Use the array when you need to guarantee a renderer is never picked (e.g. WebGPU is broken on a target device, or you want to forbid Canvas2D's feature subset).
 
-
 ## Shared rendering
 
 Apply to every renderer type.
 
-| Option                         | Type      | Default | Description                                                                                                                                                                                                          |
-| ------------------------------ | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `roundPixels`                  | `boolean` | `false` | Round vertex positions to whole pixels at shader time. Eliminates subpixel shimmer for pixel-art but blurs smooth motion.                                                                                            |
+| Option                         | Type      | Default | Description                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------ | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `roundPixels`                  | `boolean` | `false` | Round vertex positions to whole pixels at shader time. Eliminates subpixel shimmer for pixel-art but blurs smooth motion.                                                                                                                                                                                                                                              |
 | `skipExtensionImports`         | `boolean` | `false` | Disable automatic import of default extensions. With `true`, import the subsystems you need manually (`import 'pixi.js/accessibility'`, `'pixi.js/app'`, `'pixi.js/events'`, …). Renderer loader extensions (`WebGLLoader`/`WebGPULoader`/`CanvasLoader`) are skipped too, so import any backend-specific plugin modules yourself. Used for custom tree-shaken builds. |
-| `hello`                        | `boolean` | `false` | Log the PixiJS version and renderer type banner to the console on init.                                                                                                                                              |
-| `failIfMajorPerformanceCaveat` | `boolean` | `false` | Fail WebGL context creation if the browser reports major performance issues (blocklisted GPU, software fallback). Set `true` for high-performance apps that should refuse slow paths.                                |
+| `hello`                        | `boolean` | `false` | Log the PixiJS version and renderer type banner to the console on init.                                                                                                                                                                                                                                                                                                |
+| `failIfMajorPerformanceCaveat` | `boolean` | `false` | Fail WebGL context creation if the browser reports major performance issues (blocklisted GPU, software fallback). Set `true` for high-performance apps that should refuse slow paths.                                                                                                                                                                                  |
 
 ```ts
 await app.init({
@@ -163,8 +161,8 @@ await app.init({
 
 Opt-in plugin (must `extensions.add(CullerPlugin)` to activate).
 
-| Option                   | Type      | Default                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------ | --------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Option                   | Type      | Default               | Description                                                                                                                                                               |
+| ------------------------ | --------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `culler.updateTransform` | `boolean` | `false` (effectively) | Must be explicitly set to `true` to run transform updates before culling. Otherwise PixiJS skips transform updates, and cull bounds may lag one frame for moving objects. |
 
 ```ts
@@ -305,9 +303,7 @@ await app.init({
   antialias: false,
   webgl: { antialias: true, useBackBuffer: true },
   webgpu: { antialias: true },
-  canvasOptions: {
-    /* canvas-specific */
-  },
+  canvasOptions: {/* canvas-specific */},
 });
 ```
 

@@ -113,16 +113,13 @@ const icon = await Assets.load({
 
 Texture mode is frozen at rasterization time. Use Graphics mode or high `resolution` when the final size isn't known upfront.
 
-
 ### [MEDIUM] External references in SVG files
 
 SVGs that reference external images via `<image href="...">` may fail to load if the reference is cross-origin without CORS headers. Inline the image data as base64 or serve everything from the same origin.
 
-
 ### [MEDIUM] CSS in `<style>` elements
 
 Graphics mode does not read `<style>` blocks or class selectors at all; only presentation attributes and inline `style="..."` are parsed, so class-styled shapes render with the default black fill. Move the styling inline, or use texture mode for full CSS fidelity.
-
 
 ## API Reference
 

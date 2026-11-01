@@ -1,9 +1,9 @@
-import * as React from 'react';
-import type { Control } from 'react-hook-form';
+import * as React from "react";
+import type { Control } from "react-hook-form";
 
-import { useZodForm } from '~/shared/lib/use-zod-form';
+import { useZodForm } from "~/shared/lib/use-zod-form";
 
-import { SignInSchema, SignInValues } from './sign-in-schema';
+import { SignInSchema, SignInValues } from "./sign-in-schema";
 
 export type SignInForm = {
   control: Control<SignInValues>;
@@ -12,7 +12,7 @@ export type SignInForm = {
   isSubmitting: boolean;
 };
 
-const defaultValues = { email: '', password: '' };
+const defaultValues = { email: "", password: "" };
 
 function onSubmit(_values: SignInValues): void {
   // console.log(values);

@@ -55,15 +55,15 @@ will steer the next one.
 
 Add an object to `evals` with all seven fields:
 
-| Field | Meaning |
-| --- | --- |
-| `id` | kebab-case, unique |
-| `prompt` | what the user types, verbatim |
-| `expected_output` | the placement, plus what must not happen if that matters |
-| `assertions` | `expected_output` split into conditions a judge can grade one at a time |
-| `why` | what regression this case guards against |
-| `source` | repo-relative path to the primary file that decides it |
-| `rule` | the passage that decides it, as `;`-separated fragments; name a passage from another file too when the decision leans on one |
+| Field             | Meaning                                                                                                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | kebab-case, unique                                                                                                           |
+| `prompt`          | what the user types, verbatim                                                                                                |
+| `expected_output` | the placement, plus what must not happen if that matters                                                                     |
+| `assertions`      | `expected_output` split into conditions a judge can grade one at a time                                                      |
+| `why`             | what regression this case guards against                                                                                     |
+| `source`          | repo-relative path to the primary file that decides it                                                                       |
+| `rule`            | the passage that decides it, as `;`-separated fragments; name a passage from another file too when the decision leans on one |
 
 Each assertion states one condition on the answer, phrased as "The output
 ...". The first one names the placement. Each thing that must not happen

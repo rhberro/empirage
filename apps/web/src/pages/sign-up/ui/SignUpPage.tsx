@@ -1,5 +1,5 @@
-import { Link as ChakraLink } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { Link } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 
 export function SignUpPage(): React.ReactElement {
   return (
@@ -7,9 +7,9 @@ export function SignUpPage(): React.ReactElement {
       Sign Up!
       <p>
         Go to
-        <ChakraLink as={Link} to="/signin">
-          Sign In!
-        </ChakraLink>
+        <Link asChild color="brand.emphasized" fontWeight="bold">
+          <RouterLink to="/signin">Sign In!</RouterLink>
+        </Link>
       </p>
     </div>
   );

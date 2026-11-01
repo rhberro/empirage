@@ -5,15 +5,15 @@
 ### JWT Authentication
 
 ```javascript
-const io = require('socket.io')(3000);
-const jwt = require('jsonwebtoken');
+const io = require("socket.io")(3000);
+const jwt = require("jsonwebtoken");
 
 // Middleware for authentication
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
 
   if (!token) {
-    return next(new Error('Authentication error: No token provided'));
+    return next(new Error("Authentication error: No token provided"));
   }
 
   try {
@@ -22,14 +22,14 @@ io.use((socket, next) => {
     socket.username = decoded.username;
     next();
   } catch (err) {
-    next(new Error('Authentication error: Invalid token'));
+    next(new Error("Authentication error: Invalid token"));
   }
 });
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log(`User ${socket.username} connected`);
 
-  socket.on('message', (data) => {
+  socket.on("message", (data) => {
     // socket.userId is already verified
     saveMessage(socket.userId, data);
   });
@@ -44,11 +44,11 @@ io.use((socket, next) => {
   const token = socket.handshake.query.token;
 
   if (!token) {
-    return next(new Error('Authentication required'));
+    return next(new Error("Authentication required"));
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return next(new Error('Invalid token'));
+    if (err) return next(new Error("Invalid token"));
     socket.userId = decoded.userId;
     next();
   });
@@ -58,35 +58,33 @@ io.use((socket, next) => {
 ### Cookie Authentication
 
 ```javascript
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 
 io.use((socket, next) => {
   const cookies = socket.handshake.headers.cookie;
 
   if (!cookies) {
-    return next(new Error('No cookies'));
+    return next(new Error("No cookies"));
   }
 
   // Parse cookies
-  cookieParser(process.env.COOKIE_SECRET)(
-    socket.request,
-    {},
-    () => {
-      const sessionId = socket.request.signedCookies.sessionId;
+  cookieParser(process.env.COOKIE_SECRET)(socket.request, {}, () => {
+    const sessionId = socket.request.signedCookies.sessionId;
 
-      if (!sessionId) {
-        return next(new Error('No session'));
-      }
+    if (!sessionId) {
+      return next(new Error("No session"));
+    }
 
-      // Verify session in Redis/DB
-      verifySession(sessionId).then(user => {
+    // Verify session in Redis/DB
+    verifySession(sessionId)
+      .then((user) => {
         socket.userId = user.id;
         next();
-      }).catch(err => {
-        next(new Error('Invalid session'));
+      })
+      .catch((err) => {
+        next(new Error("Invalid session"));
       });
-    }
-  );
+  });
 });
 ```
 
@@ -95,24 +93,24 @@ io.use((socket, next) => {
 ### Room-Based Authorization
 
 ```javascript
-io.on('connection', (socket) => {
-  socket.on('join-room', async (roomId) => {
+io.on("connection", (socket) => {
+  socket.on("join-room", async (roomId) => {
     // Check if user has permission
     const hasAccess = await checkRoomAccess(socket.userId, roomId);
 
     if (!hasAccess) {
-      socket.emit('error', { message: 'Access denied to room' });
+      socket.emit("error", { message: "Access denied to room" });
       return;
     }
 
     socket.join(roomId);
-    socket.emit('joined', { room: roomId });
+    socket.emit("joined", { room: roomId });
   });
 
-  socket.on('send-message', async ({ roomId, text }) => {
+  socket.on("send-message", async ({ roomId, text }) => {
     // Verify user is in room
     if (!socket.rooms.has(roomId)) {
-      socket.emit('error', { message: 'Not in room' });
+      socket.emit("error", { message: "Not in room" });
       return;
     }
 
@@ -120,14 +118,14 @@ io.on('connection', (socket) => {
     const canWrite = await checkWritePermission(socket.userId, roomId);
 
     if (!canWrite) {
-      socket.emit('error', { message: 'No write permission' });
+      socket.emit("error", { message: "No write permission" });
       return;
     }
 
-    io.to(roomId).emit('message', {
+    io.to(roomId).emit("message", {
       userId: socket.userId,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 });
@@ -136,21 +134,21 @@ io.on('connection', (socket) => {
 ### Admin-Only Events
 
 ```javascript
-const ADMIN_EVENTS = ['kick-user', 'ban-user', 'delete-message'];
+const ADMIN_EVENTS = ["kick-user", "ban-user", "delete-message"];
 
 io.use((socket, next) => {
   // Attach role to socket after auth
-  getUserRole(socket.userId).then(role => {
+  getUserRole(socket.userId).then((role) => {
     socket.role = role;
     next();
   });
 });
 
-io.on('connection', (socket) => {
-  ADMIN_EVENTS.forEach(event => {
+io.on("connection", (socket) => {
+  ADMIN_EVENTS.forEach((event) => {
     socket.on(event, async (data) => {
-      if (socket.role !== 'admin') {
-        socket.emit('error', { message: 'Admin access required' });
+      if (socket.role !== "admin") {
+        socket.emit("error", { message: "Admin access required" });
         return;
       }
 
@@ -166,7 +164,7 @@ io.on('connection', (socket) => {
 ### Per-Socket Rate Limiting
 
 ```javascript
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 class SocketRateLimiter {
   constructor(maxRequests = 100, windowMs = 60000) {
@@ -180,9 +178,7 @@ class SocketRateLimiter {
     const userRequests = this.requests.get(socketId) || [];
 
     // Remove expired requests
-    const validRequests = userRequests.filter(
-      time => now - time < this.windowMs
-    );
+    const validRequests = userRequests.filter((time) => now - time < this.windowMs);
 
     if (validRequests.length >= this.maxRequests) {
       return false; // Rate limit exceeded
@@ -200,18 +196,18 @@ class SocketRateLimiter {
 
 const limiter = new SocketRateLimiter(100, 60000); // 100 req/min
 
-io.on('connection', (socket) => {
-  socket.on('message', (data) => {
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
     if (!limiter.check(socket.id)) {
-      socket.emit('error', { message: 'Rate limit exceeded' });
+      socket.emit("error", { message: "Rate limit exceeded" });
       return;
     }
 
     // Process message
-    io.to(data.roomId).emit('message', data);
+    io.to(data.roomId).emit("message", data);
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     limiter.reset(socket.id);
   });
 });
@@ -220,13 +216,13 @@ io.on('connection', (socket) => {
 ### Redis-Based Distributed Rate Limiting
 
 ```javascript
-const Redis = require('ioredis');
+const Redis = require("ioredis");
 const redis = new Redis();
 
 async function checkRateLimit(userId, maxRequests = 100, windowSec = 60) {
   const key = `rate_limit:${userId}`;
   const now = Date.now();
-  const windowStart = now - (windowSec * 1000);
+  const windowStart = now - windowSec * 1000;
 
   const pipeline = redis.pipeline();
 
@@ -248,16 +244,16 @@ async function checkRateLimit(userId, maxRequests = 100, windowSec = 60) {
   return count < maxRequests;
 }
 
-io.on('connection', (socket) => {
-  socket.on('message', async (data) => {
+io.on("connection", (socket) => {
+  socket.on("message", async (data) => {
     const allowed = await checkRateLimit(socket.userId, 50, 60);
 
     if (!allowed) {
-      socket.emit('error', { message: 'Too many requests' });
+      socket.emit("error", { message: "Too many requests" });
       return;
     }
 
-    io.to(data.roomId).emit('message', data);
+    io.to(data.roomId).emit("message", data);
   });
 });
 ```
@@ -265,50 +261,50 @@ io.on('connection', (socket) => {
 ## CORS Configuration
 
 ```javascript
-const io = require('socket.io')(3000, {
+const io = require("socket.io")(3000, {
   cors: {
-    origin: ['https://example.com', 'https://app.example.com'],
-    methods: ['GET', 'POST'],
+    origin: ["https://example.com", "https://app.example.com"],
+    methods: ["GET", "POST"],
     credentials: true,
-    allowedHeaders: ['Authorization']
-  }
+    allowedHeaders: ["Authorization"],
+  },
 });
 
 // Dynamic CORS
-io.engine.on('initial_headers', (headers, req) => {
-  headers['Access-Control-Allow-Origin'] = req.headers.origin;
+io.engine.on("initial_headers", (headers, req) => {
+  headers["Access-Control-Allow-Origin"] = req.headers.origin;
 });
 ```
 
 ## Input Validation
 
 ```javascript
-const Joi = require('joi');
+const Joi = require("joi");
 
 const messageSchema = Joi.object({
   roomId: Joi.string().uuid().required(),
   text: Joi.string().min(1).max(1000).required(),
-  attachments: Joi.array().items(Joi.string().uri()).max(5).optional()
+  attachments: Joi.array().items(Joi.string().uri()).max(5).optional(),
 });
 
-io.on('connection', (socket) => {
-  socket.on('message', (data) => {
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
     // Validate input
     const { error, value } = messageSchema.validate(data);
 
     if (error) {
-      socket.emit('error', {
-        message: 'Invalid message format',
-        details: error.details
+      socket.emit("error", {
+        message: "Invalid message format",
+        details: error.details,
       });
       return;
     }
 
     // Process validated data
-    io.to(value.roomId).emit('message', {
+    io.to(value.roomId).emit("message", {
       userId: socket.userId,
       ...value,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 });
@@ -317,24 +313,24 @@ io.on('connection', (socket) => {
 ## XSS Protection
 
 ```javascript
-const sanitizeHtml = require('sanitize-html');
+const sanitizeHtml = require("sanitize-html");
 
 function sanitizeMessage(text) {
   return sanitizeHtml(text, {
     allowedTags: [], // Strip all HTML
     allowedAttributes: {},
-    disallowedTagsMode: 'escape'
+    disallowedTagsMode: "escape",
   });
 }
 
-io.on('connection', (socket) => {
-  socket.on('message', (data) => {
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
     const sanitized = {
       ...data,
-      text: sanitizeMessage(data.text)
+      text: sanitizeMessage(data.text),
     };
 
-    io.to(data.roomId).emit('message', sanitized);
+    io.to(data.roomId).emit("message", sanitized);
   });
 });
 ```
@@ -347,20 +343,20 @@ io.on('connection', (socket) => {
 const connectionLimits = new Map();
 const MAX_CONNECTIONS_PER_IP = 10;
 
-io.engine.on('connection', (rawSocket) => {
-  const ip = rawSocket.request.headers['x-forwarded-for'] ||
-              rawSocket.request.connection.remoteAddress;
+io.engine.on("connection", (rawSocket) => {
+  const ip =
+    rawSocket.request.headers["x-forwarded-for"] || rawSocket.request.connection.remoteAddress;
 
   const currentConnections = connectionLimits.get(ip) || 0;
 
   if (currentConnections >= MAX_CONNECTIONS_PER_IP) {
-    rawSocket.close(1008, 'Too many connections from IP');
+    rawSocket.close(1008, "Too many connections from IP");
     return;
   }
 
   connectionLimits.set(ip, currentConnections + 1);
 
-  rawSocket.on('close', () => {
+  rawSocket.on("close", () => {
     const count = connectionLimits.get(ip) - 1;
     if (count <= 0) {
       connectionLimits.delete(ip);
@@ -374,16 +370,16 @@ io.engine.on('connection', (rawSocket) => {
 ### Message Size Limits
 
 ```javascript
-const io = require('socket.io')(3000, {
+const io = require("socket.io")(3000, {
   maxHttpBufferSize: 1e6, // 1MB max message size
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
 });
 
-io.on('connection', (socket) => {
-  socket.on('message', (data) => {
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
     if (JSON.stringify(data).length > 10000) {
-      socket.emit('error', { message: 'Message too large' });
+      socket.emit("error", { message: "Message too large" });
       return;
     }
 
@@ -397,22 +393,25 @@ io.on('connection', (socket) => {
 ```javascript
 const sessions = new Map();
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   const sessionId = generateSecureSessionId();
 
   sessions.set(socket.id, {
     sessionId,
     userId: socket.userId,
     createdAt: Date.now(),
-    lastActivity: Date.now()
+    lastActivity: Date.now(),
   });
 
   // Timeout inactive sessions
-  const timeout = setTimeout(() => {
-    socket.disconnect(true);
-  }, 30 * 60 * 1000); // 30 minutes
+  const timeout = setTimeout(
+    () => {
+      socket.disconnect(true);
+    },
+    30 * 60 * 1000,
+  ); // 30 minutes
 
-  socket.on('message', () => {
+  socket.on("message", () => {
     const session = sessions.get(socket.id);
     if (session) {
       session.lastActivity = Date.now();
@@ -420,54 +419,52 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     sessions.delete(socket.id);
     clearTimeout(timeout);
   });
 });
 
 function generateSecureSessionId() {
-  return require('crypto').randomBytes(32).toString('hex');
+  return require("crypto").randomBytes(32).toString("hex");
 }
 ```
 
 ## Audit Logging
 
 ```javascript
-const winston = require('winston');
+const winston = require("winston");
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: "info",
   format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: 'websocket-audit.log' })
-  ]
+  transports: [new winston.transports.File({ filename: "websocket-audit.log" })],
 });
 
-io.on('connection', (socket) => {
-  logger.info('Connection', {
+io.on("connection", (socket) => {
+  logger.info("Connection", {
     socketId: socket.id,
     userId: socket.userId,
     ip: socket.handshake.address,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
-  socket.on('message', (data) => {
-    logger.info('Message', {
+  socket.on("message", (data) => {
+    logger.info("Message", {
       socketId: socket.id,
       userId: socket.userId,
       roomId: data.roomId,
       messageLength: data.text.length,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 
-  socket.on('disconnect', (reason) => {
-    logger.info('Disconnect', {
+  socket.on("disconnect", (reason) => {
+    logger.info("Disconnect", {
       socketId: socket.id,
       userId: socket.userId,
       reason,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 });

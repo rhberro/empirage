@@ -1,4 +1,4 @@
-# Creatures
+# Empirage
 
 Este documento é a porta de entrada para todas as instruções dos agentes que trabalham neste projeto. Tudo o que está aqui obrigatoriamente deve ser seguido pelos agentes, sem exceções.
 
@@ -6,10 +6,10 @@ Este documento é a porta de entrada para todas as instruções dos agentes que 
 
 A tabela a seguir lista todas as documentações disponíveis para consulta pelos agentes. Se estiver com dúvidas e não souber qual documento consultar, pergunte ao usuário qual documentação carregar e não carregue nenhuma automaticamente.
 
-| Documentação | Descrição | Quando consultar | Onde consultar |
-| --- | --- | --- | --- |
+| Documentação  | Descrição                                                                                                               | Quando consultar                                                                                                                                                           | Onde consultar          |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | Coding Styles | Convenções de código do projeto: padrões de estilo, nomenclatura, organização e boas práticas que o código deve seguir. | Sempre que for escrever, alterar ou revisar código, antes de criar novos arquivos ou módulos, e diante de qualquer dúvida sobre como algo deve ser escrito ou estruturado. | `docs/CODING_STYLES.md` |
-| Game Design | Fonte de verdade sobre como o jogo funciona no nível de produto: regras, entidades, mecânicas e opções disponíveis. | Sempre que a tarefa envolver comportamento, regras ou conteúdo do jogo, ou quando houver dúvida sobre alguma mecânica ou regra. | `docs/game/GAME.md` |
+| Game Design   | Fonte de verdade sobre como o jogo funciona no nível de produto: regras, entidades, mecânicas e opções disponíveis.     | Sempre que a tarefa envolver comportamento, regras ou conteúdo do jogo, ou quando houver dúvida sobre alguma mecânica ou regra.                                            | `docs/game/GAME.md`     |
 
 ## Context7
 
@@ -21,10 +21,10 @@ Esta regra vale somente para documentações externas. As documentações intern
 
 A tabela a seguir lista as aplicações disponíveis no projeto, onde encontrar a documentação correspondente e quando consultar cada uma delas.
 
-| Aplicação | Descrição | Quando consultar | Documentação |
-| --- | --- | --- | --- |
-| Web | A aplicação web que o jogador utiliza para interagir com o jogo. | Quando precisar de informações sobre a interface do usuário. | `apps/web/README.md` |
-| Servidor | O servidor que gerencia as conexões e a lógica do jogo. | Quando precisar de informações sobre o servidor. | `apps/server/README.md` |
+| Aplicação | Descrição                                                        | Quando consultar                                             | Documentação            |
+| --------- | ---------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------- |
+| Web       | A aplicação web que o jogador utiliza para interagir com o jogo. | Quando precisar de informações sobre a interface do usuário. | `apps/web/README.md`    |
+| Servidor  | O servidor que gerencia as conexões e a lógica do jogo.          | Quando precisar de informações sobre o servidor.             | `apps/server/README.md` |
 
 ## Comandos
 

@@ -6,8 +6,8 @@ Este documento é a porta de entrada para todas as instruções dos agentes que 
 
 A tabela a seguir lista todas as documentações disponíveis para consulta pelos agentes. Se estiver com dúvidas e não souber qual documento consultar, pergunte ao usuário qual documentação carregar e não carregue nenhuma automaticamente.
 
-| Documentação | Descrição | Quando consultar | Onde consultar |
-| --- | --- | --- | --- |
+| Documentação | Descrição                                                                                            | Quando consultar                                                                                                                                                           | Onde consultar                  |
+| ------------ | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | Architecture | Definições e padrões de arquitetura, metodologia utilizada e outras definições de pastas e arquivos. | Sempre que for escrever, alterar ou revisar código, antes de criar novos arquivos ou módulos, e diante de qualquer dúvida sobre como algo deve ser escrito ou estruturado. | `apps/web/docs/ARCHITECTURE.md` |
 
 ## Validações

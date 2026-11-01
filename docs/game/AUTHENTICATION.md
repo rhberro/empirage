@@ -4,15 +4,15 @@ Este documento cobre todo o processo de autenticação, desde a criação de con
 
 ## Rotas
 
-| Rota | Tela | Acesso |
-| --- | --- | --- |
-| `/signin` | [Tela de signin](#tela-de-signin) | Visitante |
-| `/signup` | [Tela de signup](#tela-de-signup) | Visitante |
-| `/terms` | [Tela de termos de serviço](#tela-de-termos-de-serviço) | Pública |
-| `/privacy` | [Tela de política de privacidade](#tela-de-política-de-privacidade) | Pública |
-| `/characters` | [Tela de lista de personagens](#tela-de-lista-de-personagens) | Protegida |
-| `/characters/new` | [Tela de criar personagem](#tela-de-criar-personagem) | Protegida |
-| `/game` | [Tela do jogo](#tela-do-jogo) | Protegida |
+| Rota              | Tela                                                                | Acesso    |
+| ----------------- | ------------------------------------------------------------------- | --------- |
+| `/signin`         | [Tela de signin](#tela-de-signin)                                   | Visitante |
+| `/signup`         | [Tela de signup](#tela-de-signup)                                   | Visitante |
+| `/terms`          | [Tela de termos de serviço](#tela-de-termos-de-serviço)             | Pública   |
+| `/privacy`        | [Tela de política de privacidade](#tela-de-política-de-privacidade) | Pública   |
+| `/characters`     | [Tela de lista de personagens](#tela-de-lista-de-personagens)       | Protegida |
+| `/characters/new` | [Tela de criar personagem](#tela-de-criar-personagem)               | Protegida |
+| `/game`           | [Tela do jogo](#tela-do-jogo)                                       | Protegida |
 
 ## Tela de Signin
 
@@ -20,7 +20,7 @@ A tela de acesso ao jogo, com o cartão "Entrar no Jogo": os campos de e-mail e 
 
 Se o e-mail ou a senha estiverem incorretos, é exibida sempre a mesma mensagem genérica "E-mail ou senha inválidos.", sem indicar qual dos dois está errado.
 
-Na parte inferior da página é exibida a seguinte frase "Ao continuar, você concorda com os [Termos de Serviço](/terms) e a [Política de Privacidade](/privacy) do Creatures.". Ambos os links redirecionam o usuário para os [termos de serviço](#tela-de-termos-de-serviço) e a [política de privacidade](#tela-de-política-de-privacidade) respectivamente.
+Na parte inferior da página é exibida a seguinte frase "Ao continuar, você concorda com os [Termos de Serviço](/terms) e a [Política de Privacidade](/privacy) do Empirage.". Ambos os links redirecionam o usuário para os [termos de serviço](#tela-de-termos-de-serviço) e a [política de privacidade](#tela-de-política-de-privacidade) respectivamente.
 
 ![Mockup da tela de signin](../assets/signin.png)
 

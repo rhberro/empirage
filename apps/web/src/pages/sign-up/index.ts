@@ -1,4 +1,4 @@
 /**
  * UI.
  */
-export { SignUpPage as default } from './ui/SignUpPage';
+export { SignUpPage as default } from "./ui/SignUpPage";

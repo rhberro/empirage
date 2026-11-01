@@ -1,5 +1,5 @@
 {
-  "name": "creatures",
+  "name": "empirage",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -8,15 +8,15 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n server,web -c blue,magenta \"bun run dev:server\" \"bun run dev:web\"",
-    "dev:server": "bun --filter @creatures/server dev",
-    "dev:web": "bun --filter @creatures/web dev",
+    "dev:server": "bun --filter @empirage/server dev",
+    "dev:web": "bun --filter @empirage/web dev",
     "build": "bun --filter '*' build",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "test": "bun test apps/web apps/server",
-    "test:integration": "bun run --filter @creatures/server test:integration",
+    "test:integration": "bun run --filter @empirage/server test:integration",
     "prepare": "husky"
   },
   "dependencies": {},

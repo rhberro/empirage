@@ -48,11 +48,11 @@ Sec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=
 ```javascript
 const OPCODES = {
   CONTINUATION: 0x0, // Continuation frame
-  TEXT: 0x1,         // Text frame
-  BINARY: 0x2,       // Binary frame
-  CLOSE: 0x8,        // Connection close
-  PING: 0x9,         // Heartbeat ping
-  PONG: 0xA          // Heartbeat pong
+  TEXT: 0x1, // Text frame
+  BINARY: 0x2, // Binary frame
+  CLOSE: 0x8, // Connection close
+  PING: 0x9, // Heartbeat ping
+  PONG: 0xa, // Heartbeat pong
 };
 ```
 
@@ -60,18 +60,18 @@ const OPCODES = {
 
 ```javascript
 // Server-side ping/pong with ws library
-const WebSocket = require('ws');
+const WebSocket = require("ws");
 const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
   ws.isAlive = true;
 
-  ws.on('pong', () => {
+  ws.on("pong", () => {
     ws.isAlive = true;
   });
 
-  ws.on('message', (data) => {
-    console.log('Received:', data);
+  ws.on("message", (data) => {
+    console.log("Received:", data);
   });
 });
 
@@ -87,7 +87,7 @@ const interval = setInterval(() => {
   });
 }, 30000);
 
-wss.on('close', () => {
+wss.on("close", () => {
   clearInterval(interval);
 });
 ```
@@ -96,22 +96,22 @@ wss.on('close', () => {
 
 ```javascript
 const CLOSE_CODES = {
-  1000: 'Normal Closure',
-  1001: 'Going Away',
-  1002: 'Protocol Error',
-  1003: 'Unsupported Data',
-  1005: 'No Status Received',
-  1006: 'Abnormal Closure',
-  1007: 'Invalid Payload',
-  1008: 'Policy Violation',
-  1009: 'Message Too Big',
-  1010: 'Mandatory Extension',
-  1011: 'Internal Server Error',
-  1015: 'TLS Handshake Fail'
+  1000: "Normal Closure",
+  1001: "Going Away",
+  1002: "Protocol Error",
+  1003: "Unsupported Data",
+  1005: "No Status Received",
+  1006: "Abnormal Closure",
+  1007: "Invalid Payload",
+  1008: "Policy Violation",
+  1009: "Message Too Big",
+  1010: "Mandatory Extension",
+  1011: "Internal Server Error",
+  1015: "TLS Handshake Fail",
 };
 
 // Proper close handling
-ws.close(1000, 'Normal closure');
+ws.close(1000, "Normal closure");
 ```
 
 ## Message Size Limits
@@ -120,13 +120,13 @@ ws.close(1000, 'Normal closure');
 // Set max payload size (default 100MB)
 const wss = new WebSocket.Server({
   port: 8080,
-  maxPayload: 1024 * 1024 // 1MB
+  maxPayload: 1024 * 1024, // 1MB
 });
 
 // Handle too large messages
-ws.on('error', (error) => {
-  if (error.message.includes('Max payload size exceeded')) {
-    ws.close(1009, 'Message too big');
+ws.on("error", (error) => {
+  if (error.message.includes("Max payload size exceeded")) {
+    ws.close(1009, "Message too big");
   }
 });
 ```
@@ -140,17 +140,17 @@ const wss = new WebSocket.Server({
     zlibDeflateOptions: {
       chunkSize: 1024,
       memLevel: 7,
-      level: 3
+      level: 3,
     },
     zlibInflateOptions: {
-      chunkSize: 10 * 1024
+      chunkSize: 10 * 1024,
     },
     clientNoContextTakeover: true,
     serverNoContextTakeover: true,
     serverMaxWindowBits: 10,
     concurrencyLimit: 10,
-    threshold: 1024 // Only compress messages > 1KB
-  }
+    threshold: 1024, // Only compress messages > 1KB
+  },
 });
 ```
 
@@ -162,34 +162,34 @@ const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03]);
 ws.send(buffer, { binary: true });
 
 // Receive binary data
-ws.on('message', (data) => {
+ws.on("message", (data) => {
   if (data instanceof Buffer) {
-    console.log('Received binary:', data);
+    console.log("Received binary:", data);
   } else {
-    console.log('Received text:', data.toString());
+    console.log("Received text:", data.toString());
   }
 });
 
 // ArrayBuffer in browser
-socket.binaryType = 'arraybuffer';
+socket.binaryType = "arraybuffer";
 socket.onmessage = (event) => {
   if (event.data instanceof ArrayBuffer) {
     const view = new Uint8Array(event.data);
-    console.log('Received:', view);
+    console.log("Received:", view);
   }
 };
 ```
 
 ## Protocol Comparison
 
-| Feature | WebSocket | Socket.IO |
-|---------|-----------|-----------|
-| Protocol | Native WS | WS + fallbacks |
-| Handshake | HTTP Upgrade | Engine.IO handshake |
-| Reconnection | Manual | Automatic |
-| Broadcasting | Manual | Built-in |
-| Rooms | Manual | Built-in |
-| Acknowledgments | Manual | Built-in |
-| Binary | Native | Converted |
-| Overhead | Minimal | Higher |
-| Fallback | None | Long polling, SSE |
+| Feature         | WebSocket    | Socket.IO           |
+| --------------- | ------------ | ------------------- |
+| Protocol        | Native WS    | WS + fallbacks      |
+| Handshake       | HTTP Upgrade | Engine.IO handshake |
+| Reconnection    | Manual       | Automatic           |
+| Broadcasting    | Manual       | Built-in            |
+| Rooms           | Manual       | Built-in            |
+| Acknowledgments | Manual       | Built-in            |
+| Binary          | Native       | Converted           |
+| Overhead        | Minimal      | Higher              |
+| Fallback        | None         | Long polling, SSE   |

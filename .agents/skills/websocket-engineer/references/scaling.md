@@ -25,30 +25,30 @@
 ### Socket.IO with Redis
 
 ```javascript
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const { createAdapter } = require('@socket.io/redis-adapter');
-const { createClient } = require('redis');
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const { createAdapter } = require("@socket.io/redis-adapter");
+const { createClient } = require("redis");
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
-  cors: { origin: '*' }
+  cors: { origin: "*" },
 });
 
 // Redis pub/sub client setup
 const pubClient = createClient({
-  host: 'localhost',
-  port: 6379
+  host: "localhost",
+  port: 6379,
 });
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
   io.adapter(createAdapter(pubClient, subClient));
-  console.log('Redis adapter connected');
+  console.log("Redis adapter connected");
 });
 
 // Now broadcasts work across all servers
-io.emit('news', { hello: 'world' });
+io.emit("news", { hello: "world" });
 
 httpServer.listen(3000);
 ```
@@ -56,16 +56,18 @@ httpServer.listen(3000);
 ### Redis Streams for Reliable Delivery
 
 ```javascript
-const { createAdapter } = require('@socket.io/redis-streams-adapter');
+const { createAdapter } = require("@socket.io/redis-streams-adapter");
 
-const redisClient = createClient({ url: 'redis://localhost:6379' });
+const redisClient = createClient({ url: "redis://localhost:6379" });
 
 redisClient.connect().then(() => {
-  io.adapter(createAdapter(redisClient, {
-    streamName: 'socket.io-stream',
-    maxLen: 10000, // Keep last 10k messages
-    readCount: 100 // Process 100 messages at a time
-  }));
+  io.adapter(
+    createAdapter(redisClient, {
+      streamName: "socket.io-stream",
+      maxLen: 10000, // Keep last 10k messages
+      readCount: 100, // Process 100 messages at a time
+    }),
+  );
 });
 ```
 
@@ -130,12 +132,9 @@ backend websocket_backend
 
 ```javascript
 // Server-side: Set affinity cookie
-io.engine.on('connection', (rawSocket) => {
-  const serverID = process.env.SERVER_ID || 'server1';
-  rawSocket.request.res.setHeader(
-    'Set-Cookie',
-    `io=${serverID}; Path=/; HttpOnly; SameSite=Lax`
-  );
+io.engine.on("connection", (rawSocket) => {
+  const serverID = process.env.SERVER_ID || "server1";
+  rawSocket.request.res.setHeader("Set-Cookie", `io=${serverID}; Path=/; HttpOnly; SameSite=Lax`);
 });
 ```
 
@@ -163,38 +162,38 @@ location /socket.io/ {
 ### Shared State in Redis
 
 ```javascript
-const Redis = require('ioredis');
+const Redis = require("ioredis");
 const redis = new Redis();
 
 // Store user connection info
-io.on('connection', async (socket) => {
+io.on("connection", async (socket) => {
   const userId = socket.handshake.auth.userId;
 
   // Track which server has this user
-  await redis.hset('user:connections', userId, process.env.SERVER_ID);
+  await redis.hset("user:connections", userId, process.env.SERVER_ID);
 
   // Store user presence
   await redis.hset(`user:${userId}`, {
     socketId: socket.id,
     serverId: process.env.SERVER_ID,
     connectedAt: Date.now(),
-    status: 'online'
+    status: "online",
   });
 
-  socket.on('disconnect', async () => {
-    await redis.hdel('user:connections', userId);
+  socket.on("disconnect", async () => {
+    await redis.hdel("user:connections", userId);
     await redis.del(`user:${userId}`);
   });
 });
 
 // Send message to specific user across cluster
 async function sendToUser(userId, event, data) {
-  const serverId = await redis.hget('user:connections', userId);
+  const serverId = await redis.hget("user:connections", userId);
 
   if (serverId === process.env.SERVER_ID) {
     // User is on this server
     const sockets = await io.in(`user:${userId}`).fetchSockets();
-    sockets.forEach(socket => socket.emit(event, data));
+    sockets.forEach((socket) => socket.emit(event, data));
   } else {
     // User is on another server - use Redis to route
     io.to(`user:${userId}`).emit(event, data);
@@ -209,11 +208,11 @@ async function sendToUser(userId, event, data) {
 ```javascript
 const MAX_CONNECTIONS = 50000;
 
-io.engine.on('connection', (socket) => {
+io.engine.on("connection", (socket) => {
   const currentConnections = io.engine.clientsCount;
 
   if (currentConnections > MAX_CONNECTIONS) {
-    socket.close(1008, 'Server at capacity');
+    socket.close(1008, "Server at capacity");
     return;
   }
 });
@@ -234,42 +233,42 @@ spec:
   minReplicas: 3
   maxReplicas: 20
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Pods
-    pods:
-      metric:
-        name: websocket_connections
-      target:
-        type: AverageValue
-        averageValue: "40000" # Scale when avg > 40k connections/pod
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: websocket_connections
+        target:
+          type: AverageValue
+          averageValue: "40000" # Scale when avg > 40k connections/pod
 ```
 
 ## Graceful Shutdown
 
 ```javascript
 const gracefulShutdown = () => {
-  console.log('Shutting down gracefully...');
+  console.log("Shutting down gracefully...");
 
   // Stop accepting new connections
   io.close(() => {
-    console.log('All connections closed');
+    console.log("All connections closed");
     process.exit(0);
   });
 
   // Force close after 30 seconds
   setTimeout(() => {
-    console.error('Forcing shutdown after timeout');
+    console.error("Forcing shutdown after timeout");
     process.exit(1);
   }, 30000);
 };
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);
 ```
 
 ## Performance Optimization
@@ -277,8 +276,8 @@ process.on('SIGINT', gracefulShutdown);
 ### Node.js Clustering
 
 ```javascript
-const cluster = require('cluster');
-const os = require('os');
+const cluster = require("cluster");
+const os = require("os");
 
 if (cluster.isMaster) {
   const numWorkers = os.cpus().length;
@@ -289,13 +288,13 @@ if (cluster.isMaster) {
     cluster.fork();
   }
 
-  cluster.on('exit', (worker) => {
+  cluster.on("exit", (worker) => {
     console.log(`Worker ${worker.process.pid} died, spawning new`);
     cluster.fork();
   });
 } else {
   // Worker process runs Socket.IO server
-  const io = require('./socket-server');
+  const io = require("./socket-server");
   io.listen(3000);
   console.log(`Worker ${process.pid} started`);
 }
@@ -304,16 +303,17 @@ if (cluster.isMaster) {
 ### uWebSockets.js for Maximum Performance
 
 ```javascript
-const uWS = require('uWebSockets.js');
+const uWS = require("uWebSockets.js");
 
-const app = uWS.App()
-  .ws('/*', {
+const app = uWS
+  .App()
+  .ws("/*", {
     compression: uWS.SHARED_COMPRESSOR,
     maxPayloadLength: 16 * 1024,
     idleTimeout: 60,
 
     open: (ws) => {
-      console.log('Client connected');
+      console.log("Client connected");
     },
 
     message: (ws, message, isBinary) => {
@@ -322,12 +322,12 @@ const app = uWS.App()
     },
 
     close: (ws, code, message) => {
-      console.log('Client disconnected');
-    }
+      console.log("Client disconnected");
+    },
   })
   .listen(9001, (token) => {
     if (token) {
-      console.log('Listening on port 9001');
+      console.log("Listening on port 9001");
     }
   });
 ```
