@@ -16,6 +16,16 @@ const ROUTES: Route = [
     path: "/signup",
   },
   {
+    Component: lazy(loadCreateCharacterPage),
+    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    path: "/create-character",
+  },
+  {
+    Component: lazy(loadCharactersPage),
+    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    path: "/characters",
+  },
+  {
     Component: lazy(loadDesignSystemPage),
     // loader: redirectIfAuthenticatedOrRecoveringLoader,
     path: "/design-system",
@@ -35,6 +45,14 @@ function loadSignInPage(): Promise<typeof import("~/pages/sign-in")> {
 
 function loadSignUpPage(): Promise<typeof import("~/pages/sign-up")> {
   return import("~/pages/sign-up");
+}
+
+function loadCreateCharacterPage(): Promise<typeof import("~/pages/create-character")> {
+  return import("~/pages/create-character");
+}
+
+function loadCharactersPage(): Promise<typeof import("~/pages/characters")> {
+  return import("~/pages/characters");
 }
 
 function loadDesignSystemPage(): Promise<typeof import("~/pages/design-system")> {

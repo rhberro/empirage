@@ -1,16 +1,13 @@
-import { Link } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Center } from "@chakra-ui/react";
+
+import { SignUpForm } from "~/features/sign-up";
+
+const pagePadding = { base: "6", md: "12" };
 
 export function SignUpPage(): React.ReactElement {
   return (
-    <div>
-      Sign Up!
-      <p>
-        Go to
-        <Link asChild color="brand.emphasized" fontWeight="bold">
-          <RouterLink to="/signin">Sign In!</RouterLink>
-        </Link>
-      </p>
-    </div>
+    <Center bg="bg.canvas" minH="100dvh" p={pagePadding}>
+      <SignUpForm />
+    </Center>
   );
 }
