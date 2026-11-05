@@ -22,12 +22,12 @@
   "dependencies": {},
   "devDependencies": {
     "@rhberro/oxsome": "^0.2.2",
-    "@types/bun": "^1.4.3",
+    "@types/bun": "^1.4.4",
     "concurrently": "^10.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "oxfmt": "^0.74.0",
-    "oxlint": "^1.89.0",
+    "oxlint": "^1.91.0",
     "typescript": "^7.0.2"
   },
   "lint-staged": {

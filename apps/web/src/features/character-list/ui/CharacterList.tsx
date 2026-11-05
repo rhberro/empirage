@@ -1,8 +1,8 @@
-import { Box, Button, Grid, Heading, Separator, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Grid, Heading, Separator, Stack, Text } from '@chakra-ui/react';
 
-const screenGap = { base: "8", md: "12" };
-const titleSize = { base: "4xl", md: "6xl" };
-const panelPadding = { base: "6", md: "8" };
+const screenGap = { base: '8', md: '12' };
+const titleSize = { base: '4xl', md: '6xl' };
+const panelPadding = { base: '6', md: '8' };
 
 const characterRow = (
   <Grid

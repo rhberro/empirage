@@ -1,1 +1,1 @@
-export { CharactersPage as default } from "./ui/CharactersPage";
+export { CharactersPage as default } from './ui/CharactersPage';

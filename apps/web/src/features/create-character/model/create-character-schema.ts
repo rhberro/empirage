@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const CreateCharacterSchemaShape = {
   name: z.string().min(1),

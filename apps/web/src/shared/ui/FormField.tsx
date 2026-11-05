@@ -1,15 +1,15 @@
-import { Field } from "@chakra-ui/react";
-import * as React from "react";
-import { useController, type Control, type FieldPath, type FieldValues } from "react-hook-form";
+import { Field } from '@chakra-ui/react';
+import * as React from 'react';
+import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 
 type ControlledProps =
-  | "defaultValue"
-  | "disabled"
-  | "name"
-  | "onBlur"
-  | "onChange"
-  | "ref"
-  | "value";
+  | 'defaultValue'
+  | 'disabled'
+  | 'name'
+  | 'onBlur'
+  | 'onChange'
+  | 'ref'
+  | 'value';
 
 type GroupProps = { label: string; helperText: string };
 
@@ -18,7 +18,7 @@ type FormFieldProps<Values extends FieldValues, Component extends React.ElementT
   name: FieldPath<Values>;
   render: Component;
 } & Partial<GroupProps> &
-  Omit<React.ComponentPropsWithRef<Component>, ControlledProps | "render">;
+  Omit<React.ComponentPropsWithRef<Component>, ControlledProps | 'render'>;
 
 export function FormField<Values extends FieldValues, TComponent extends React.ElementType>(
   props: FormFieldProps<Values, TComponent>,

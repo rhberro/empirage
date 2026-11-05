@@ -1,17 +1,17 @@
-import { Button, Center, Heading, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Button, Center, Heading, Input, SimpleGrid, Stack, Text } from '@chakra-ui/react';
 
-import { FormField } from "~/shared/ui/FormField";
-import { useZodForm } from "~/shared/lib/use-zod-form";
+import { useZodForm } from '~/shared/lib/use-zod-form';
+import { FormField } from '~/shared/ui/FormField';
 
 import {
   CreateCharacterSchema,
   type CreateCharacterValues,
-} from "../model/create-character-schema";
+} from '../model/create-character-schema';
 
-const defaultValues = { name: "" };
-const screenGap = { base: "8", md: "12" };
-const titleSize = { base: "4xl", md: "6xl" };
-const panelPadding = { base: "6", md: "8" };
+const defaultValues = { name: '' };
+const screenGap = { base: '8', md: '12' };
+const titleSize = { base: '4xl', md: '6xl' };
+const panelPadding = { base: '6', md: '8' };
 
 function onSubmit(_values: CreateCharacterValues): void {
   return undefined;

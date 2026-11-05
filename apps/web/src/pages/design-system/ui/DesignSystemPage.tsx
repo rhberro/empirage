@@ -1,15 +1,15 @@
-import { Box, Heading, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Box, Heading, SimpleGrid, Stack, Text } from '@chakra-ui/react';
 
-import { CharacterList } from "~/features/character-list";
-import { CreateCharacterForm } from "~/features/create-character";
-import { SignInForm } from "~/features/sign-in";
-import { SignUpForm } from "~/features/sign-up";
+import { CharacterList } from '~/features/character-list';
+import { CreateCharacterForm } from '~/features/create-character';
+import { SignInForm } from '~/features/sign-in';
+import { SignUpForm } from '~/features/sign-up';
 
-const pagePadding = { base: "5", md: "10" };
+const pagePadding = { base: '5', md: '10' };
 const catalogColumns = { base: 1, xl: 2 };
-const catalogGap = { base: "8", xl: "10" };
-const containerMinH = { base: "42rem", md: "48rem" };
-const containerPadding = { base: "5", md: "8" };
+const catalogGap = { base: '8', xl: '10' };
+const containerMinH = { base: '42rem', md: '48rem' };
+const containerPadding = { base: '5', md: '8' };
 
 const signInContainer = (
   <Box

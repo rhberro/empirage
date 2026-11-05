@@ -1,8 +1,8 @@
-import { Center } from "@chakra-ui/react";
+import { Center } from '@chakra-ui/react';
 
-import { CreateCharacterForm } from "~/features/create-character";
+import { CreateCharacterForm } from '~/features/create-character';
 
-const pagePadding = { base: "6", md: "12" };
+const pagePadding = { base: '6', md: '12' };
 
 export function CreateCharacterPage(): React.ReactElement {
   return (
