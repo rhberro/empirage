@@ -1,82 +1,44 @@
-import { Button, Heading, Input, Stack, Text } from '@chakra-ui/react';
+import { Button, Card, Heading, Input, Stack, Text } from '@chakra-ui/react';
 
-import { useZodForm } from '~/shared/lib/use-zod-form';
-import { FormField } from '~/shared/ui/FormField';
+import { createForm } from '~/shared/ui/Form';
 
-import { SignInSchema, type SignInValues } from '../model/sign-in-schema';
+import { SignInSchema, type SignInOutput } from '../model/sign-in-schema';
 
 const defaultValues = { email: '', password: '' };
-const screenGap = { base: '8', md: '12' };
-const titleSize = { base: '4xl', md: '6xl' };
-const panelPadding = { base: '6', md: '8' };
-const noticeSize = { base: 'md', md: 'lg' };
 
-function onSubmit(_values: SignInValues): void {
+const Form = createForm(SignInSchema);
+
+function onSubmit(_values: SignInOutput): void {
   return undefined;
 }
 
-const formActions = (
-  <Stack gap="3">
-    <Button type="submit" w="full">
-      Entrar
-    </Button>
-    <Button type="button" variant="outline" w="full">
-      Criar Conta
-    </Button>
-  </Stack>
-);
-
-const legalNotice = (
-  <Text color="fg.muted" fontFamily="body" fontSize={noticeSize} maxW="md" textAlign="center">
-    Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade do Creatures.
-  </Text>
-);
-
 export function SignInForm(): React.ReactElement {
-  const form = useZodForm(SignInSchema, defaultValues);
-  const submit = form.handleSubmit(onSubmit);
-
   return (
-    <Stack align="center" gap={screenGap} w="full">
-      <Heading color="fg.default" fontFamily="heading" fontSize={titleSize} textAlign="center">
-        Creatures
-      </Heading>
-      <form onSubmit={submit}>
-        <Stack
-          bg="surface.sunken"
-          borderColor="border.emphasized"
-          borderWidth="1px"
-          boxShadow="panel"
-          gap="8"
-          maxW="md"
-          p={panelPadding}
-          w="full"
-        >
-          <Heading color="brand.emphasized" fontFamily="heading" fontSize="3xl" textAlign="center">
-            Entrar
-          </Heading>
-          <Stack gap="5">
-            <FormField
-              control={form.control}
-              label="E-mail"
-              name="email"
-              render={Input}
-              required
-              type="email"
-            />
-            <FormField
-              control={form.control}
-              label="Senha"
-              name="password"
-              render={Input}
-              required
-              type="password"
-            />
-          </Stack>
-          {formActions}
-        </Stack>
-      </form>
-      {legalNotice}
+    <Stack gap="10">
+      <Heading size="6xl">Creatures</Heading>
+      <Form defaultValues={defaultValues} onSubmit={onSubmit}>
+        <Card.Root>
+          <Card.Header>
+            <Heading>Entrar</Heading>
+          </Card.Header>
+          <Card.Body>
+            <Stack gap="4">
+              <Form.Field label="E-mail" name="email" render={Input} required type="email" />
+              <Form.Field label="Senha" name="password" render={Input} required type="password" />
+            </Stack>
+          </Card.Body>
+          <Card.Footer>
+            <Form.Submit>Entrar</Form.Submit>
+            <Button type="button" variant="subtle">
+              Criar Conta
+            </Button>
+          </Card.Footer>
+        </Card.Root>
+      </Form>
+      <Text color="fg.muted">
+        Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade do
+        Creatures.
+      </Text>
     </Stack>
   );
 }

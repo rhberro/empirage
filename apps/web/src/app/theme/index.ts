@@ -1,19 +1,6 @@
-import {
-  createSystem,
-  defaultConfig,
-  defineConfig,
-  defineRecipe,
-  defineTokens,
-} from '@chakra-ui/react';
+import { createSystem, defaultConfig, defineConfig, defineTokens } from '@chakra-ui/react';
 
-const buttonRecipe = {
-  base: {},
-  defaultVariants: {},
-  variants: {
-    size: {},
-    variant: {},
-  },
-} as const;
+import { button } from './recipes/button';
 
 const tokens = {
   fonts: {
@@ -33,7 +20,7 @@ const themeConfig = {
   strictTokens: true,
   theme: {
     recipes: {
-      button: defineRecipe(buttonRecipe),
+      button,
     },
     tokens: defineTokens(tokens),
   },

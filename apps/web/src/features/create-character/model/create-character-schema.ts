@@ -6,4 +6,6 @@ const CreateCharacterSchemaShape = {
 
 export const CreateCharacterSchema = z.object(CreateCharacterSchemaShape);
 
-export type CreateCharacterValues = z.output<typeof CreateCharacterSchema>;
+export type CreateCharacterInput = z.input<typeof CreateCharacterSchema>;
+
+export type CreateCharacterOutput = z.output<typeof CreateCharacterSchema>;

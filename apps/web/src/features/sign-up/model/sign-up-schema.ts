@@ -19,7 +19,7 @@ export const SignUpSchema = z
   .object(SignUpSchemaShape)
   .refine(refineConfirmPassword, refineConfirmPasswordParameters);
 
-export type SignUpShape = InferShape<typeof SignUpSchemaShape>;
+type SignUpShape = InferShape<typeof SignUpSchemaShape>;
 
 export type SignUpInput = z.input<typeof SignUpSchema>;
 
