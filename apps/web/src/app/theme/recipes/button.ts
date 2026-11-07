@@ -2,9 +2,7 @@ import { defineRecipe } from '@chakra-ui/react';
 
 const buttonRecipe = {
   base: {
-    fontWeight: 'bold',
-    rounded: 'lg',
-    textTransform: 'uppercase',
+    rounded: 'full',
   },
   defaultVariants: {},
 } as const;

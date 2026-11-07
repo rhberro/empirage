@@ -10,6 +10,8 @@ export type AuthState = { error: AuthError | null; session: Session | null; stat
 
 export type SignInCredentials = { email: string; password: string };
 
+export type SignUpCredentials = { email: string; password: string };
+
 export type AuthSelector<T> = (state: AuthState) => T;
 
 const initialState: AuthState = { error: null, session: null, status: 'initializing' };
@@ -51,6 +53,16 @@ export function useAuthStore<T>(selector: AuthSelector<T>): T {
 }
 
 let initialized = false;
+let authInitializationComplete = false;
+type AuthInitializationResolver = (value: void | PromiseLike<void>) => void;
+
+let resolveAuthInitialization: AuthInitializationResolver | undefined;
+
+function initializeAuthInitializationPromise(resolve: AuthInitializationResolver): void {
+  resolveAuthInitialization = resolve;
+}
+
+const authInitializationPromise = new Promise<void>(initializeAuthInitializationPromise);
 
 function handleAuthStateChange(event: string, session: Session | null): void {
   if (
@@ -62,6 +74,13 @@ function handleAuthStateChange(event: string, session: Session | null): void {
   ) {
     updateAuthState(session, null);
   }
+
+  if (event === 'INITIAL_SESSION' && !authInitializationComplete) {
+    authInitializationComplete = true;
+    if (resolveAuthInitialization) {
+      resolveAuthInitialization();
+    }
+  }
 }
 
 export function initializeAuth(): void {
@@ -71,6 +90,16 @@ export function initializeAuth(): void {
 
   initialized = true;
   supabase.auth.onAuthStateChange(handleAuthStateChange);
+}
+
+export async function waitForAuthInitialization(): Promise<void> {
+  initializeAuth();
+
+  if (authInitializationComplete) {
+    return;
+  }
+
+  await authInitializationPromise;
 }
 
 export async function signIn(credentials: SignInCredentials): Promise<boolean> {
@@ -87,6 +116,40 @@ export async function signIn(credentials: SignInCredentials): Promise<boolean> {
   }
 
   updateAuthState(data.session, null);
+  return true;
+}
+
+export async function signUp(credentials: SignUpCredentials): Promise<boolean> {
+  const current = authStore.getState();
+  if (current.error) {
+    const clearedError = { error: null };
+    authStore.setState(clearedError);
+  }
+
+  const { data, error } = await supabase.auth.signUp(credentials);
+  if (error) {
+    updateAuthState(authStore.getState().session, error);
+    return false;
+  }
+
+  updateAuthState(data.session, null);
+  return Boolean(data.session);
+}
+
+export async function signOut(): Promise<boolean> {
+  const current = authStore.getState();
+  if (current.error) {
+    const clearedError = { error: null };
+    authStore.setState(clearedError);
+  }
+
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    updateAuthState(authStore.getState().session, error);
+    return false;
+  }
+
+  updateAuthState(null, error);
   return true;
 }
 

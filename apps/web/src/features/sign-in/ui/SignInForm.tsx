@@ -1,13 +1,13 @@
 import { Button, Card, Input, Stack, Text } from '@chakra-ui/react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { signIn } from '~/shared/auth';
 import { createForm } from '~/shared/ui/Form';
 
-import { SignInSchema, type SignInOutput } from '../model/sign-in-schema';
+import { SignInInput, SignInSchema, type SignInOutput } from '../model/sign-in-schema';
 import { SignInError } from './SignInError';
 
-const defaultValues = { email: '', password: '' };
+const defaultValues: SignInInput = { email: '', password: '' };
 
 const Form = createForm(SignInSchema);
 
@@ -22,7 +22,7 @@ export function SignInForm(): React.ReactElement {
   return (
     <Stack align="center" gap="10">
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
-        <Card.Root variant="elevated">
+        <Card.Root variant="subtle">
           <Card.Header>
             <Card.Title>Bem-vindo,</Card.Title>
             <Card.Description>
@@ -37,7 +37,10 @@ export function SignInForm(): React.ReactElement {
             </Stack>
           </Card.Body>
           <Card.Footer>
-            <Form.Submit w="full">Entrar</Form.Submit>
+            <Form.Submit>Entrar</Form.Submit>
+            <Button asChild>
+              <Link to="/signup">Criar Conta</Link>
+            </Button>
           </Card.Footer>
         </Card.Root>
       </Form>

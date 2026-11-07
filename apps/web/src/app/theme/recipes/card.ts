@@ -6,7 +6,7 @@ const cardRecipe = {
     variant: {
       elevated: {
         root: {
-          boxShadow: 'panel',
+          // boxShadow: 'panel',
         },
       },
     },

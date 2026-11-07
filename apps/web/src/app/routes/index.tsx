@@ -1,43 +1,54 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, redirect } from 'react-router-dom';
+
+import { authenticatedLoader, guestLoader } from './guards';
 
 type Route = Array<RouteObject>;
 
 const ROUTES: Route = [
   {
+    Component: lazy(loadHomePage),
+    path: '/',
+  },
+  {
+    Component: lazy(loadDesignSystemPage),
+    path: '/design-system',
+  },
+  {
     Component: lazy(loadSignInPage),
-    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    loader: guestLoader,
     path: '/signin',
   },
   {
     Component: lazy(loadSignUpPage),
-    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    loader: guestLoader,
     path: '/signup',
   },
   {
     Component: lazy(loadCreateCharacterPage),
-    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    loader: authenticatedLoader,
     path: '/create-character',
   },
   {
     Component: lazy(loadCharactersPage),
-    // loader: redirectIfAuthenticatedOrRecoveringLoader,
+    loader: authenticatedLoader,
     path: '/characters',
   },
   {
-    Component: lazy(loadDesignSystemPage),
-    // loader: redirectIfAuthenticatedOrRecoveringLoader,
-    path: '/design-system',
-  },
-  {
     Component: null,
-    // loader: notFoundLoader,
+    loader() {
+      throw redirect('/');
+    },
     path: '*',
   },
 ];
 
 export const router = createBrowserRouter(ROUTES);
+
+function loadHomePage(): Promise<typeof import('~/pages/home')> {
+  return import('~/pages/home');
+}
 
 function loadSignInPage(): Promise<typeof import('~/pages/sign-in')> {
   return import('~/pages/sign-in');

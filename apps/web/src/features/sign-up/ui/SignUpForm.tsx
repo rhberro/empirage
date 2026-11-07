@@ -1,25 +1,32 @@
-import { Button, Card, Heading, Input, Stack, Text } from '@chakra-ui/react';
+import { Button, Card, Input, Stack, Text } from '@chakra-ui/react';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { signUp, type SignUpCredentials } from '~/shared/auth';
 import { createForm } from '~/shared/ui/Form';
 
-import { SignUpSchema, type SignUpOutput } from '../model/sign-up-schema';
+import { SignUpInput, SignUpSchema, type SignUpOutput } from '../model/sign-up-schema';
+import { SignUpError } from './SignUpError';
 
-const defaultValues = { email: '', password: '', passwordConfirmation: '' };
+const defaultValues: SignUpInput = { email: '', password: '', passwordConfirmation: '' };
 
 const Form = createForm(SignUpSchema);
 
-function onSubmit(_values: SignUpOutput): void {
-  return undefined;
-}
-
 export function SignUpForm(): React.ReactElement {
+  const navigate = useNavigate();
+  async function onSubmit(values: SignUpOutput): Promise<void> {
+    const credentials: SignUpCredentials = { email: values.email, password: values.password };
+    const success = await signUp(credentials);
+    if (success) {
+      await navigate('/characters');
+    }
+  }
   return (
-    <Stack gap="10">
-      <Heading size="6xl">Creatures</Heading>
+    <Stack align="center" gap="10">
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
-        <Card.Root>
+        <Card.Root variant="subtle">
           <Card.Header>
-            <Heading>Criar Conta</Heading>
+            <Card.Title>Bem-vindo,</Card.Title>
+            <Card.Description>Digite o seu e-mail e senha para criar a sua conta.</Card.Description>
           </Card.Header>
           <Card.Body>
             <Stack gap="4">
@@ -32,17 +39,18 @@ export function SignUpForm(): React.ReactElement {
                 required
                 type="password"
               />
+              <SignUpError />
             </Stack>
           </Card.Body>
           <Card.Footer>
             <Form.Submit>Criar Conta</Form.Submit>
-            <Button type="button" variant="subtle">
-              Entrar
+            <Button asChild>
+              <Link to="/signin">Entrar</Link>
             </Button>
           </Card.Footer>
         </Card.Root>
       </Form>
-      <Text color="fg.muted">
+      <Text color="fg.muted" textAlign="center" textStyle="sm" maxW="md">
         Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade do
         Creatures.
       </Text>
