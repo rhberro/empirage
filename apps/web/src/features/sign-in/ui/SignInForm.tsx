@@ -1,5 +1,5 @@
-import { Button, Card, Heading, Input, Stack, Text } from '@chakra-ui/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Card, Input, Stack, Text } from '@chakra-ui/react';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 import { signIn } from '~/shared/auth';
 import { createForm } from '~/shared/ui/Form';
@@ -13,22 +13,16 @@ const Form = createForm(SignInSchema);
 
 export function SignInForm(): React.ReactElement {
   const navigate = useNavigate();
-
   async function onSubmit(values: SignInOutput): Promise<void> {
     const success = await signIn(values);
     if (success) {
       await navigate('/characters');
     }
   }
-
   return (
     <Stack align="center" gap="10">
-      <Heading size="7xl" textAlign="center" fontWeight="bold">
-        <Text textStyle="2xl">THE KINGDOM OF</Text>
-        CREATURES
-      </Heading>
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
-        <Card.Root w="md" variant="elevated">
+        <Card.Root variant="elevated">
           <Card.Header>
             <Card.Title>Bem-vindo,</Card.Title>
             <Card.Description>
@@ -47,7 +41,7 @@ export function SignInForm(): React.ReactElement {
           </Card.Footer>
         </Card.Root>
       </Form>
-      <Text color="fg.muted">
+      <Text color="fg.muted" textAlign="center" textStyle="sm" maxW="md">
         Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade do
         Creatures.
       </Text>

@@ -4,6 +4,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
+import { ColorModeProvider } from '~/shared/ui/ColorMode';
+
 import { initializeAuth } from '../shared/auth';
 import { QueryProvider } from './query';
 import { router } from './routes';
@@ -26,9 +28,11 @@ initializeAuth();
 createRoot(rootEl).render(
   <StrictMode>
     <ChakraProvider value={system}>
-      <QueryProvider>
-        <RouterProvider router={router} />
-      </QueryProvider>
+      <ColorModeProvider>
+        <QueryProvider>
+          <RouterProvider router={router} />
+        </QueryProvider>
+      </ColorModeProvider>
     </ChakraProvider>
   </StrictMode>,
 );
