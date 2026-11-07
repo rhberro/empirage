@@ -49,6 +49,7 @@ const config: OxlintConfig = {
     'eslint/sort-vars': 'error',
     'import/no-relative-parent-imports': 'off',
     'import/no-unassigned-import': 'off',
+    'oxc/no-async-await': 'off',
     'oxc/no-rest-spread-properties': 'off',
   },
 };

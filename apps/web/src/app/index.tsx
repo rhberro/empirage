@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
+import { initializeAuth } from '../shared/auth';
 import { QueryProvider } from './query';
 import { router } from './routes';
 import { system } from './theme';
@@ -19,6 +20,8 @@ function preventGestureStart(event: Event): void {
 }
 
 document.addEventListener('gesturestart', preventGestureStart);
+
+initializeAuth();
 
 createRoot(rootEl).render(
   <StrictMode>

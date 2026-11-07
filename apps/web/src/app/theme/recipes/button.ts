@@ -2,8 +2,9 @@ import { defineRecipe } from '@chakra-ui/react';
 
 const buttonRecipe = {
   base: {
-    colorPalette: 'red',
-    rounded: 'full',
+    fontWeight: 'bold',
+    rounded: 'lg',
+    textTransform: 'uppercase',
   },
   defaultVariants: {},
 } as const;

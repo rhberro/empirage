@@ -19,7 +19,6 @@
     "test:integration": "bun run --filter @empirage/server test:integration",
     "prepare": "husky"
   },
-  "dependencies": {},
   "devDependencies": {
     "@rhberro/oxsome": "^0.2.2",
     "@types/bun": "^1.4.4",

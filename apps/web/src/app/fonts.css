@@ -1,12 +1,7 @@
-@import '@fontsource/barlow/400.css';
-@import '@fontsource/barlow/500.css';
-@import '@fontsource/barlow/600.css';
-@import '@fontsource/cinzel/700.css';
-@import '@fontsource/cinzel/900.css';
-@import '@fontsource/jetbrains-mono/400.css';
-@import '@fontsource/jetbrains-mono/500.css';
-@import '@fontsource/jetbrains-mono/700.css';
-@import "@fontsource-variable/material-symbols-rounded/full.css";
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/lexend-deca';
+@import '@fontsource-variable/material-symbols-rounded/full.css';
 
 .material-symbols-rounded {
   direction: ltr;
