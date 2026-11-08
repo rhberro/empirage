@@ -51,6 +51,7 @@ const config: OxlintConfig = {
     'import/no-unassigned-import': 'off',
     'oxc/no-async-await': 'off',
     'oxc/no-rest-spread-properties': 'off',
+    'unicorn/no-array-callback-reference': 'off',
   },
 };
 

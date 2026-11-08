@@ -1,14 +1,12 @@
-import { Icon as ChakraIcon, IconProps } from '@chakra-ui/react';
+import { Text, type TextProps } from '@chakra-ui/react';
 
-type IconProperties = IconProps & { name: string };
+type IconProperties = TextProps & { name: string };
 
 export function Icon(props: IconProperties): React.ReactElement {
   const { name, ...properties } = props;
   return (
-    <ChakraIcon {...properties}>
-      <span className="material-symbols-rounded" aria-hidden="true">
-        {name}
-      </span>
-    </ChakraIcon>
+    <Text as="span" {...properties} className="material-symbols-rounded" aria-hidden="true">
+      {name}
+    </Text>
   );
 }

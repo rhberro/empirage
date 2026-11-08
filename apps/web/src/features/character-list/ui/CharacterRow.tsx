@@ -1,26 +1,30 @@
-import { Avatar, AvatarGroup, Button, IconButton, Stack, Text } from '@chakra-ui/react';
-
-import { Icon } from '~/shared/ui/Icon';
+import { Avatar, AvatarGroup, Box, Button, Card, HStack, Text } from '@chakra-ui/react';
 
 import type { Character } from '../api/get-characters';
 
 export function CharacterRow(props: Character): React.ReactElement {
+  const { level, name } = props;
   return (
-    <Stack flexDirection="row">
-      <AvatarGroup shape="rounded" size="xl">
-        <Avatar.Root>
-          <Avatar.Fallback />
-          <Avatar.Image />
-        </Avatar.Root>
-      </AvatarGroup>
-      <Stack flex={1}>
-        <Text>{props.name}</Text>
-        <Text>Nível {props.level}</Text>
-      </Stack>
-      <IconButton type="button" variant="subtle">
-        <Icon name="delete" size="md" />
-      </IconButton>
-      <Button type="button">Selecionar</Button>
-    </Stack>
+    <Card.Root size="sm">
+      <Card.Body>
+        <HStack>
+          <AvatarGroup size="xl">
+            <Avatar.Root>
+              <Avatar.Fallback name={name} />
+              <Avatar.Image />
+            </Avatar.Root>
+          </AvatarGroup>
+          <Box flex={1}>
+            <Text>{name}</Text>
+            <Text color="fg.muted" textStyle="xs">
+              Nível {level}
+            </Text>
+          </Box>
+          <Button type="button" variant="subtle">
+            Selecionar
+          </Button>
+        </HStack>
+      </Card.Body>
+    </Card.Root>
   );
 }

@@ -1,25 +1,52 @@
-import { Button, Card, Stack, Text } from '@chakra-ui/react';
+import { Button, Card, EmptyState, Stack, Text } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
+
+import { Icon } from '~/shared/ui/Icon';
 
 import type { Character } from '../api/get-characters';
 import { useCharacters } from '../model/use-characters';
 import { CharacterRow } from './CharacterRow';
+import { CharacterRowSkeleton } from './CharacterRowSkeleton';
 
 function renderCharacter(character: Character): React.ReactElement {
   return <CharacterRow key={character.id} {...character} />;
 }
 
 export function CharacterList(): React.ReactElement {
-  const charactersQuery = useCharacters();
-  const loadingContent = charactersQuery.isPending ? <Text>Carregando personagens...</Text> : null;
-  const errorContent = charactersQuery.isError ? (
-    <Text>Não foi possível carregar os personagens.</Text>
+  const { data, isError, isPending, isSuccess } = useCharacters();
+  const loadingContent = isPending ? (
+    <>
+      <CharacterRowSkeleton />
+      {/*<CharacterRowSkeleton />*/}
+      {/*<CharacterRowSkeleton />*/}
+    </>
+  ) : null;
+  const errorContent = isError ? (
+    <EmptyState.Root size="sm">
+      <EmptyState.Content>
+        <EmptyState.Indicator>
+          <Icon name="falling" />
+        </EmptyState.Indicator>
+        <EmptyState.Title>Error ao carregar personagens</EmptyState.Title>
+        <EmptyState.Description>Não foi possível carregar os personagens.</EmptyState.Description>
+      </EmptyState.Content>
+    </EmptyState.Root>
   ) : null;
   const emptyContent =
-    charactersQuery.isSuccess && charactersQuery.data.length === 0 ? (
-      <Text>Nenhum personagem encontrado.</Text>
+    isSuccess && data.length === 0 ? (
+      <EmptyState.Root size="sm">
+        <EmptyState.Content>
+          <EmptyState.Indicator>
+            <Icon name="falling" />
+          </EmptyState.Indicator>
+          <EmptyState.Title>Nenhum personagem encontrado</EmptyState.Title>
+          <EmptyState.Description>
+            Tente novamente ou crie um novo personagem.
+          </EmptyState.Description>
+        </EmptyState.Content>
+      </EmptyState.Root>
     ) : null;
-  const characterRows = charactersQuery.data ? charactersQuery.data.map(renderCharacter) : null;
+  const characterRows = data ? data.map(renderCharacter) : null;
   return (
     <Stack align="center" gap="10">
       <Card.Root variant="subtle">
@@ -35,8 +62,8 @@ export function CharacterList(): React.ReactElement {
             {errorContent}
             {emptyContent}
             {characterRows}
-            <Button asChild type="button" variant="subtle">
-              <Link to="/create-character">Criar personagem</Link>
+            <Button asChild type="button">
+              <Link to="/create-character">Novo personagem</Link>
             </Button>
           </Stack>
         </Card.Body>
