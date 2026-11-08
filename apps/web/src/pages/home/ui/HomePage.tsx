@@ -1,7 +1,7 @@
 import { Button, Center } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 
-import { signOut } from '~/shared/auth/auth';
+import { signOut } from '~/shared/auth';
 import { GameTitle } from '~/shared/ui/GameTitle';
 
 /**

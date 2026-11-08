@@ -6,6 +6,7 @@ export {
   selectAuthSession,
   selectAuthStatus,
   signIn,
+  signOut,
   signUp,
   useAuthStore,
   waitForAuthInitialization,
