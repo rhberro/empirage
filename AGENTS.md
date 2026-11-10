@@ -58,15 +58,18 @@ O que fazer (e o que não fazer) depois de alterar código, antes de declarar a 
 
 Antes de rodar os scripts que iniciam o web ou o servidor, verifique se eles já estão em execução consultando a disponibilidade das portas que utilizam. Se estiverem, reutilize o processo existente. Não inicie outro em uma porta diferente.
 
-### Formatação
+### Verificações obrigatórias
 
-Depois de usar `write` ou `edit` em arquivos de código (`.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`), rode nos arquivos alterados, nesta ordem:
+Depois de qualquer alteração de código (`.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`), execute, nesta ordem:
 
 1. `bun run format`
 2. `bun run lint:fix`
 3. `bun run lint`
+4. O Steiger da aplicação, quando a alteração envolver uma aplicação que o disponibilize
+5. `bun run build`
+6. Validação visual
 
-Se ainda restarem erros de lint, corrija-os. Não pule esta etapa mesmo que o pre-commit hook rode no commit: o objetivo é evitar ciclos de retrabalho.
+Nenhum erro novo de lint pode ser aceito, mesmo que existam erros anteriores fora dos arquivos alterados. Se ainda restarem erros de lint nos arquivos alterados, corrija-os. Não pule esta etapa mesmo que o pre-commit hook rode no commit: o objetivo é evitar ciclos de retrabalho.
 
 > Nunca alterar regras de formatação ou linting sem antes questionar o usuário e confirmar a modificação.
 

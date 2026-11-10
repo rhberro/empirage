@@ -21,7 +21,7 @@ export function CharacterList(): React.ReactElement {
         </Card.Body>
         <Card.Footer>
           <Button asChild type="button">
-            <Link to="/create-character">Novo personagem</Link>
+            <Link to="/characters/new">Novo Personagem</Link>
           </Button>
           <SignOutButton />
         </Card.Footer>

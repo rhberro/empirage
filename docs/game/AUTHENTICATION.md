@@ -12,7 +12,7 @@ Este documento cobre todo o processo de autenticação, desde a criação de con
 | `/privacy`        | [Tela de política de privacidade](#tela-de-política-de-privacidade) | Pública   |
 | `/characters`     | [Tela de lista de personagens](#tela-de-lista-de-personagens)       | Protegida |
 | `/characters/new` | [Tela de criar personagem](#tela-de-criar-personagem)               | Protegida |
-| `/game`           | [Tela do jogo](#tela-do-jogo)                                       | Protegida |
+| `/game`           | Tela do jogo                                                        | Protegida |
 
 ## Tela de Signin
 
@@ -44,17 +44,11 @@ Tela em branco por enquanto.
 
 ## Tela de Lista de Personagens
 
-Tela com o cartão "Lista de Personagens" e uma lista vertical de cards, um por personagem, com no máximo 5. Cada card exibe o avatar, o nome e o nível do personagem e, no lado direito, um botão de deletar. Com menos de 5 personagens, um card "+ Criar personagem" aparece sempre na última posição da lista — um card só, sem slots vazios —, e clicar nele leva à [tela de criar personagem](#tela-de-criar-personagem). Sem nenhum personagem, a lista mostra apenas esse card.
+Tela com o cartão "Personagens" e uma lista vertical, um item por personagem. Cada item exibe o avatar disponível, o nome e o nível. Quando a conta não possui personagens, a tela informa que nenhum personagem foi encontrado. O botão "Novo personagem" leva à [tela de criar personagem](#tela-de-criar-personagem).
 
-Na parte de baixo da lista ficam dois botões: "Entrar", único para qualquer persomagem e desabilitado até que um seja selecionado, e "Sair da conta", que encerra a sessão.
+Cada personagem possui um botão "Selecionar". Ao selecionar um personagem, a seleção anterior da mesma conta é removida, o novo personagem torna-se o único personagem ativo e o jogador é redirecionado para `/game`. A seleção é persistida no personagem e permanece ativa depois do logout.
 
-Ao clicar em um card, o personagem é selecionado e o card ganha um destaque visual na borda. Clicar novamente no card selecionado remove a seleção, e o botão "Entrar" volta a ficar desabilitado.
-
-Com um personagem selecionado, ao clicar em "Entrar" o usuário é redirecionado para a [tela do jogo](PLAY_SCREEN.md) onde pode começar a jogar.
-
-> Ao clicar no botão de deletar, um diálogo de confirmação deve ser exibido para o usuário, evitando exclusões errôneas. A confirmação deve deixar explícito que a remoção é definitiva: itens, criaturas e todo o progresso do personagem são perdidos.
-
-> Ao remover um personagem, todos os dados vinculados a ele, incluindo itens e criaturas, são apagados do banco de dados, como se o personagem nunca tivesse sido criado. A conta em si continua existindo. Se o último personagem for removido, o usuário permanece na tela com apenas o card de criar, sem redirecionamento automático.
+Na parte de baixo da lista ficam os botões "Novo personagem" e "Sair da conta", que encerra a sessão sem remover a seleção persistida. A exclusão de personagens ainda não está implementada nessa tela.
 
 ![Mockup da lista de personagens](../assets/characters_list.png)
 
@@ -62,19 +56,19 @@ Com um personagem selecionado, ao clicar em "Entrar" o usuário é redirecionado
 
 ## Tela de Criar Personagem
 
-Tela com o cartão "Criar Personagem", no mesmo formato dos outros formulários de autenticação. De cima para baixo ela exibe: o avatar do personagem, que muda de acordo com o gênero selecionado; a seleção de gênero, em uma toggle entre Masculino e Feminino, sendo Masculino a opção selecionada por padrão; e o campo de nome, com as mesmas validações.
+Tela com o cartão "Criar Personagem", no mesmo formato dos outros formulários de autenticação. Ela exibe o campo de nome e a seleção de gênero entre Masculino e Feminino, sendo Masculino a opção selecionada por padrão.
 
 Na parte inferior ficam dois botões, "Criar" e "Voltar", sendo que "Voltar" está sempre habilitado.
 
-> O nome deve ter entre 3 e 15 caracteres e conter apenas letras (com ou sem acento), números, espaços, traços e underscores, nada mais do que isso. Espaços no início ou no fim são removidos, e espaços consecutivos não são permitidos. A validação deve apontar o erro de caractere com a mensagem "Apenas caracteres simples, espaços, traços e underscores são permitidos." e o erro de tamanho com a mensagem "O nome deve ter entre 3 e 15 caracteres.".
+> O nome deve ter entre 3 e 15 caracteres e conter apenas letras (com ou sem acento), espaços, apóstrofos, traços e underscores. Números não são aceitos. Espaços no início ou no fim e dois espaços consecutivos não são permitidos. A validação exibe a mensagem "Apenas letras, espaços, apóstrofo, traços e underscores são permitidos." para o formato e "O nome deve ter entre 3 e 15 caracteres." para o tamanho.
 
 > O nome é único em todo o jogo, e a comparação ignora diferenças de maiúsculas, minúsculas e acentos, ou seja, "Ana", "ana" e "Aná" são considerados o mesmo nome.
 
-> Como o nome pode ser ocupado por outro jogador entre o "blur" e o clique em "Criar", o servidor deve validar o nome novamente no momento da criação. Se o nome não estiver mais disponível, o personagem não é criado, o usuário permanece na tela e é exibida a mensagem "Nome indisponível".
+> O banco valida a disponibilidade no momento da criação. Se o nome não estiver disponível, o personagem não é criado, o usuário permanece na tela e é exibida a mensagem "Nome indisponível.".
 
-Ao clicar em criar, o personagem é criado e o usuário é redirecionado para a [tela de lista de personagems](#tela-de-lista-de-personagems).
+Ao clicar em criar, o personagem é criado no primeiro slot livre da conta, a consulta da lista é invalidada e o usuário é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens).
 
-Cada conta pode ter no máximo 5 personagens, limite que também deve ser imposto pelo servidor. Se a conta já tiver 5 personagens, ao acessar essa tela o usuário é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens), que exibe um [alerta](INTERFACE.md#alerta) com a mensagem "Você atingiu o limite de 5 personagens.".
+Cada conta pode ter no máximo 5 personagens. O limite é imposto pela função do banco, que serializa criações concorrentes da mesma conta e retorna um erro quando não há slot livre. Nesse caso, a tela exibe "Você atingiu o limite de 5 personagens.". O redirecionamento preventivo ao acessar a tela ainda não está implementado.
 
 Ao clicar em voltar, o usuário é redirecionado de volta para a [tela de lista de personagens](#tela-de-lista-de-personagens).
 
@@ -86,4 +80,4 @@ Ao clicar em voltar, o usuário é redirecionado de volta para a [tela de lista 
 
 ## Controle de Redirecionamento
 
-Após uma autenticação bem-sucedida, o usuário é redirecionado conforme o estado da conta: Se a conta ainda não possui nenhum personagem, vai para a [tela de criar personagem](#tela-de-criar-personagem); Se a conta já possui personagens, vai para a [tela de lista de personagens](#tela-de-lista-de-personagens).
+Após uma autenticação ou cadastro bem-sucedido, o sistema consulta a seleção persistida da conta. Se houver um personagem selecionado, o usuário é redirecionado diretamente para `/game`; caso contrário, é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens). Cada conta pode possuir no máximo um personagem selecionado por vez.

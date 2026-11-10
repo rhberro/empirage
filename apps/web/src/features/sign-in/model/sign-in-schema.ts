@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-const SignInSchemaObject = {
+const SignInSchemaShape = {
   email: z.email(),
   password: z.string().min(6),
 };
 
-export const SignInSchema = z.object(SignInSchemaObject);
+export const SignInSchema = z.object(SignInSchemaShape);
 
 export type SignInInput = z.input<typeof SignInSchema>;
 

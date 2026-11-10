@@ -16,6 +16,30 @@ Use o logger estruturado (pino) em `services/` e em qualquer código de servidor
 
 Sem comentários, a menos que expliquem um _porquê_ não óbvio — uma restrição oculta, uma gambiarra, um detalhe sutil. Nunca expliquem o _o quê_ o código faz: funções e variáveis bem nomeadas já fazem isso.
 
+## Funções, Objetos e Arrays Inline
+
+A regra `oxsome/no-inline-functions-objects-arrays` proíbe literais de funções, objetos e arrays como primeiro argumento de chamadas ou construtores. Neste projeto, a mesma orientação deve ser aplicada, sempre que possível, aos demais argumentos: evite passar valores inline e dê um nome a eles antes da chamada.
+
+Isso melhora a legibilidade, facilita a inspeção do valor e evita que argumentos com estruturas relevantes fiquem escondidos na chamada.
+
+isso sim:
+
+```ts
+const params = { character_id: characterId };
+
+const { error } = await supabase.rpc('select_character', params);
+```
+
+isso não:
+
+```ts
+const { error } = await supabase.rpc(
+  'select_character', { character_id: characterId }
+);
+```
+
+Essa é uma orientação de preferência, não uma proibição absoluta. Literais inline podem ser usados quando não houver uma forma razoável de evitá-los ou quando a API exigir uma estrutura inline para funcionar corretamente. Nesses casos, não crie uma variável artificial apenas para cumprir esta orientação.
+
 ## Componentes React
 
 Componente é declaração de função, seguindo a regra `oxsome/no-arrow-functions`.

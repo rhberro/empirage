@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 
-import { authenticatedLoader, guestLoader } from './guards';
+import { authenticatedDestinationLoader, authenticatedLoader, guestLoader } from './guards';
 
 type Route = Array<RouteObject>;
 
@@ -26,14 +26,19 @@ const ROUTES: Route = [
     path: '/signup',
   },
   {
-    Component: lazy(loadCreateCharacterPage),
+    Component: lazy(loadNewCharacterPage),
     loader: authenticatedLoader,
-    path: '/create-character',
+    path: '/characters/new',
   },
   {
     Component: lazy(loadCharactersPage),
     loader: authenticatedLoader,
     path: '/characters',
+  },
+  {
+    Component: lazy(loadGamePage),
+    loader: authenticatedDestinationLoader,
+    path: '/game',
   },
   {
     Component: null,
@@ -58,12 +63,16 @@ function loadSignUpPage(): Promise<typeof import('~/pages/sign-up')> {
   return import('~/pages/sign-up');
 }
 
-function loadCreateCharacterPage(): Promise<typeof import('~/pages/create-character')> {
-  return import('~/pages/create-character');
+function loadNewCharacterPage(): Promise<typeof import('~/pages/new-character')> {
+  return import('~/pages/new-character');
 }
 
 function loadCharactersPage(): Promise<typeof import('~/pages/characters')> {
   return import('~/pages/characters');
+}
+
+function loadGamePage(): Promise<typeof import('~/pages/game')> {
+  return import('~/pages/game');
 }
 
 function loadDesignSystemPage(): Promise<typeof import('~/pages/design-system')> {

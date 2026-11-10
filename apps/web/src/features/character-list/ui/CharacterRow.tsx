@@ -1,9 +1,18 @@
 import { Avatar, AvatarGroup, Box, Button, Card, HStack, Text } from '@chakra-ui/react';
 
 import type { Character } from '../api/get-characters';
+import { useSelectCharacter } from '../model/use-select-character';
 
 export function CharacterRow(props: Character): React.ReactElement {
-  const { level, name } = props;
+  const { id, is_selected: isSelected, level, name } = props;
+  const selectCharacterMutation = useSelectCharacter();
+  const isSelectionDisabled = isSelected || selectCharacterMutation.isPending;
+  const selectionLabel = isSelected ? 'Selecionado' : 'Selecionar';
+
+  function handleSelect(): void {
+    selectCharacterMutation.mutate(id);
+  }
+
   return (
     <Card.Root size="sm">
       <Card.Body>
@@ -20,8 +29,14 @@ export function CharacterRow(props: Character): React.ReactElement {
               Nível {level}
             </Text>
           </Box>
-          <Button type="button" variant="subtle">
-            Selecionar
+          <Button
+            disabled={isSelectionDisabled}
+            loading={selectCharacterMutation.isPending}
+            onClick={handleSelect}
+            type="button"
+            variant="subtle"
+          >
+            {selectionLabel}
           </Button>
         </HStack>
       </Card.Body>

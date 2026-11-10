@@ -1,0 +1,14 @@
+{
+  "name": "@empirage/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "hono": "^4.10.6",
+    "pino": "^10.1.0"
+  }
+}
