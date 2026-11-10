@@ -1,7 +1,17 @@
 import { z } from 'zod';
 
+const characterGenders = ['male', 'female'] as const;
+
 const CreateCharacterSchemaShape = {
-  name: z.string().min(1),
+  gender: z.enum(characterGenders),
+  name: z
+    .string()
+    .min(3, 'O nome deve ter entre 3 e 15 caracteres.')
+    .max(15, 'O nome deve ter entre 3 e 15 caracteres.')
+    .regex(
+      /^(?! )(?!.* {2})(?!.* $)[\p{L} '_-]+$/u,
+      'Apenas letras, espaços, apóstrofo, traços e underscores são permitidos.',
+    ),
 };
 
 export const CreateCharacterSchema = z.object(CreateCharacterSchemaShape);

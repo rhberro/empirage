@@ -21,7 +21,7 @@ export function SignUpForm(): React.ReactElement {
     }
   }
   return (
-    <Stack align="center" gap="10">
+    <Stack gap="10">
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
         <Card.Root variant="subtle">
           <Card.Header>
@@ -50,7 +50,7 @@ export function SignUpForm(): React.ReactElement {
           </Card.Footer>
         </Card.Root>
       </Form>
-      <Text color="fg.muted" textAlign="center" textStyle="sm" maxW="md">
+      <Text color="fg.muted" textAlign="center" textStyle="sm">
         Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade do
         Creatures.
       </Text>

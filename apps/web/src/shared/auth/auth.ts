@@ -53,7 +53,9 @@ export function useAuthStore<T>(selector: AuthSelector<T>): T {
 }
 
 let initialized = false;
+
 let authInitializationComplete = false;
+
 type AuthInitializationResolver = (value: void | PromiseLike<void>) => void;
 
 let resolveAuthInitialization: AuthInitializationResolver | undefined;
