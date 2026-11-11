@@ -8,13 +8,11 @@ export function CharacterRow(props: Character): React.ReactElement {
   const selectCharacterMutation = useSelectCharacter();
   const isSelectionDisabled = isSelected || selectCharacterMutation.isPending;
   const selectionLabel = isSelected ? 'Selecionado' : 'Selecionar';
-
   function handleSelect(): void {
     selectCharacterMutation.mutate(id);
   }
-
   return (
-    <Card.Root size="sm">
+    <Card.Root size="sm" variant="subtle">
       <Card.Body>
         <HStack>
           <AvatarGroup size="xl">
@@ -34,7 +32,6 @@ export function CharacterRow(props: Character): React.ReactElement {
             loading={selectCharacterMutation.isPending}
             onClick={handleSelect}
             type="button"
-            variant="subtle"
           >
             {selectionLabel}
           </Button>

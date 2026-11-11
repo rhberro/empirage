@@ -7,7 +7,7 @@ import { SignOutButton } from './SignOutButton';
 export function CharacterList(): React.ReactElement {
   return (
     <Stack gap="10">
-      <Card.Root variant="subtle">
+      <Card.Root>
         <Card.Header>
           <Card.Title>Personagens</Card.Title>
           <Card.Description>

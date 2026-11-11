@@ -2,7 +2,7 @@ import { Box, Button, Card, HStack, Skeleton, SkeletonCircle, Text } from '@chak
 
 export function CharacterRowSkeleton(): React.ReactElement {
   return (
-    <Card.Root size="sm">
+    <Card.Root size="sm" variant="subtle">
       <Card.Body>
         <HStack>
           <SkeletonCircle size="12" />

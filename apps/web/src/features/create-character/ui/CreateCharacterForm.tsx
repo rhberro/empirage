@@ -32,7 +32,7 @@ export function CreateCharacterForm(): React.ReactElement {
   return (
     <Stack gap="10">
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
-        <Card.Root variant="subtle">
+        <Card.Root>
           <Card.Header>
             <Card.Title>Criar Personagem</Card.Title>
             <Card.Description>

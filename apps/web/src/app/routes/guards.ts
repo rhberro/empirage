@@ -10,16 +10,17 @@ function isSelected(character: CharacterSelection): boolean {
   return character.is_selected;
 }
 
-export async function authenticatedDestinationLoader(): Promise<null | Response> {
+export async function selectedCharacterLoader(): Promise<null | Response> {
   await waitForAuthInitialization();
   if (authStore.getState().status !== 'authenticated') {
-    return null;
+    return redirect('/signin');
   }
-
   const characters = await apiRequest<CharacterSelections>('/characters');
   const hasSelectedCharacter = characters.some(isSelected);
-
-  return redirect(hasSelectedCharacter ? '/game' : '/characters');
+  if (hasSelectedCharacter) {
+    return null;
+  }
+  return redirect('/characters');
 }
 
 export async function authenticatedLoader(): Promise<null | Response> {
@@ -33,7 +34,7 @@ export async function authenticatedLoader(): Promise<null | Response> {
 export async function guestLoader(): Promise<null | Response> {
   await waitForAuthInitialization();
   if (authStore.getState().status === 'authenticated') {
-    return redirect('/');
+    return redirect('/characters');
   }
   return null;
 }

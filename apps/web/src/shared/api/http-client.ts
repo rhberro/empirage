@@ -52,7 +52,6 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   if (init && init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-
   const requestInit: RequestInit = { ...init, headers };
   const response = await globalThis.fetch(API_BASE_URL + path, requestInit);
   if (!response.ok) {

@@ -20,7 +20,7 @@ const tokens = {
 const themeConfig = {
   globalCss: {
     html: {
-      bg: 'bg.subtle',
+      bg: 'bg.muted',
     },
   },
   strictTokens: true,

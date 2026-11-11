@@ -1,3 +1,5 @@
+import { URL } from 'node:url';
+
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { cors } from 'hono/cors';
@@ -12,10 +14,25 @@ import { characters } from './routes/characters.ts';
 
 export const app = new Hono();
 
+function isDevelopmentOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    const isLoopbackHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    const isHttpProtocol = url.protocol === 'http:';
+    return isLoopbackHost && isHttpProtocol;
+  } catch {
+    return false;
+  }
+}
+
+function corsOrigin(origin: string): string | undefined {
+  return origin === config.webOrigin || isDevelopmentOrigin(origin) ? origin : undefined;
+}
+
 const corsOptions = {
   allowHeaders: ['Authorization', 'Content-Type'],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
-  origin: config.webOrigin,
+  origin: corsOrigin,
 };
 const corsMiddleware = cors(corsOptions);
 

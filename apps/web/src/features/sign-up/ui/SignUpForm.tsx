@@ -23,7 +23,7 @@ export function SignUpForm(): React.ReactElement {
   return (
     <Stack gap="10">
       <Form defaultValues={defaultValues} onSubmit={onSubmit}>
-        <Card.Root variant="subtle">
+        <Card.Root>
           <Card.Header>
             <Card.Title>Bem-vindo,</Card.Title>
             <Card.Description>Digite o seu e-mail e senha para criar a sua conta.</Card.Description>
