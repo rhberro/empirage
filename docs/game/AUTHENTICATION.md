@@ -46,7 +46,9 @@ Tela em branco por enquanto.
 
 Tela com o cartão "Personagens" e uma lista vertical, um item por personagem. Cada item exibe o avatar disponível, o nome e o nível. Quando a conta não possui personagens, a tela informa que nenhum personagem foi encontrado. O botão "Novo personagem" leva à [tela de criar personagem](#tela-de-criar-personagem).
 
-Cada personagem possui um botão "Selecionar". Ao selecionar um personagem, a seleção anterior da mesma conta é removida, o novo personagem torna-se o único personagem ativo e o jogador é redirecionado para `/game`. A seleção é persistida no personagem e permanece ativa depois do logout.
+Cada personagem possui um botão "Selecionar". Ao selecionar um personagem, ele é salvo na sessão persistente do navegador para a conta autenticada e o jogador é redirecionado para `/game`. Essa seleção não representa uma caça ativa e não é persistida no banco como estado do personagem.
+
+Uma caça ativa é representada separadamente por uma linha na tabela de caças. Cada conta pode ter no máximo um personagem caçando. Enquanto houver uma caça ativa, o jogador é direcionado para `/game` e não pode acessar a lista para selecionar outro personagem. A caça permanece ativa mesmo depois do logout ou do fechamento do navegador.
 
 Na parte de baixo da lista ficam os botões "Novo personagem" e "Sair da conta", que encerra a sessão sem remover a seleção persistida. A exclusão de personagens ainda não está implementada nessa tela.
 
@@ -80,4 +82,4 @@ Ao clicar em voltar, o usuário é redirecionado de volta para a [tela de lista 
 
 ## Controle de Redirecionamento
 
-Após uma autenticação ou cadastro bem-sucedido, o sistema consulta a seleção persistida da conta. Se houver um personagem selecionado, o usuário é redirecionado diretamente para `/game`; caso contrário, é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens). Cada conta pode possuir no máximo um personagem selecionado por vez.
+Após uma autenticação ou cadastro bem-sucedido, o sistema verifica primeiro se a conta possui um personagem com caça ativa. Nesse caso, o usuário é redirecionado diretamente para `/game` e a sessão do navegador é sincronizada com esse personagem. Se não houver caça ativa, o sistema verifica o personagem salvo na sessão persistente do navegador: havendo um personagem selecionado, o usuário pode acessar `/game`; caso contrário, é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens).

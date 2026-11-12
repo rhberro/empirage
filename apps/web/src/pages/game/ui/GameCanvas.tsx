@@ -1,39 +1,59 @@
-import { Application } from 'pixi.js';
-import type { Destructor, ReactElement } from 'react';
+import { AUTO, Game, Scale, Scene } from 'phaser';
+import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
+
+const GAME_WIDTH = 320;
+const GAME_HEIGHT = 180;
+type Cleanup = () => void;
+
+class GameScene extends Scene {
+  public constructor() {
+    super('GameScene');
+  }
+
+  public create(): void {
+    const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Empirage', {
+      color: '#f4e8c1',
+      fontFamily: 'monospace',
+      fontSize: '16px',
+    });
+    text.setOrigin(0.5);
+  }
+}
 
 export function GameCanvas(): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const [initializationError, setInitializationError] = useState<Error | null>(null);
 
-  function mountCanvas(): Destructor | undefined {
+  function mountGame(): Cleanup | undefined {
     const container = containerRef.current;
 
     if (!container) {
       return;
     }
 
-    const app = new Application();
-    const lifecycle = { disposed: false, initialized: false };
-
-    async function initialize(): Promise<void> {
-      const options = {
-        autoDensity: true,
-        resizeTo: container,
-        resolution: globalThis.devicePixelRatio || 1,
-      };
-
-      await app.init(options);
-      lifecycle.initialized = true;
-
-      // Initialization can finish after React has already cleaned up this effect.
-      if (lifecycle.disposed) {
-        app.destroy(true, { children: true });
-        return;
-      }
-
-      container.append(app.canvas);
-    }
+    const config = {
+      antialias: false,
+      backgroundColor: '#17151f',
+      height: GAME_HEIGHT,
+      parent: container,
+      pixelArt: true,
+      render: {
+        antialias: false,
+        roundPixels: true,
+      },
+      roundPixels: true,
+      scale: {
+        autoCenter: Scale.CENTER_BOTH,
+        height: GAME_HEIGHT,
+        mode: Scale.FIT,
+        width: GAME_WIDTH,
+      },
+      scene: GameScene,
+      type: AUTO,
+      width: GAME_WIDTH,
+    };
+    const lifecycle = { disposed: false };
 
     function handleInitializationError(error: unknown): void {
       if (!lifecycle.disposed) {
@@ -43,20 +63,24 @@ export function GameCanvas(): ReactElement {
       }
     }
 
-    initialize().catch(handleInitializationError);
+    let game: Game;
 
-    function unmountCanvas(): void {
-      lifecycle.disposed = true;
-
-      if (lifecycle.initialized) {
-        app.destroy(true, { children: true });
-      }
+    try {
+      game = new Game(config);
+    } catch (error) {
+      handleInitializationError(error);
+      return;
     }
 
-    return unmountCanvas;
+    function unmountGame(): void {
+      lifecycle.disposed = true;
+      game.destroy(true);
+    }
+
+    return unmountGame;
   }
 
-  useEffect(mountCanvas, []);
+  useEffect(mountGame, []);
 
   if (initializationError) {
     throw initializationError;

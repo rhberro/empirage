@@ -6,7 +6,7 @@ export function GameTitle(): React.ReactElement {
       <Text fontWeight="bold" textStyle="2xl">
         THE KINGDOM OF
       </Text>
-      <Heading size="7xl" fontWeight="bold">
+      <Heading size="7xl" fontWeight="black">
         CREATURES
       </Heading>
     </Stack>

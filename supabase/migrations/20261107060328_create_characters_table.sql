@@ -25,16 +25,20 @@ create table public.characters (
     and name !~ '  '
     and name ~ '^[[:alpha:] ''_-]+$'
   ),
-  constraint characters_user_slot_key unique (user_id, slot)
+  constraint characters_user_slot_key unique (user_id, slot),
+  constraint characters_id_user_key unique (id, user_id)
 );
 
 create unique index characters_name_normalized_key on public.characters (name_normalized);
+
 
 alter table public.characters enable row level security;
 
 revoke all on table public.characters from anon, authenticated;
 
 grant select, delete on table public.characters to authenticated;
+
+
 
 create policy "Users can view their own characters"
 on public.characters
@@ -47,6 +51,7 @@ on public.characters
 for delete
 to authenticated
 using ((select auth.uid()) = user_id);
+
 
 create or replace function public.create_character(
   character_name text,

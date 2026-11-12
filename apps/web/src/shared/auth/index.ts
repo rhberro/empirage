@@ -2,6 +2,7 @@ export {
   authStore,
   getAccessToken,
   initializeAuth,
+  invalidateSession,
   selectAuthError,
   selectAuthSession,
   selectAuthStatus,

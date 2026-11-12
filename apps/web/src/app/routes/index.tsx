@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 
-import { authenticatedLoader, guestLoader, selectedCharacterLoader } from './guards';
+import { characterListLoader, gameLoader, guestLoader } from './guards';
 
 type Route = Array<RouteObject>;
 
@@ -27,17 +27,17 @@ const ROUTES: Route = [
   },
   {
     Component: lazy(loadNewCharacterPage),
-    loader: authenticatedLoader,
+    loader: characterListLoader,
     path: '/characters/new',
   },
   {
     Component: lazy(loadCharactersPage),
-    loader: authenticatedLoader,
+    loader: characterListLoader,
     path: '/characters',
   },
   {
     Component: lazy(loadGamePage),
-    loader: selectedCharacterLoader,
+    loader: gameLoader,
     path: '/game',
   },
   {

@@ -51,7 +51,7 @@ characters.get('/', async function listCharacters(context) {
   const supabase = context.get('supabase');
   const { data, error } = await supabase
     .from('characters')
-    .select('id, name, level, gender, avatar_url, is_selected')
+    .select('id, name, experience, level, gender, avatar_url')
     .order('slot');
 
   if (error) {
@@ -83,17 +83,20 @@ characters.post('/', async function createCharacter(context) {
   return context.json(response, 201);
 });
 
-characters.post('/:characterId/select', async function selectCharacter(context) {
-  const characterId = context.req.param('characterId');
-  const parameters = { character_id: characterId };
+characters.get('/active-hunt', async function getActiveHunt(context) {
+  const user = context.get('user');
   const supabase = context.get('supabase');
-  const { error } = await supabase.rpc('select_character', parameters);
+  const { data, error } = await supabase
+    .from('character_hunts')
+    .select('character_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
 
   if (error) {
     throw databaseError(error);
   }
 
-  return context.body(null, 204);
+  return context.json(data);
 });
 
 export { characters };

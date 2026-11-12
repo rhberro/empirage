@@ -3,6 +3,7 @@ import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 
 import { supabase } from '../api';
+import { clearSelectedCharacter } from '../session';
 
 export type AuthStatus = 'initializing' | 'authenticated' | 'unauthenticated';
 
@@ -151,8 +152,22 @@ export async function signOut(): Promise<boolean> {
     return false;
   }
 
+  clearSelectedCharacter();
   updateAuthState(null, error);
   return true;
+}
+
+export async function invalidateSession(): Promise<void> {
+  const localSignOutOptions = { scope: 'local' as const };
+
+  try {
+    await supabase.auth.signOut(localSignOutOptions);
+  } catch {
+    // Local state cleanup must not depend on the auth request succeeding.
+  } finally {
+    clearSelectedCharacter();
+    updateAuthState(null, null);
+  }
 }
 
 export function getAccessToken(): string | null {

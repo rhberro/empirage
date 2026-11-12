@@ -1,7 +1,6 @@
-import { apiRequest } from '~/shared/api';
+import type { CharacterId } from '~/entities/character';
+import { setSelectedCharacter } from '~/shared/session';
 
-export async function selectCharacter(characterId: string): Promise<void> {
-  const path = `/characters/${encodeURIComponent(characterId)}/select`;
-  const requestInit: RequestInit = { method: 'POST' };
-  await apiRequest(path, requestInit);
+export function selectCharacter(characterId: CharacterId, userId: string): void {
+  setSelectedCharacter(userId, characterId);
 }

@@ -1,9 +1,9 @@
 import { EmptyState, For } from '@chakra-ui/react';
 import * as React from 'react';
 
+import type { Character } from '~/entities/character';
 import { Icon } from '~/shared/ui/Icon';
 
-import type { Character } from '../api/get-characters';
 import { useCharacters } from '../model/use-characters';
 import { CharacterRow } from './CharacterRow';
 import { CharacterRowSkeleton } from './CharacterRowSkeleton';
