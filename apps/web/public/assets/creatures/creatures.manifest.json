@@ -1,0 +1,7 @@
+{
+  "sourceSize": { "width": 32, "height": 32 },
+  "pivot": { "x": 16, "y": 24 },
+  "directions": ["north", "east", "south", "west"],
+  "frames": ["frame1", "frame2"],
+  "outputDirectory": "atlases"
+}

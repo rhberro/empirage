@@ -1,0 +1,13 @@
+{
+  "directions": ["east", "north", "south", "west"],
+  "sourceSize": {
+    "width": 32,
+    "height": 32
+  },
+  "bodies": {
+    "1": {
+      "outputDirectory": "male",
+      "atlasName": "male-walking-running"
+    }
+  }
+}
