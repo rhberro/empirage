@@ -85,7 +85,7 @@ Responda sempre em Português, o código gerado é sempre em Inglês (incluindo 
 
 ### Resumo
 
-Ao final de cada execução, você obrigatoriamente deve informar o que foi utilizado, no formato abaixo. Liste apenas os itens que realmente foram usados e omita as categorias vazias.
+Ao final de cada execução, excluindo sub-agentes, você obrigatoriamente deve informar o que foi utilizado, no formato abaixo. Liste apenas os itens que realmente foram usados e omita as categorias vazias.
 
 ```
 O que eu utilizei durante a execução:

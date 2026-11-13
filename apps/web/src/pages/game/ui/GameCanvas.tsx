@@ -1,90 +1,79 @@
-import { AUTO, Game, Scale, Scene } from 'phaser';
+import { AUTO, Game, Scale } from 'phaser';
 import type { ReactElement } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-const GAME_WIDTH = 320;
-const GAME_HEIGHT = 180;
+import { authStore } from '~/shared/auth';
+import { getSelectedCharacter } from '~/shared/session';
+
+import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import { CityScene } from './CityScene';
+
+const GAME_WIDTH = 480;
+const GAME_HEIGHT = 288;
 type Cleanup = () => void;
+type HuntStateChangeHandler = (hunt: HuntState | null) => void;
+type HuntCommandSenderChangeHandler = (
+  sender: ((command: HuntCommand) => boolean) | undefined,
+) => void;
+type GameCanvasProps = {
+  onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
+  onHuntStateChange: HuntStateChangeHandler;
+};
 
-class GameScene extends Scene {
-  public constructor() {
-    super('GameScene');
-  }
-
-  public create(): void {
-    const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Empirage', {
-      color: '#f4e8c1',
-      fontFamily: 'monospace',
-      fontSize: '16px',
-    });
-    text.setOrigin(0.5);
-  }
-}
-
-export function GameCanvas(): ReactElement {
+export function GameCanvas(props: GameCanvasProps): ReactElement {
+  const { onHuntCommandSenderChange, onHuntStateChange } = props;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [initializationError, setInitializationError] = useState<Error | null>(null);
+  const onHuntCommandSenderChangeRef = useRef(onHuntCommandSenderChange);
+  const onHuntStateChangeRef = useRef(onHuntStateChange);
+
+  function synchronizeHuntStateHandler(): void {
+    onHuntStateChangeRef.current = onHuntStateChange;
+    onHuntCommandSenderChangeRef.current = onHuntCommandSenderChange;
+  }
+
+  function handleHuntStateChange(hunt: HuntState | null): void {
+    onHuntStateChangeRef.current(hunt);
+  }
 
   function mountGame(): Cleanup | undefined {
     const container = containerRef.current;
-
-    if (!container) {
+    const session = authStore.getState().session;
+    const characterId = session ? getSelectedCharacter(session.user.id) : null;
+    if (!container || !characterId) {
       return;
     }
-
+    const scene = new CityScene(
+      characterId,
+      handleHuntStateChange,
+      onHuntCommandSenderChangeRef.current,
+    );
     const config = {
       antialias: false,
-      backgroundColor: '#17151f',
+      backgroundColor: '#77777f',
+      dom: { createContainer: true, pointerEvents: 'none' },
       height: GAME_HEIGHT,
       parent: container,
       pixelArt: true,
-      render: {
-        antialias: false,
-        roundPixels: true,
-      },
+      render: { antialias: false, roundPixels: true },
       roundPixels: true,
       scale: {
         autoCenter: Scale.CENTER_BOTH,
         height: GAME_HEIGHT,
-        mode: Scale.FIT,
+        mode: Scale.ENVELOP,
         width: GAME_WIDTH,
       },
-      scene: GameScene,
+      scene,
       type: AUTO,
       width: GAME_WIDTH,
     };
-    const lifecycle = { disposed: false };
-
-    function handleInitializationError(error: unknown): void {
-      if (!lifecycle.disposed) {
-        const failure =
-          error instanceof Error ? error : new Error('Unable to initialize the game canvas.');
-        setInitializationError(failure);
-      }
-    }
-
-    let game: Game;
-
-    try {
-      game = new Game(config);
-    } catch (error) {
-      handleInitializationError(error);
-      return;
-    }
-
+    const game = new Game(config);
     function unmountGame(): void {
-      lifecycle.disposed = true;
       game.destroy(true);
     }
-
     return unmountGame;
   }
 
+  useEffect(synchronizeHuntStateHandler, [onHuntCommandSenderChange, onHuntStateChange]);
   useEffect(mountGame, []);
-
-  if (initializationError) {
-    throw initializationError;
-  }
-
   return <div className="game-canvas" ref={containerRef} />;
 }

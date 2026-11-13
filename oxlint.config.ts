@@ -30,6 +30,7 @@ const config: OxlintConfig = {
         'react/jsx-filename-extension': 'off',
         'react/jsx-no-literals': 'off',
         'react/react-in-jsx-scope': 'off',
+        'react/use-memo': 'off',
       },
     },
     {
@@ -51,6 +52,7 @@ const config: OxlintConfig = {
     'import/no-unassigned-import': 'off',
     'oxc/no-async-await': 'off',
     'oxc/no-rest-spread-properties': 'off',
+    'typescript/no-non-null-assertion': 'off',
     'unicorn/no-array-callback-reference': 'off',
   },
 };

@@ -1,0 +1,32 @@
+@property --cooldown-degrees {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.slot__cooldown {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    rgb(0 0 0 / 45%) 0deg var(--cooldown-degrees),
+    transparent var(--cooldown-degrees) 360deg
+  );
+  animation: slot-cooldown var(--cooldown-duration) linear var(--cooldown-delay) both;
+  pointer-events: none;
+}
+
+.ability-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+@keyframes slot-cooldown {
+  from {
+    --cooldown-degrees: 360deg;
+  }
+  to {
+    --cooldown-degrees: 0deg;
+  }
+}

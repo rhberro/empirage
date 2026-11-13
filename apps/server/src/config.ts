@@ -4,8 +4,12 @@ import { URL } from 'node:url';
 type Config = {
   port: number;
   supabasePublishableKey: string;
+  supabaseSecretKey: string;
   supabaseUrl: string;
   webOrigin: string;
+  websocketAuthenticationTimeoutMs: number;
+  websocketMaximumMessageBytes: number;
+  websocketMaximumMessagesPerSecond: number;
 };
 
 function requiredEnvironmentVariable(name: string): string {
@@ -15,6 +19,16 @@ function requiredEnvironmentVariable(name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
 
+  return value;
+}
+
+function supabaseSecretKey(): string {
+  const value = env.SUPABASE_SECRET_KEY ?? env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!value) {
+    throw new Error(
+      'Missing required environment variable: SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY',
+    );
+  }
   return value;
 }
 
@@ -48,9 +62,33 @@ function webOrigin(): string {
   return url.origin;
 }
 
+function positiveIntegerEnvironmentVariable(name: string, fallback: number): number {
+  const value = env[name];
+  const parsed = value ? Number(value) : fallback;
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+
+  return parsed;
+}
+
 export const config: Config = {
   port: serverPort(),
   supabasePublishableKey: requiredEnvironmentVariable('SUPABASE_PUBLISHABLE_KEY'),
+  supabaseSecretKey: supabaseSecretKey(),
   supabaseUrl: requiredEnvironmentVariable('SUPABASE_URL'),
   webOrigin: webOrigin(),
+  websocketAuthenticationTimeoutMs: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_AUTHENTICATION_TIMEOUT_MS',
+    10_000,
+  ),
+  websocketMaximumMessageBytes: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_MAXIMUM_MESSAGE_BYTES',
+    4_096,
+  ),
+  websocketMaximumMessagesPerSecond: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_MAXIMUM_MESSAGES_PER_SECOND',
+    30,
+  ),
 };

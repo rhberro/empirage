@@ -10,12 +10,36 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
 }
 
 .game-canvas > canvas {
   display: block;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+}
+
+.hunt-feedback {
+  position: absolute;
+  font-family: 'Outfit Variable', sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hunt-feedback--ability {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #ffffff;
+  background-color: var(--feedback-color);
+  font-size: 12px;
+}
+
+.hunt-feedback--damage {
+  color: #fff1d4;
+  font-size: 15px;
+  text-shadow:
+    0 1px 0 #171922,
+    1px 0 0 #171922,
+    0 -1px 0 #171922,
+    -1px 0 0 #171922;
 }

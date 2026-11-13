@@ -1,0 +1,60 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export type CardinalDirection = 'down' | 'left' | 'right' | 'up';
+export type Direction = CardinalDirection | 'down-left' | 'down-right' | 'up-left' | 'up-right';
+export type MovementMode = 'running' | 'walking';
+export type InputState = Record<CardinalDirection, boolean> & { running: boolean };
+export type Position = { x: number; y: number };
+export type Movement = {
+  direction: Direction;
+  durationTicks: number;
+  fromTile: Position;
+  movementId: string;
+  mode: MovementMode;
+  startTick: number;
+  startTime: number;
+  toTile: Position;
+};
+export type AuthenticatedState = {
+  accountId: string;
+  characterId: string;
+  connectionGeneration: number;
+  dirty: boolean;
+  dirtyVersion: number;
+  input: InputState;
+  lastInputAt: number;
+  lastInputRejectionAt: number;
+  lastInputRejectionReason?: string;
+  lastSequence: number;
+  movement?: Movement;
+  position: Position;
+  priority: CardinalDirection;
+  requestedMode: MovementMode;
+  hunting: boolean;
+  huntTransitioning: boolean;
+  supabase: SupabaseClient;
+};
+export type SocketData = {
+  authenticated?: AuthenticatedState;
+  authenticationTimer?: ReturnType<typeof globalThis.setTimeout>;
+  authenticating: boolean;
+  id: string;
+  lastPongAt: number;
+  messageCount: number;
+  messageWindowStartedAt: number;
+};
+export type ClientMessage = {
+  abilityId?: unknown;
+  abilitySlot?: unknown;
+  characterId?: unknown;
+  healingItemId?: unknown;
+  healingThresholdPercentage?: unknown;
+  input?: unknown;
+  priority?: unknown;
+  sequence?: unknown;
+  sentAt?: unknown;
+  token?: unknown;
+  type?: unknown;
+  version?: unknown;
+};
+export type CharacterRow = { id: string; position_x: number; position_y: number; user_id: string };

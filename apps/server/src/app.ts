@@ -10,7 +10,7 @@ import { config } from './config.ts';
 import { AppError } from './errors.ts';
 import { logger } from './logger.ts';
 import { requestLogging } from './middleware/request-logging.ts';
-import { characters } from './routes/characters.ts';
+import { routes } from './routes/index.ts';
 
 export const app = new Hono();
 
@@ -73,4 +73,9 @@ function health(context: Context<BlankEnv, '/health', BlankInput>): Response {
 
 app.get('/health', health);
 
-app.route('/characters', characters);
+app.get('/ws', function websocketUpgradeRequired(context) {
+  const response = { code: 'upgrade_required', message: 'upgrade_required' };
+  return context.json(response, 426);
+});
+
+app.route('/', routes);

@@ -20,3 +20,6 @@ bun.lockb
 # Supabase CLI
 supabase/.temp/
 supabase/.branches/
+
+# Agent workflow state
+.slim/deepwork/
