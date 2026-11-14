@@ -289,10 +289,10 @@ function publicAbilityResource(
   slot: number,
   cooldowns: Record<string, number> | undefined,
 ): PublicActiveCreatureAbility {
-  const range = ability.category === 'physical' ? 1 : 4;
+  const range = ability.rangeTiles;
   return {
     accuracy: ability.accuracy,
-    areaRadius: ability.isFire ? 1 : 0,
+    areaRadius: ability.areaRadius,
     category: ability.category,
     cooldownEndsAt: cooldowns ? (cooldowns[String(ability.id)] ?? 0) : 0,
     cooldownMs: ability.cooldownMs,
@@ -474,7 +474,11 @@ function processRuntime(runtime: Runtime, now: number): void {
   }
 }
 
-type HealingItemPurchaseRow = { gold: number; healing_amount: number };
+type HealingItemPurchaseRow = {
+  gold: number;
+  healing_amount: number | null;
+  restores_full_health: boolean;
+};
 
 function queueHealingItemUse(runtime: Runtime, now: number): void {
   if (runtime.healingUsePending || !healingItemDue(runtime.engine, now)) {
@@ -493,8 +497,8 @@ function queueHealingItemUse(runtime: Runtime, now: number): void {
     return;
   }
   const params = { target_character_id: runtime.characterId, target_item_id: item.id };
-  async function purchaseAndApply(): Promise<void> {
-    const { data, error } = await serverClient.rpc('use_character_healing_item', params);
+  async function applyItem(): Promise<void> {
+    const { data, error } = await serverClient.rpc('purchase_character_battle_item', params);
     if (error) {
       throw error;
     }
@@ -504,11 +508,14 @@ function queueHealingItemUse(runtime: Runtime, now: number): void {
       return;
     }
     runtime.engine.resources.gold = purchase.gold;
-    if (applyHealingItem(runtime.engine, purchase.healing_amount, epochNow())) {
+    const healingAmount = purchase.restores_full_health
+      ? Number.MAX_SAFE_INTEGER
+      : (purchase.healing_amount ?? 0);
+    if (applyHealingItem(runtime.engine, healingAmount, epochNow())) {
       notifyRuntime(runtime, []);
     }
   }
-  const pending = purchaseAndApply();
+  const pending = applyItem();
   runtime.healingUsePending = pending;
   function clearPending(): void {
     if (runtime.healingUsePending === pending) {
@@ -542,12 +549,10 @@ export async function configureHuntHealingItem(
     return undefined;
   }
   if (itemId === 0) {
-    const update = { healing_item_id: null, healing_threshold_percentage: null };
     const { error } = await serverClient
-      .from('characters')
-      .update(update)
-      .eq('id', characterId)
-      .eq('user_id', userId);
+      .from('character_battle_item_configuration')
+      .delete()
+      .eq('character_id', characterId);
     if (error) {
       throw error;
     }
@@ -565,14 +570,11 @@ export async function configureHuntHealingItem(
     throw new TypeError('invalid_healing_item');
   }
   const update = {
-    healing_item_id: itemId,
-    healing_threshold_percentage: thresholdPercentage,
+    character_id: characterId,
+    item_id: itemId,
+    threshold_percentage: thresholdPercentage,
   };
-  const { error } = await serverClient
-    .from('characters')
-    .update(update)
-    .eq('id', characterId)
-    .eq('user_id', userId);
+  const { error } = await serverClient.from('character_battle_item_configuration').upsert(update);
   if (error) {
     throw error;
   }
@@ -624,11 +626,11 @@ export async function configureHuntAbility(
     return publicState(runtime, []);
   }
   const parameters = {
-    target_ability_id: abilityId,
+    target_move_id: abilityId,
     target_creature_id: active.id,
     target_slot: slot,
   };
-  const { error } = await serverClient.rpc('configure_creature_equipped_ability', parameters);
+  const { error } = await serverClient.rpc('configure_creature_equipped_move', parameters);
   if (error) {
     throw error;
   }

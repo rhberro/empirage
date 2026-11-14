@@ -1,5 +1,6 @@
 import {
   Badge,
+  Box,
   Button,
   Dialog,
   FormatNumber,
@@ -8,8 +9,8 @@ import {
   Image,
   NumberInput,
   RadioCard,
-  Show,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { useWatch } from 'react-hook-form';
@@ -38,8 +39,8 @@ export function HealingItemDialogFields(props: HealingItemDialogFieldsProps): Re
   const currentCost = selectedItem ? selectedItem.goldCost : 0;
   return (
     <>
-      <Dialog.Body>
-        <Stack gap="4">
+      <Dialog.Body display="flex" flex="1" flexDirection="column" minH="0">
+        <Stack gap="4" h="full" minH="0">
           <Form.Field
             label="Quando usar"
             max={100}
@@ -64,26 +65,35 @@ export function HealingItemDialogFields(props: HealingItemDialogFieldsProps): Re
               </NumberInput.IncrementTrigger>
             </HStack>
           </Form.Field>
-          <Form.Field label="Qual usar" name="itemId" render={RadioCardField} required w="full">
-            <RadioCard.Item value="0">
-              <RadioCard.ItemHiddenInput />
-              <RadioCard.ItemControl alignItems="center">
-                <Icon name="block" textStyle="xl" />
-                <RadioCard.ItemText>Nenhum</RadioCard.ItemText>
-                <RadioCard.ItemIndicator />
-              </RadioCard.ItemControl>
-            </RadioCard.Item>
-            {itemOptions}
-          </Form.Field>
+          <Stack flex="1" minH="0" gap="2">
+            <Text fontSize="sm" fontWeight="bold">
+              Item para usar
+            </Text>
+            <Box flex="1" minH="0" overflowY="auto" pe="2">
+              <Form.Field name="itemId" render={RadioCardField} required w="full">
+                <RadioCard.Item value="0">
+                  <RadioCard.ItemHiddenInput />
+                  <RadioCard.ItemControl alignItems="center">
+                    <Icon name="block" textStyle="xl" />
+                    <RadioCard.ItemText>Não usar item</RadioCard.ItemText>
+                    <RadioCard.ItemIndicator />
+                  </RadioCard.ItemControl>
+                </RadioCard.Item>
+                {itemOptions}
+              </Form.Field>
+            </Box>
+          </Stack>
         </Stack>
       </Dialog.Body>
       <Dialog.Footer>
-        <Show when={selectedItem}>
-          Custo por uso:
+        <HStack flex="1" justify="flex-start">
+          <Text color="fg.muted" fontSize="sm">
+            Custo por uso
+          </Text>
           <Badge colorPalette="yellow">
             ₽ <FormatNumber value={currentCost} />
           </Badge>
-        </Show>
+        </HStack>
         <Dialog.ActionTrigger asChild>
           <Button type="button" variant="outline">
             Cancelar
@@ -110,10 +120,10 @@ function renderItem(item: HealingItem): React.ReactElement {
   const description = item.restoresFullHealth ? '100% do HP' : item.healingAmount + ' HP';
   const value = item.id.toString();
   return (
-    <RadioCard.Item value={value}>
+    <RadioCard.Item key={item.id} value={value}>
       <RadioCard.ItemHiddenInput />
       <RadioCard.ItemControl alignItems="center">
-        <Image src={src} />
+        <Image alt="" boxSize="9" src={src} />
         <RadioCard.ItemText>{item.name}</RadioCard.ItemText>
         <RadioCard.ItemDescription>
           <span>Restaura {description}</span>

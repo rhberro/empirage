@@ -14,7 +14,6 @@ const PLAYER_POSITION: Position = { x: 2, y: 3 };
 const GRID_HEIGHT = 8;
 const GRID_WIDTH = 12;
 const MOVEMENT_MS = 833;
-const MOVEMENT_TICKS = 25;
 const ABILITY_SPACING_MS = 1_000;
 const ENEMY_SPACING_MS = 150;
 const GLOBAL_COOLDOWN_KEY = 'global';
@@ -94,9 +93,12 @@ export type HuntEngineSnapshot = HuntEngineCheckpoint & { runtimeGeneration: str
 type AttackPolicy = {
   abilityId: number;
   abilityName: string;
+  category: HuntAbilityResource['category'];
   areaRadius: number;
   cooldownMs: number;
   element: string;
+  power: number;
+  typeId: number;
   range: number;
 };
 type ActingEnemy = { enemy: HuntEngineEnemy; policy: AttackPolicy };
@@ -110,8 +112,48 @@ function positionKey(position: Position): string {
   return `${position.x}:${position.y}`;
 }
 
-function maximumAllyHealth(species: HuntSpeciesResource): number {
-  return species.baseHealth + 15;
+type BattleStats = {
+  attack: number;
+  defense: number;
+  health: number;
+  specialAttack: number;
+  specialDefense: number;
+  speed: number;
+};
+type StatIvs = Pick<
+  HuntCreatureResource,
+  'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
+>;
+
+const WILD_IV = 15;
+
+function calculatedStat(base: number, iv: number, level: number, health: boolean): number {
+  const scaled = Math.floor(((base * 2 + iv) * level) / 100);
+  // Nature will multiply non-HP stats here when creature natures are introduced.
+  return health ? scaled + level + 10 : scaled + 5;
+}
+
+function battleStats(species: HuntSpeciesResource, level: number, ivs: StatIvs): BattleStats {
+  return {
+    attack: calculatedStat(species.baseAttack, ivs.ivAttack, level, false),
+    defense: calculatedStat(species.baseDefense, ivs.ivDefense, level, false),
+    health: calculatedStat(species.baseHealth, ivs.ivHealth, level, true),
+    specialAttack: calculatedStat(species.baseSpecialAttack, ivs.ivSpecialAttack, level, false),
+    specialDefense: calculatedStat(species.baseSpecialDefense, ivs.ivSpecialDefense, level, false),
+    speed: calculatedStat(species.baseSpeed, ivs.ivSpeed, level, false),
+  };
+}
+
+function wildStats(species: HuntSpeciesResource, level: number): BattleStats {
+  const ivs: StatIvs = {
+    ivAttack: WILD_IV,
+    ivDefense: WILD_IV,
+    ivHealth: WILD_IV,
+    ivSpecialAttack: WILD_IV,
+    ivSpecialDefense: WILD_IV,
+    ivSpeed: WILD_IV,
+  };
+  return battleStats(species, level, ivs);
 }
 
 function experienceForLevel(level: bigint): bigint {
@@ -154,7 +196,7 @@ function buildAllies(
     if (!species) {
       continue;
     }
-    const maximumHealth = maximumAllyHealth(species);
+    const maximumHealth = battleStats(species, creature.level, creature).health;
     allies.push({
       ...creature,
       health:
@@ -285,7 +327,7 @@ function spawnWave(engine: HuntEngine, nowEpoch: number): void {
     const encounter = randomEncounter(engine.resources);
     const position = spawnPosition(engine, blocked);
     blocked.add(positionKey(position));
-    const health = encounter.baseHealth + encounter.level;
+    const health = wildStats(encounter, encounter.level).health;
     engine.enemies.push({
       ...encounter,
       combatId: randomUUID(),
@@ -354,19 +396,23 @@ function policyFor(
   }
   const available: Array<AttackPolicy> = [];
   for (const ability of abilities) {
-    const range = ability.category === 'physical' ? 1 : 4;
+    const range = ability.rangeTiles;
     if (
       ability.requiredLevel <= level &&
+      ability.power !== null &&
       (actorCooldowns[String(ability.id)] ?? 0) <= nowEpoch &&
       targetDistance <= range
     ) {
       available.push({
         abilityId: ability.id,
         abilityName: ability.name,
-        areaRadius: ability.isFire ? 1 : 0,
+        areaRadius: ability.areaRadius,
+        category: ability.category,
         cooldownMs: ability.cooldownMs,
         element: ability.typeSlug,
+        power: ability.power,
         range,
+        typeId: ability.typeId,
       });
     }
   }
@@ -406,6 +452,46 @@ function attackKind(policy: AttackPolicy): HuntCombatEvent['kind'] {
   return policy.areaRadius > 0 ? 'area' : policy.range === 1 ? 'melee' : 'ranged';
 }
 
+function typeMultiplier(
+  engine: HuntEngine,
+  attacker: HuntSpeciesResource,
+  defender: HuntSpeciesResource,
+  move: AttackPolicy,
+): number {
+  let multiplier = attacker.typeIds.includes(move.typeId) ? 1.5 : 1;
+  for (const defenderTypeId of defender.typeIds) {
+    multiplier *=
+      engine.resources.typeEffectiveness[String(move.typeId) + ':' + defenderTypeId] ?? 1;
+  }
+  return multiplier;
+}
+
+function damageForAttack(
+  engine: HuntEngine,
+  attacker: HuntSpeciesResource,
+  attackerLevel: number,
+  attackerStats: BattleStats,
+  defender: HuntSpeciesResource,
+  defenderStats: BattleStats,
+  policy: AttackPolicy,
+): number {
+  const physical = policy.category === 'physical';
+  const offense = physical ? attackerStats.attack : attackerStats.specialAttack;
+  const defense = physical ? defenderStats.defense : defenderStats.specialDefense;
+  const effectiveness = typeMultiplier(engine, attacker, defender, policy);
+  if (effectiveness === 0) {
+    return 0;
+  }
+  const base =
+    Math.floor(
+      Math.floor(
+        (Math.floor((2 * attackerLevel) / 5 + 2) * policy.power * offense) / Math.max(1, defense),
+      ) / 50,
+    ) + 2;
+  const random = 217 + Math.floor(Math.random() * 39);
+  return Math.max(1, Math.floor((Math.floor(base * effectiveness) * random) / 255));
+}
+
 function enemyAttack(
   engine: HuntEngine,
   acting: ActingEnemy,
@@ -414,9 +500,14 @@ function enemyAttack(
 ): void {
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
-  const damage = Math.max(
-    1,
-    acting.enemy.baseAttack + acting.enemy.level - allySpecies.baseDefense,
+  const damage = damageForAttack(
+    engine,
+    acting.enemy,
+    acting.enemy.level,
+    wildStats(acting.enemy, acting.enemy.level),
+    allySpecies,
+    battleStats(allySpecies, ally.level, ally),
+    acting.policy,
   );
   ally.health = Math.max(0, ally.health - damage);
   startCooldown(engine, acting.enemy.combatId, acting.policy, nowEpoch);
@@ -447,7 +538,15 @@ function allyAttack(
   const tiles: Array<Position> = [];
   for (const enemy of engine.enemies) {
     if (areaDistance(enemy.position, target.position) <= policy.areaRadius) {
-      const damage = Math.max(1, species.baseAttack + 15 - enemy.baseDefense);
+      const damage = damageForAttack(
+        engine,
+        species,
+        ally.level,
+        battleStats(species, ally.level, ally),
+        enemy,
+        wildStats(enemy, enemy.level),
+        policy,
+      );
       enemy.health = Math.max(0, enemy.health - damage);
       damages.push({ amount: damage, tile: enemy.position });
       if (policy.areaRadius > 0) {
@@ -532,8 +631,8 @@ function processAttacks(
     candidate: ActingEnemy,
   ): ActingEnemy {
     return !current ||
-      candidate.enemy.baseSpeed + candidate.enemy.level >
-        current.enemy.baseSpeed + current.enemy.level
+      wildStats(candidate.enemy, candidate.enemy.level).speed >
+        wildStats(current.enemy, current.enemy.level).speed
       ? candidate
       : current;
   }, undefined);
@@ -541,7 +640,8 @@ function processAttacks(
     allyPolicy &&
     target &&
     (!fastestEnemy ||
-      allySpecies.baseSpeed + 15 >= fastestEnemy.enemy.baseSpeed + fastestEnemy.enemy.level);
+      battleStats(allySpecies, ally.level, ally).speed >=
+        wildStats(fastestEnemy.enemy, fastestEnemy.enemy.level).speed);
   if (allyFirst && allyPolicy && target) {
     allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
   }
@@ -642,7 +742,7 @@ function beginMovement(
 ): void {
   enemy.movement = {
     direction: directionTo(enemy.position, destination),
-    durationTicks: MOVEMENT_TICKS,
+    durationTicks: 20,
     fromTile: enemy.position,
     mode: 'walking',
     movementId: randomUUID(),
@@ -723,11 +823,11 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): boolean {
 }
 
 function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
+  if (engine.enemies.length === 0) {
+    return Math.max(nowEpoch, engine.nextEventAt);
+  }
   const deadlines: Array<number> = [];
   let readyAction = false;
-  if (engine.enemies.length === 0) {
-    deadlines.push(engine.nextEventAt);
-  }
   for (const enemy of engine.enemies) {
     deadlines.push(enemy.nextAttackAt);
     if (enemy.movement) {

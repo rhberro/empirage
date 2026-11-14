@@ -35,12 +35,6 @@ export function BottomBar(props: BottomBarProps): React.ReactElement {
               healingItemCooldownEndsAt={healingItemCooldownEndsAt}
               healingItems={healingItems}
             />
-            <ActionBar.Separator />
-            <HealingSlot
-              healingConfiguration={healingConfiguration}
-              healingItemCooldownEndsAt={healingItemCooldownEndsAt}
-              // healingItems={healingItems}
-            />
           </ActionBar.Content>
         </ActionBar.Positioner>
       </Portal>

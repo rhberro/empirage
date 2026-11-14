@@ -1,4 +1,14 @@
-import { Button, Dialog, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import {
+  Badge,
+  Box,
+  Button,
+  Dialog,
+  HStack,
+  Separator,
+  SimpleGrid,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 import * as React from 'react';
 
 import type { HuntAbility, HuntAvailableAbility, HuntCommand } from '../api/hunt-protocol';
@@ -11,7 +21,8 @@ type AbilityDialogProps = {
   onConfigure: (command: HuntCommand) => boolean;
 };
 type EquippedAbilities = Array<HuntAbility>;
-const dialogGridColumns = { base: 1, md: 2 };
+const dialogGridColumns = { base: 1, md: 2, xl: 3 };
+const abilityDialogHeight = { base: 'calc(100dvh - 4)', md: 'min(46rem, calc(100dvh - 8))' };
 function handleOpenChange(details: Dialog.OpenChangeDetails): void {
   if (!details.open) {
     closeAbilityModal();
@@ -64,18 +75,20 @@ export function AbilityDialog(props: AbilityDialogProps): React.ReactElement {
           : 'Selecionar';
     const opacity = locked ? 0.45 : 1;
     const variant = current ? 'solid' : 'outline';
+    const borderColor = current ? 'accent.solid' : 'border.default';
     function handleClick(): void {
       selectAbility(ability);
     }
     return (
       <Button
         alignItems="stretch"
+        borderColor={borderColor}
         disabled={locked}
         h="auto"
         key={ability.id}
         opacity={opacity}
         onClick={handleClick}
-        p="3"
+        p="4"
         textAlign="left"
         variant={variant}
         whiteSpace="normal"
@@ -90,19 +103,45 @@ export function AbilityDialog(props: AbilityDialogProps): React.ReactElement {
     <Dialog.Root lazyMount onOpenChange={handleOpenChange} open={open} size="xl">
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content>
+        <Dialog.Content
+          display="flex"
+          flexDirection="column"
+          h={abilityDialogHeight}
+          maxW="72rem"
+          overflow="hidden"
+        >
           <Dialog.Header>
-            <Dialog.Title>{title}</Dialog.Title>
-          </Dialog.Header>
-          <Dialog.Body>
-            <Stack gap="4">
-              <Text color="fg.muted">
-                Habilidades bloqueadas aparecem esmaecidas. Ao mover uma habilidade, ela entra no
-                cooldown próprio.
+            <Stack gap="1">
+              <Text color="brand.solid" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                CONFIGURAÇÃO DE CAÇA
               </Text>
-              <SimpleGrid columns={dialogGridColumns} gap="3">
-                {cards}
-              </SimpleGrid>
+              <Dialog.Title>{title}</Dialog.Title>
+            </Stack>
+          </Dialog.Header>
+          <Dialog.Body display="flex" flex="1" flexDirection="column" minH="0">
+            <Stack gap="4" h="full" minH="0">
+              <HStack justify="space-between">
+                <Stack gap="1">
+                  <Text fontWeight="bold">Grimório da criatura</Text>
+                  <Text color="fg.muted" fontSize="sm">
+                    Selecione uma habilidade para equipá-la no slot atual.
+                  </Text>
+                </Stack>
+                <Badge colorPalette="cyan" flex="none">
+                  Nível {level}
+                </Badge>
+              </HStack>
+              <Separator />
+              <Box flex="1" minH="0" overflowY="auto" pe="2">
+                <Stack gap="2">
+                  <Text color="fg.muted" fontSize="xs" fontWeight="bold" letterSpacing="wider">
+                    HABILIDADES DISPONÍVEIS
+                  </Text>
+                  <SimpleGrid columns={dialogGridColumns} gap="3">
+                    {cards}
+                  </SimpleGrid>
+                </Stack>
+              </Box>
             </Stack>
           </Dialog.Body>
           <Dialog.Footer>

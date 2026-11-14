@@ -1,4 +1,4 @@
-import { Dialog } from '@chakra-ui/react';
+import { Dialog, Stack, Text } from '@chakra-ui/react';
 import * as React from 'react';
 
 import type { HealingConfiguration, HealingItem, HuntCommand } from '../api/hunt-protocol';
@@ -15,18 +15,29 @@ type HealingItemDialogProps = {
   items: Array<HealingItem>;
   onConfigure: (command: HuntCommand) => boolean;
 };
+const healingDialogHeight = { base: 'calc(100dvh - 4)', md: 'min(42rem, calc(100dvh - 8))' };
 export function HealingItemDialog(props: HealingItemDialogProps): React.ReactElement {
   const { configuration, items, onConfigure } = props;
   const open = useModalStore(selectHealingItemModalState);
   const defaultValues = getDefaultValues(configuration);
   const formKey = getFormKey(open, defaultValues);
   return (
-    <Dialog.Root lazyMount onOpenChange={toggleHealingItemModal} open={open} size="xs">
+    <Dialog.Root lazyMount onOpenChange={toggleHealingItemModal} open={open} size="md">
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content>
+        <Dialog.Content
+          display="flex"
+          flexDirection="column"
+          h={healingDialogHeight}
+          overflow="hidden"
+        >
           <Dialog.Header>
-            <Dialog.Title>Cura Automática</Dialog.Title>
+            <Stack gap="1">
+              <Text color="brand.solid" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                CONFIGURAÇÃO DE CAÇA
+              </Text>
+              <Dialog.Title>Cura automática</Dialog.Title>
+            </Stack>
           </Dialog.Header>
           <HealingItemDialogForm
             defaultValues={defaultValues}

@@ -22,13 +22,13 @@ interface HuntingLocationSpecies {
 
 type HuntingLocationSpeciesList = Array<HuntingLocationSpecies>;
 
-interface CreatureSpeciesRow {
+interface SpeciesRow {
   id: number;
   name: string;
 }
 
 interface HuntingLocationSpeciesRow {
-  creature_species: CreatureSpeciesRow;
+  species: SpeciesRow;
   encounter_weight: number;
   maximum_level: number;
   minimum_level: number;
@@ -57,10 +57,10 @@ function databaseError(error: PostgrestError): AppError {
 function mapSpecies(availability: HuntingLocationSpeciesRow): HuntingLocationSpecies {
   const species = {
     encounterWeight: availability.encounter_weight,
-    id: availability.creature_species.id,
+    id: availability.species.id,
     maximumLevel: availability.maximum_level,
     minimumLevel: availability.minimum_level,
-    name: availability.creature_species.name,
+    name: availability.species.name,
   };
   return species;
 }
@@ -84,7 +84,7 @@ export async function listHuntingLocations(supabase: SupabaseClient): Promise<Hu
   const { data, error } = await supabase
     .from('hunting_locations')
     .select(
-      'id, slug, name, description, position_x, position_y, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, creature_species(id, name))',
+      'id, slug, name, description, position_x, position_y, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name))',
     )
     .order('id')
     .order('slot', speciesOrder);

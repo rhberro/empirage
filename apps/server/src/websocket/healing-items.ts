@@ -20,30 +20,47 @@ export type CharacterHealingResources = {
 
 type CharacterRow = {
   gold: number;
-  healing_item_id: number | null;
-  healing_threshold_percentage: number | null;
+  character_battle_item_configuration: BattleConfigurationRow | null;
 };
+type BattleConfigurationRow = { item_id: number; threshold_percentage: number };
 type HealingItemRow = {
-  gold_cost: number;
-  healing_amount: number;
+  buy_price: number;
+  healing_amount: number | null;
   id: number;
   name: string;
   restores_full_health: boolean;
   slug: string;
 };
 type HealingItemRows = Array<HealingItemRow>;
+type HealingItemResources = Array<HealingItemResource>;
 type ResourceQuery = PromiseLike<{ data: unknown; error: unknown }>;
 type CharacterHealingQueries = [ResourceQuery, ResourceQuery];
 
 function mapHealingItem(item: HealingItemRow): HealingItemResource {
   return {
-    goldCost: item.gold_cost,
-    healingAmount: item.healing_amount,
+    goldCost: item.buy_price,
+    healingAmount: item.healing_amount ?? 0,
     id: item.id,
     name: item.name,
     restoresFullHealth: item.restores_full_health,
     slug: item.slug,
   };
+}
+
+function isSupportedHealingItem(item: HealingItemRow): boolean {
+  return (
+    item.buy_price > 0 &&
+    (item.restores_full_health || (item.healing_amount !== null && item.healing_amount > 0))
+  );
+}
+
+function hasConfiguredItem(items: HealingItemResources, itemId: number): boolean {
+  for (const item of items) {
+    if (item.id === itemId) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export async function loadCharacterHealingResources(
@@ -53,12 +70,13 @@ export async function loadCharacterHealingResources(
   const queries: CharacterHealingQueries = [
     client
       .from('characters')
-      .select('gold, healing_item_id, healing_threshold_percentage')
+      .select('gold, character_battle_item_configuration(item_id, threshold_percentage)')
       .eq('id', characterId)
       .single(),
     client
-      .from('healing_items')
-      .select('id, slug, name, healing_amount, restores_full_health, gold_cost')
+      .from('items')
+      .select('id, slug, name, healing_amount, restores_full_health, buy_price')
+      .eq('category', 'medicine')
       .order('id'),
   ];
   const [characterResult, healingItemResult] = await Promise.all(queries);
@@ -70,13 +88,11 @@ export async function loadCharacterHealingResources(
   }
   const character = characterResult.data as CharacterRow;
   const healingItemRows = healingItemResult.data as HealingItemRows;
-  const healingItems = healingItemRows.map(mapHealingItem);
+  const healingItems = healingItemRows.filter(isSupportedHealingItem).map(mapHealingItem);
+  const configuration = character.character_battle_item_configuration;
   const healingConfiguration =
-    character.healing_item_id !== null && character.healing_threshold_percentage !== null
-      ? {
-          itemId: character.healing_item_id,
-          thresholdPercentage: character.healing_threshold_percentage,
-        }
+    configuration && hasConfiguredItem(healingItems, configuration.item_id)
+      ? { itemId: configuration.item_id, thresholdPercentage: configuration.threshold_percentage }
       : undefined;
   return { gold: character.gold, healingConfiguration, healingItems };
 }

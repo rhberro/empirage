@@ -52,6 +52,25 @@ def atlas_frame(x: int, y: int, width: int, height: int, pivot: dict) -> dict:
     }
 
 
+def validate_generated_atlas(atlas_path: Path, icons: list[tuple[str, Path]], frames: dict) -> None:
+    with Image.open(atlas_path) as atlas:
+        atlas.load()
+        for name, icon_path in icons:
+            frame = frames[name]["frame"]
+            with Image.open(icon_path) as icon:
+                icon.load()
+                crop = atlas.crop(
+                    (
+                        frame["x"],
+                        frame["y"],
+                        frame["x"] + frame["w"],
+                        frame["y"] + frame["h"],
+                    )
+                )
+                if crop.tobytes() != icon.convert("RGBA").tobytes():
+                    raise ValueError(f"Generated atlas frame does not match {name}")
+
+
 def main() -> None:
     manifest = load_manifest()
     source = manifest["sourceAtlas"]
@@ -117,6 +136,7 @@ def main() -> None:
             }
             atlas_path = temporary_atlas / (manifest["atlasName"] + ".json")
             atlas_path.write_text(json.dumps(atlas_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            validate_generated_atlas(temporary_atlas / image_name, icon_paths, generated_frames)
             if icons_directory.exists():
                 for icon_path in icons_directory.glob("*.png"):
                     icon_path.unlink()

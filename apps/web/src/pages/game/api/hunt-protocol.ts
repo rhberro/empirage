@@ -322,12 +322,12 @@ function readHealingItem(value: unknown): HealingItem | null {
     !isCount(value.goldCost) ||
     value.goldCost === 0 ||
     !isCount(value.healingAmount) ||
-    value.healingAmount === 0 ||
     !isCount(value.id) ||
     value.id === 0 ||
     typeof value.name !== 'string' ||
     typeof value.restoresFullHealth !== 'boolean' ||
-    typeof value.slug !== 'string'
+    typeof value.slug !== 'string' ||
+    (!value.restoresFullHealth && value.healingAmount === 0)
   ) {
     return null;
   }

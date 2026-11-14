@@ -12,7 +12,9 @@ type AtlasCompleteHandler = () => void;
 type CreatureFeedback = {
   damagedAt: number;
   defeatedAt: number | null;
+  displayedHealth: number;
   health: number;
+  healthChangedAt: number;
   spawnedAt: number;
 };
 type CreatureVisual = {
@@ -147,6 +149,7 @@ export class HuntCreatures {
       if (!this.present.has(key) && visual.feedback.defeatedAt === null) {
         visual.feedback.defeatedAt = now;
         visual.feedback.health = 0;
+        visual.feedback.healthChangedAt = now;
       }
     }
   }
@@ -210,6 +213,7 @@ export class HuntCreatures {
       return true;
     }
     visual.sprite.destroy();
+    visual.healthBar.destroy();
     return false;
   }
 
@@ -218,6 +222,10 @@ export class HuntCreatures {
     if (feedback) {
       if (spec.health < feedback.health) {
         feedback.damagedAt = now;
+      }
+      if (spec.health !== feedback.health) {
+        feedback.displayedHealth = feedback.health;
+        feedback.healthChangedAt = now;
       }
       if (spec.health === 0 && feedback.health > 0) {
         feedback.defeatedAt = now;
@@ -231,7 +239,9 @@ export class HuntCreatures {
     const created = {
       damagedAt: 0,
       defeatedAt: spec.health === 0 ? now : null,
+      displayedHealth: spec.health,
       health: spec.health,
+      healthChangedAt: now,
       spawnedAt: now,
     };
     this.feedback.set(spec.key, created);
@@ -260,7 +270,7 @@ export class HuntCreatures {
       const x = this.screenX(tileX);
       const y = this.screenY(tileY);
       visual.sprite.setPosition(x, y + visual.spriteOffsetY);
-      this.renderHealthBar(visual, x, y);
+      this.renderHealthBar(visual, x, y, now);
       if (visual.animated) {
         visual.animated.setFrame(creatureFrame(visual.direction, frame));
       }
@@ -326,18 +336,29 @@ export class HuntCreatures {
     }
   }
 
-  private renderHealthBar(visual: CreatureVisual, x: number, y: number): void {
-    const width = Math.max(14, this.tileSize + 4);
-    const height = 3;
+  private renderHealthBar(visual: CreatureVisual, x: number, y: number, now: number): void {
+    const width = Math.max(12, this.tileSize);
+    const height = 2;
     const barX = Math.round(x - width / 2);
     const barY = Math.round(y - this.tileSize);
-    const healthRatio = Math.max(0, Math.min(1, visual.feedback.health / visual.maximumHealth));
+    const progress = this.reducedMotion
+      ? 1
+      : Math.min(1, (now - visual.feedback.healthChangedAt) / 220);
+    const shownHealth =
+      visual.feedback.displayedHealth +
+      (visual.feedback.health - visual.feedback.displayedHealth) * progress;
+    const healthRatio = Math.max(0, Math.min(1, shownHealth / visual.maximumHealth));
     const color = healthRatio > 0.5 ? 0x4caf50 : healthRatio > 0.2 ? 0xf0b429 : 0xd64545;
     visual.healthBar.clear();
     visual.healthBar.fillStyle(0x111111, 0.9);
     visual.healthBar.fillRect(barX - 1, barY - 1, width + 2, height + 2);
     visual.healthBar.fillStyle(color, 1);
     visual.healthBar.fillRect(barX, barY, Math.round(width * healthRatio), height);
+    const departure =
+      visual.feedback.defeatedAt === null
+        ? 0
+        : Math.min(1, Math.max(0, (now - visual.feedback.defeatedAt) / TRANSITION_DURATION_MS));
+    visual.healthBar.setAlpha(1 - departure);
     visual.healthBar.setDepth(y + visual.spriteOffsetY + 0.1);
   }
 
