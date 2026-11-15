@@ -17,6 +17,7 @@ import {
   experienceForLevel,
   healingItemCooldownEndsAt,
   healingItemDue,
+  maximumHealthForCreature,
   pauseEngine,
   snapshotEngine,
   switchActiveCreature,
@@ -46,7 +47,12 @@ const PLAYER_POSITION: Position = { x: 2, y: 3 };
 const GRID_HEIGHT = 8;
 const GRID_WIDTH = 12;
 
-type Notify = (characterId: string, state: HuntState | undefined, endedHuntId?: string) => void;
+type Notify = (
+  characterId: string,
+  state: HuntState | undefined,
+  endedHuntId?: string,
+  collectionChanged?: boolean,
+) => void;
 type RuntimeStatus = 'conflict' | 'finishing' | 'paused' | 'running';
 type PublicEnemy = {
   base_attack: number;
@@ -408,9 +414,13 @@ function publicAbilityResource(
   };
 }
 
-function notifyRuntime(runtime: Runtime, events: Array<HuntCombatEvent>): void {
+function notifyRuntime(
+  runtime: Runtime,
+  events: Array<HuntCombatEvent>,
+  collectionChanged = false,
+): void {
   if (notifier) {
-    notifier(runtime.characterId, publicState(runtime, events));
+    notifier(runtime.characterId, publicState(runtime, events), undefined, collectionChanged);
   }
 }
 
@@ -636,7 +646,7 @@ async function completeCaptureAttempt(runtime: Runtime, attempt: PendingCapture)
     runtime.engine.resources.gold = purchase.gold;
   }
   launchCheckpoint(runtime, false);
-  notifyRuntime(runtime, []);
+  notifyRuntime(runtime, [], true);
 }
 
 type HealingItemPurchaseRow = {
@@ -1270,7 +1280,7 @@ async function startHuntExclusive(characterId: string, userId: string): Promise<
   const huntId = randomUUID();
   const waveSize = 1 + Math.floor(Math.random() * 5);
   const checkpoint: HuntEngineCheckpoint = {
-    activeCreatureHealth: species.baseHealth + 15,
+    activeCreatureHealth: maximumHealthForCreature(species, active),
     activeCreatureId: active.id,
     capturedAt: now,
     enemies: [],

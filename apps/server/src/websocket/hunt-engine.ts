@@ -158,6 +158,13 @@ function battleStats(species: HuntSpeciesResource, level: number, ivs: StatIvs):
   };
 }
 
+export function maximumHealthForCreature(
+  species: HuntSpeciesResource,
+  creature: HuntCreatureResource,
+): number {
+  return battleStats(species, creature.level, creature).health;
+}
+
 function wildStats(species: HuntSpeciesResource, level: number): BattleStats {
   const ivs: StatIvs = {
     ivAttack: WILD_IV,
@@ -233,7 +240,7 @@ function buildAllies(
     if (!species) {
       continue;
     }
-    const maximumHealth = battleStats(species, creature.level, creature).health;
+    const maximumHealth = maximumHealthForCreature(species, creature);
     allies.push({
       ...creature,
       health:

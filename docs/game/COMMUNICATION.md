@@ -486,7 +486,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, operação de armazenamento, captura e fim de caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento e captura concluída. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
 
 ### `error`, fechamento e heartbeat
 

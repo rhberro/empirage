@@ -1027,7 +1027,12 @@ const gameLoopTimer = globalThis.setInterval(gameLoop, Math.floor(TICK_INTERVAL_
 const persistenceTimer = globalThis.setInterval(persistAllInBackground, PERSISTENCE_INTERVAL_MS);
 const heartbeatTimer = globalThis.setInterval(heartbeat, HEARTBEAT_INTERVAL_MS);
 
-function notifyHunt(characterId: string, hunt: HuntState | undefined, endedHuntId?: string): void {
+function notifyHunt(
+  characterId: string,
+  hunt: HuntState | undefined,
+  endedHuntId?: string,
+  collectionChanged = false,
+): void {
   for (const socket of authenticatedSockets) {
     const state = socket.data.authenticated;
     if (state && state.characterId === characterId) {
@@ -1038,7 +1043,9 @@ function notifyHunt(characterId: string, hunt: HuntState | undefined, endedHuntI
         send(socket, createSnapshot(state));
       }
       sendHuntState(socket, hunt, endedHuntId);
-      sendCreatureCollection(socket, state).catch(logCreatureCollectionError);
+      if (collectionChanged) {
+        sendCreatureCollection(socket, state).catch(logCreatureCollectionError);
+      }
     }
   }
 }

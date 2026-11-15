@@ -220,8 +220,8 @@ export class HuntCreatures {
     visual.tile = spec.tile;
     visual.switchesOutAt = spec.switchesOutAt;
     this.finishAuthoritativeMovement(visual, now);
-    visual.feedback = this.resolveFeedback(spec, now);
     visual.maximumHealth = spec.maximumHealth;
+    visual.feedback = this.resolveFeedback(spec, now);
     if (visual.animated || spec.speciesId === null || !this.ensureCreatureAtlas(spec.speciesId)) {
       return true;
     }
@@ -324,10 +324,7 @@ export class HuntCreatures {
   private updateFeedback(visual: CreatureVisual, now: number): void {
     const { feedback, sprite, animated } = visual;
     const damageElapsed = now - feedback.damagedAt;
-    const damaged =
-      damageElapsed >= 0 &&
-      damageElapsed < DAMAGE_DURATION_MS &&
-      (this.reducedMotion || Math.floor(damageElapsed / 70) % 2 === 0);
+    const damaged = !this.reducedMotion && damageElapsed >= 0 && damageElapsed < DAMAGE_DURATION_MS;
     const arrival = Math.min(1, Math.max(0, (now - feedback.spawnedAt) / TRANSITION_DURATION_MS));
     const departure =
       feedback.defeatedAt === null
