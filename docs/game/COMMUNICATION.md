@@ -370,7 +370,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. Persiste a configuração e responde com `hunt_state`.
+`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_state` atualizado.
 
 ### `switch_active_creature`
 
@@ -382,7 +382,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-Valida criatura, estado da caça e regras do motor de batalha. Quando aceita, dispara checkpoint de estado e responde com `hunt_state`.
+Valida criatura ativa da equipe e propriedade. Na cidade, persiste imediatamente a seleção no personagem e responde com `collection_state`. Na caça, também dispara checkpoint de estado e responde com `hunt_state`. A criatura ativa é recuperada ao reconectar, iniciar outra caça ou retornar à cidade.
 
 ### `request_creature_storage`
 
@@ -402,7 +402,7 @@ Exige página inteira maior ou igual a um e responde com `collection_state`.
 }
 ```
 
-Validam identificador, posse, capacidade da equipe e consistência no banco. A resposta é sempre um `collection_state` completo.
+Validam identificador, posse, capacidade da equipe e consistência no banco. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o banco seleciona a próxima criatura da equipe. A resposta é sempre um `collection_state` completo.
 
 ## WebSocket: servidor para cliente
 
@@ -501,7 +501,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. Cada item em `captureAttempts` contém `status`: `pending` enquanto a captura aguarda confirmação atômica do banco, `succeeded` somente depois de a criatura ser criada e `failed` quando a tentativa termina sem criatura. Uma falha de comunicação mantém a tentativa como `pending` e o servidor a repete com o mesmo `id`, usado como `command_id` idempotente. Quando a caça termina, `hunt` é `null`.
+É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. `collection_state` é atualizado somente após a persistência de uma captura bem-sucedida. Quando a caça termina, `hunt` é `null`.
 
 ### `collection_state`
 
@@ -510,6 +510,7 @@ Confirma que a conexão está autorizada a operar o personagem.
   "type": "collection_state",
   "version": 1,
   "collection": {
+    "activeCreatureId": "creature-uuid",
     "party": [],
     "storage": [],
     "storagePage": 1,
@@ -519,7 +520,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento e captura concluída. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento e captura concluída. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
 
 ### `error`, fechamento e heartbeat
 
@@ -536,14 +537,14 @@ O heartbeat real usa frames WebSocket nativos `ping` e `pong` a cada 15 segundos
 | Operação | Quando ocorre | Garantia e validação |
 | --- | --- | --- |
 | `create_character` | criação de personagem | nome, limite, slot e concorrência no banco |
-| `checkpoint_character_hunt` | fronteira relevante, cada derrota, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; aplica a experiência acumulada da derrota na mesma transação do checkpoint; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
+| `checkpoint_character_hunt` | fronteira relevante, cada derrota, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; aplica a experiência acumulada da derrota e a criatura ativa na mesma transação do checkpoint; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
 | `complete_character_capture` | término de tentativa de captura | `command_id` idempotente, débito e criação atômicos; em falha de comunicação, o servidor reenvia o mesmo comando até obter confirmação |
 | `purchase_character_battle_item` | cura automática | compra e saldo atômicos |
 | `configure_creature_equipped_move` | configuração de habilidade | criatura, slot e movimento válidos |
 | mover criatura | pedido de equipe/armazenamento | propriedade e limite de equipe |
 | atualização de posição | a cada 30 s, desconexão e substituição de sessão | filtra por personagem e conta |
 
-O checkpoint recebe o estado mínimo necessário para recuperar a caça, por exemplo:
+O checkpoint recebe o estado mínimo necessário para recuperar a caça, por exemplo. O `runtime_snapshot` persistido também inclui `allyHealth`, um mapa de HP atual por identificador de criatura da equipe; a recuperação valida os identificadores e limites de HP antes de restaurá-los. Snapshots legados sem esse campo mantêm a reconstrução anterior somente por compatibilidade; todo checkpoint novo grava o mapa completo.
 
 ```json
 {

@@ -28,7 +28,7 @@ O percentual é apenas uma representação de design do total máximo de 186 IVs
 
 ## Equipe durante a caçada
 
-A vida da criatura ativa é persistida no checkpoint da caça. As criaturas reserva entram com vida máxima ao iniciar ou recuperar uma caça e podem ser selecionadas normalmente. Uma criatura que desmaiar durante a caçada permanece indisponível para troca enquanto aquela execução estiver ativa.
+O checkpoint da caça persiste a vida de cada criatura da equipe. Ao trocar ou recuperar uma caça, cada criatura mantém exatamente o HP que possuía antes da transição. Uma criatura que desmaiar durante a caçada permanece indisponível para troca enquanto aquela execução estiver ativa.
 
 ## Captura automática
 

@@ -60,6 +60,7 @@ export type HuntEngineCheckpoint = {
   activeCreatureSwitchCompletesAt?: number;
   activeCreatureSwitchCooldownEndsAt?: number;
   activeCreatureSwitchTargetId?: string;
+  allyHealth?: Record<string, number>;
   abilityCooldowns?: Record<string, Record<string, number>>;
   activeCreatureId: string;
   activeCreatureHealth: number;
@@ -233,12 +234,14 @@ function buildAllies(
       continue;
     }
     const maximumHealth = maximumHealthForCreature(species, creature);
+    const persistedHealth = checkpoint.allyHealth ? checkpoint.allyHealth[creature.id] : undefined;
+    const legacyHealth = creature.teamPosition < activeCreature.teamPosition ? 0 : maximumHealth;
     allies.push({
       ...creature,
       health:
         creature.id === checkpoint.activeCreatureId
           ? checkpoint.activeCreatureHealth
-          : maximumHealth,
+          : (persistedHealth ?? legacyHealth),
       maximumHealth,
     });
   }
@@ -1118,6 +1121,10 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
   const activeHealth =
     active && Number.isSafeInteger(active.health) && active.health >= 0 ? active.health : 0;
   const activeId = active ? active.id : '';
+  const allyHealth: Record<string, number> = {};
+  for (const ally of engine.allies) {
+    allyHealth[ally.id] = Math.max(0, Math.min(ally.maximumHealth, ally.health));
+  }
   const snapshot: HuntEngineSnapshot = globalThis.structuredClone({
     abilityCooldowns: engine.abilityCooldowns,
     activeCreatureAvailableAt: engine.activeCreatureAvailableAt,
@@ -1126,6 +1133,7 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
     activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
     activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
     activeCreatureSwitchTargetId: engine.activeCreatureSwitchTargetId,
+    allyHealth,
     capturedAt: nowEpoch,
     enemies: engine.enemies,
     enemyActionNotBefore: engine.enemyActionNotBefore,
