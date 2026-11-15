@@ -1,6 +1,7 @@
 /* eslint-disable complexity, max-lines, max-lines-per-function, no-shadow, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types, unicorn/no-array-reduce, unicorn/no-immediate-mutation, unicorn/no-useless-undefined */
 import { randomUUID } from 'node:crypto';
 
+import type { CaptureRarity } from './capture-items.ts';
 import type { Movement, Position } from './game-types.ts';
 import type {
   HuntAbilityResource,
@@ -13,13 +14,16 @@ const ALLY_POSITION: Position = { x: 6, y: 3 };
 const PLAYER_POSITION: Position = { x: 2, y: 3 };
 const GRID_HEIGHT = 8;
 const GRID_WIDTH = 12;
-const MOVEMENT_MS = 833;
+const MOVEMENT_MS = 694;
 const ABILITY_SPACING_MS = 1_000;
 const ENEMY_SPACING_MS = 150;
 const GLOBAL_COOLDOWN_KEY = 'global';
 const HEALING_ITEM_COOLDOWN_ACTOR = 'healing-item';
 const ADJACENT_WANDER_MINIMUM_MS = 2_500;
 const ADJACENT_WANDER_MAXIMUM_MS = 4_500;
+const ACTIVE_CREATURE_SWITCH_MS = 1_000;
+const ACTIVE_CREATURE_ARRIVAL_MS = 320;
+const ACTIVE_CREATURE_SWITCH_COOLDOWN_MS = 7_000;
 
 export type HuntCombatEvent = {
   abilityName: string;
@@ -41,12 +45,17 @@ export type HuntEngineEnemy = HuntSpeciesResource & {
   nextAttackAt: number;
   nextMovementAt?: number;
   position: Position;
+  rarity: CaptureRarity;
 };
 export type HuntEngineAlly = HuntCreatureResource & {
   health: number;
   maximumHealth: number;
 };
 export type HuntEngineCheckpoint = {
+  activeCreatureAvailableAt?: number;
+  activeCreatureSwitchCompletesAt?: number;
+  activeCreatureSwitchCooldownEndsAt?: number;
+  activeCreatureSwitchTargetId?: string;
   abilityCooldowns?: Record<string, Record<string, number>>;
   activeCreatureId: string;
   activeCreatureHealth: number;
@@ -64,8 +73,12 @@ export type HuntEngineCheckpoint = {
   xpPending?: Record<string, number>;
 };
 export type HuntEngine = {
+  activeCreatureAvailableAt: number;
   abilityCooldowns: Record<string, Record<string, number>>;
   activeAllyIndex: number;
+  activeCreatureSwitchCompletesAt?: number;
+  activeCreatureSwitchCooldownEndsAt: number;
+  activeCreatureSwitchTargetId?: string;
   allies: Array<HuntEngineAlly>;
   enemies: Array<HuntEngineEnemy>;
   enemyActionNotBefore: number;
@@ -86,6 +99,7 @@ export type HuntEngine = {
 export type HuntAdvanceResult = {
   changed: boolean;
   combatEvents: Array<HuntCombatEvent>;
+  defeatedEnemies: Array<HuntEngineEnemy>;
   finished: boolean;
 };
 export type HuntEngineSnapshot = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
@@ -156,8 +170,31 @@ function wildStats(species: HuntSpeciesResource, level: number): BattleStats {
   return battleStats(species, level, ivs);
 }
 
-function experienceForLevel(level: bigint): bigint {
-  return (50n * level * level * level - 150n * level * level + 400n * level) / 3n;
+function evolveAlly(engine: HuntEngine, ally: HuntEngineAlly): void {
+  let evolution = engine.resources.evolutions.find(function eligible(candidate): boolean {
+    return candidate.fromSpeciesId === ally.speciesId && candidate.requiredLevel <= ally.level;
+  });
+  while (evolution) {
+    const previousMaximumHealth = ally.maximumHealth;
+    const nextSpecies = engine.resources.species[String(evolution.toSpeciesId)];
+    if (!nextSpecies) {
+      return;
+    }
+    ally.speciesId = nextSpecies.id;
+    ally.maximumHealth = battleStats(nextSpecies, ally.level, ally).health;
+    ally.health = Math.min(
+      ally.maximumHealth,
+      Math.round((ally.health / Math.max(1, previousMaximumHealth)) * ally.maximumHealth),
+    );
+    evolution = engine.resources.evolutions.find(function eligible(candidate): boolean {
+      return candidate.fromSpeciesId === ally.speciesId && candidate.requiredLevel <= ally.level;
+    });
+  }
+}
+
+export function experienceForLevel(level: number): bigint {
+  const value = BigInt(level);
+  return (50n * value * value * value - 150n * value * value + 400n * value) / 3n;
 }
 
 export function levelFromExperience(experience: bigint): number {
@@ -165,7 +202,7 @@ export function levelFromExperience(experience: bigint): number {
   let upper = 32_767n;
   while (lower < upper) {
     const candidate = (lower + upper + 1n) / 2n;
-    if (experienceForLevel(candidate) <= experience) {
+    if (experienceForLevel(Number(candidate)) <= experience) {
       lower = candidate;
     } else {
       upper = candidate - 1n;
@@ -243,6 +280,19 @@ export function createEngine(
   return {
     abilityCooldowns,
     activeAllyIndex,
+    activeCreatureAvailableAt: shifted(
+      checkpoint.activeCreatureAvailableAt ?? checkpoint.capturedAt,
+      shift,
+    ),
+    activeCreatureSwitchCompletesAt:
+      checkpoint.activeCreatureSwitchCompletesAt === undefined
+        ? undefined
+        : shifted(checkpoint.activeCreatureSwitchCompletesAt, shift),
+    activeCreatureSwitchCooldownEndsAt: shifted(
+      checkpoint.activeCreatureSwitchCooldownEndsAt ?? checkpoint.capturedAt,
+      shift,
+    ),
+    activeCreatureSwitchTargetId: checkpoint.activeCreatureSwitchTargetId,
     allies,
     enemies,
     enemyActionNotBefore: shifted(checkpoint.enemyActionNotBefore ?? checkpoint.capturedAt, shift),
@@ -260,6 +310,63 @@ export function createEngine(
     waveSize: checkpoint.waveSize,
     xpPending: {},
   };
+}
+
+export function switchActiveCreature(
+  engine: HuntEngine,
+  creatureId: string,
+  nowEpoch: number,
+): boolean {
+  if (
+    engine.activeCreatureSwitchCompletesAt !== undefined ||
+    engine.activeCreatureSwitchCooldownEndsAt > nowEpoch
+  ) {
+    return false;
+  }
+  const nextIndex = engine.allies.findIndex(function matchingAlly(ally: HuntEngineAlly): boolean {
+    return ally.id === creatureId && ally.health > 0;
+  });
+  if (nextIndex < 0 || nextIndex === engine.activeAllyIndex) {
+    return false;
+  }
+  const next = engine.allies[nextIndex];
+  const cooldownsForNext = cooldowns(engine, next.id);
+  for (const ability of next.abilities) {
+    cooldownsForNext[String(ability.id)] = nowEpoch + ability.cooldownMs;
+  }
+  const completesAt = nowEpoch + ACTIVE_CREATURE_SWITCH_MS;
+  engine.activeCreatureAvailableAt = completesAt + ACTIVE_CREATURE_ARRIVAL_MS;
+  engine.activeCreatureSwitchCompletesAt = completesAt;
+  engine.activeCreatureSwitchCooldownEndsAt = nowEpoch + ACTIVE_CREATURE_SWITCH_COOLDOWN_MS;
+  engine.activeCreatureSwitchTargetId = next.id;
+  engine.enemyActionNotBefore = engine.activeCreatureAvailableAt;
+  engine.nextEventAt = Math.min(engine.nextEventAt, completesAt);
+  engine.revision += 1;
+  return true;
+}
+
+function activeCreatureAvailable(engine: HuntEngine, nowEpoch: number): boolean {
+  return nowEpoch >= engine.activeCreatureAvailableAt;
+}
+
+function completeActiveCreatureSwitch(engine: HuntEngine, nowEpoch: number): boolean {
+  if (
+    engine.activeCreatureSwitchCompletesAt === undefined ||
+    engine.activeCreatureSwitchCompletesAt > nowEpoch ||
+    !engine.activeCreatureSwitchTargetId
+  ) {
+    return false;
+  }
+  const nextIndex = engine.allies.findIndex(function matchingAlly(ally: HuntEngineAlly): boolean {
+    return ally.id === engine.activeCreatureSwitchTargetId;
+  });
+  if (nextIndex < 0) {
+    throw new TypeError('active_creature_switch_target_missing');
+  }
+  engine.activeAllyIndex = nextIndex;
+  engine.activeCreatureSwitchCompletesAt = undefined;
+  engine.activeCreatureSwitchTargetId = undefined;
+  return true;
 }
 
 function blockedTiles(engine: HuntEngine): Set<string> {
@@ -281,7 +388,25 @@ function blockedTiles(engine: HuntEngine): Set<string> {
   return blocked;
 }
 
-function randomEncounter(resources: HuntResources): HuntSpeciesResource & { level: number } {
+function rarityForEncounterWeight(weight: number): CaptureRarity {
+  if (weight >= 20) {
+    return 'common';
+  }
+  if (weight >= 10) {
+    return 'uncommon';
+  }
+  if (weight >= 5) {
+    return 'rare';
+  }
+  if (weight >= 2) {
+    return 'epic';
+  }
+  return 'legendary';
+}
+
+function randomEncounter(
+  resources: HuntResources,
+): HuntSpeciesResource & { level: number; rarity: CaptureRarity } {
   let totalWeight = 0;
   for (const encounter of resources.encounters) {
     totalWeight += encounter.weight;
@@ -305,7 +430,7 @@ function randomEncounter(resources: HuntResources): HuntSpeciesResource & { leve
   const level =
     selected.minimumLevel +
     Math.floor(Math.random() * (selected.maximumLevel - selected.minimumLevel + 1));
-  return { ...species, level };
+  return { ...species, level, rarity: rarityForEncounterWeight(selected.weight) };
 }
 
 function spawnPosition(engine: HuntEngine, blocked: Set<string>): Position {
@@ -574,6 +699,9 @@ function processAttacks(
   events: Array<HuntCombatEvent>,
 ): Set<string> {
   const blockedMovers = new Set<string>();
+  if (!activeCreatureAvailable(engine, nowEpoch)) {
+    return blockedMovers;
+  }
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
   let allyPolicy: AttackPolicy | undefined;
@@ -727,6 +855,16 @@ function adjacentWanderDestination(
   return destinations[Math.floor(Math.random() * destinations.length)];
 }
 
+function wanderingDestination(enemy: HuntEngineEnemy, occupied: Set<string>): Position | undefined {
+  const destinations: Array<Position> = [];
+  for (const candidate of neighbors(enemy.position)) {
+    if (isInsideGrid(candidate) && !occupied.has(positionKey(candidate))) {
+      destinations.push(candidate);
+    }
+  }
+  return destinations[Math.floor(Math.random() * destinations.length)];
+}
+
 function nextAdjacentWanderAt(nowEpoch: number): number {
   const interval =
     ADJACENT_WANDER_MINIMUM_MS +
@@ -742,7 +880,7 @@ function beginMovement(
 ): void {
   enemy.movement = {
     direction: directionTo(enemy.position, destination),
-    durationTicks: 20,
+    durationTicks: 21,
     fromTile: enemy.position,
     mode: 'walking',
     movementId: randomUUID(),
@@ -765,14 +903,20 @@ function beginMovements(engine: HuntEngine, nowEpoch: number, blockedMovers: Set
       continue;
     }
     occupied.delete(positionKey(enemy.position));
-    const adjacent = areaDistance(enemy.position, ALLY_POSITION) <= 1;
+    const hasTarget = activeCreatureAvailable(engine, nowEpoch);
+    const adjacent = hasTarget && areaDistance(enemy.position, ALLY_POSITION) <= 1;
     if (adjacent && (enemy.nextMovementAt ?? nowEpoch) > nowEpoch) {
       occupied.add(positionKey(enemy.position));
       continue;
     }
-    const destination = adjacent
-      ? adjacentWanderDestination(enemy, occupied)
-      : nextPathStep(enemy.position, occupied);
+    let destination: Position | undefined;
+    if (hasTarget) {
+      destination = adjacent
+        ? adjacentWanderDestination(enemy, occupied)
+        : nextPathStep(enemy.position, occupied);
+    } else {
+      destination = wanderingDestination(enemy, occupied);
+    }
     if (!destination) {
       enemy.nextMovementAt = nextAdjacentWanderAt(nowEpoch);
       occupied.add(positionKey(enemy.position));
@@ -786,14 +930,15 @@ function beginMovements(engine: HuntEngine, nowEpoch: number, blockedMovers: Set
   return changed;
 }
 
-function resolveDefeats(engine: HuntEngine, nowEpoch: number): boolean {
-  let changed = false;
+function resolveDefeats(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
+  const defeated: Array<HuntEngineEnemy> = [];
   const surviving: Array<HuntEngineEnemy> = [];
   for (const enemy of engine.enemies) {
     if (enemy.health > 0) {
       surviving.push(enemy);
       continue;
     }
+    defeated.push(enemy);
     const ally = engine.allies[engine.activeAllyIndex];
     const gain = enemy.level * 10;
     const pendingExperience = (engine.xpPending[ally.id] ?? 0) + gain;
@@ -803,7 +948,7 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): boolean {
     engine.xpPending[ally.id] = pendingExperience;
     ally.experience = (BigInt(ally.experience) + BigInt(gain)).toString();
     ally.level = levelFromExperience(BigInt(ally.experience));
-    changed = true;
+    evolveAlly(engine, ally);
   }
   engine.enemies = surviving;
   const ally = engine.allies[engine.activeAllyIndex];
@@ -812,14 +957,12 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): boolean {
     if (engine.activeAllyIndex >= engine.allies.length) {
       engine.finished = true;
     }
-    changed = true;
   }
   if (!engine.finished && engine.enemies.length === 0) {
     engine.wave += 1;
     engine.nextEventAt = nowEpoch + engine.waveDelayMs;
-    changed = true;
   }
-  return changed;
+  return defeated;
 }
 
 function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
@@ -827,12 +970,22 @@ function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
     return Math.max(nowEpoch, engine.nextEventAt);
   }
   const deadlines: Array<number> = [];
+  if (engine.activeCreatureSwitchCompletesAt !== undefined) {
+    deadlines.push(engine.activeCreatureSwitchCompletesAt);
+  }
+  if (engine.activeCreatureAvailableAt > nowEpoch) {
+    deadlines.push(engine.activeCreatureAvailableAt);
+  }
   let readyAction = false;
   for (const enemy of engine.enemies) {
     deadlines.push(enemy.nextAttackAt);
     if (enemy.movement) {
       deadlines.push(enemy.movement.startTime + MOVEMENT_MS);
-    } else if (enemy.health > 0 && enemy.nextAttackAt <= nowEpoch) {
+    } else if (
+      activeCreatureAvailable(engine, nowEpoch) &&
+      enemy.health > 0 &&
+      enemy.nextAttackAt <= nowEpoch
+    ) {
       const policy = policyFor(
         enemy.abilities,
         enemy.level,
@@ -867,10 +1020,12 @@ function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
 
 export function advanceEngine(engine: HuntEngine, nowEpoch: number): HuntAdvanceResult {
   const events: Array<HuntCombatEvent> = [];
+  const defeatedEnemies: Array<HuntEngineEnemy> = [];
   if (engine.finished || engine.pausedAt !== undefined || nowEpoch < engine.nextEventAt) {
-    return { changed: false, combatEvents: events, finished: engine.finished };
+    return { changed: false, combatEvents: events, defeatedEnemies, finished: engine.finished };
   }
-  let changed = settleMovements(engine, nowEpoch);
+  let changed = completeActiveCreatureSwitch(engine, nowEpoch);
+  changed = settleMovements(engine, nowEpoch) || changed;
   if (engine.enemies.length === 0) {
     spawnWave(engine, nowEpoch);
     changed = true;
@@ -878,12 +1033,14 @@ export function advanceEngine(engine: HuntEngine, nowEpoch: number): HuntAdvance
   const blockedMovers = processAttacks(engine, nowEpoch, events);
   const movementChanged = beginMovements(engine, nowEpoch, blockedMovers);
   changed = events.length > 0 || movementChanged || changed;
-  changed = resolveDefeats(engine, nowEpoch) || changed;
+  const resolvedDefeats = resolveDefeats(engine, nowEpoch);
+  defeatedEnemies.push(...resolvedDefeats);
+  changed = resolvedDefeats.length > 0 || changed;
   engine.nextEventAt = calculateNextEvent(engine, nowEpoch);
   if (changed) {
     engine.revision += 1;
   }
-  return { changed, combatEvents: events, finished: engine.finished };
+  return { changed, combatEvents: events, defeatedEnemies, finished: engine.finished };
 }
 
 export function pauseEngine(engine: HuntEngine, nowEpoch: number): boolean {
@@ -898,6 +1055,12 @@ function shiftEngineDeadlines(state: HuntEngine | HuntEngineSnapshot, shift: num
   const emptyCooldowns: Record<string, Record<string, number>> = {};
   const abilityCooldowns = state.abilityCooldowns ?? emptyCooldowns;
   state.nextEventAt += shift;
+  state.activeCreatureAvailableAt = (state.activeCreatureAvailableAt ?? state.capturedAt) + shift;
+  state.activeCreatureSwitchCooldownEndsAt =
+    (state.activeCreatureSwitchCooldownEndsAt ?? state.capturedAt) + shift;
+  if (state.activeCreatureSwitchCompletesAt !== undefined) {
+    state.activeCreatureSwitchCompletesAt += shift;
+  }
   if (state.enemyActionNotBefore !== undefined) {
     state.enemyActionNotBefore += shift;
   }
@@ -933,8 +1096,12 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
   const activeId = active ? active.id : '';
   const snapshot: HuntEngineSnapshot = globalThis.structuredClone({
     abilityCooldowns: engine.abilityCooldowns,
+    activeCreatureAvailableAt: engine.activeCreatureAvailableAt,
     activeCreatureHealth: activeHealth,
     activeCreatureId: activeId,
+    activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
+    activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
+    activeCreatureSwitchTargetId: engine.activeCreatureSwitchTargetId,
     capturedAt: nowEpoch,
     enemies: engine.enemies,
     enemyActionNotBefore: engine.enemyActionNotBefore,

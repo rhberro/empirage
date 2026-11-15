@@ -1,0 +1,220 @@
+/* eslint-disable max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+type CreatureRow = {
+  captured_at: string;
+  experience: number | string;
+  gender: string;
+  id: string;
+  iv_attack: number;
+  iv_defense: number;
+  iv_hp: number;
+  iv_special_attack: number;
+  iv_special_defense: number;
+  iv_speed: number;
+  level: number;
+  party_slot: number | null;
+  rarity: string;
+  species_id: number;
+};
+type CreatureRows = Array<CreatureRow>;
+type SpeciesRow = {
+  base_attack: number;
+  base_defense: number;
+  base_hp: number;
+  base_special_attack: number;
+  base_special_defense: number;
+  base_speed: number;
+  description: string;
+  id: number;
+  name: string;
+};
+type SpeciesRows = Array<SpeciesRow>;
+type SpeciesTypeRow = { species_id: number; type_id: number };
+type SpeciesTypeRows = Array<SpeciesTypeRow>;
+type TypeRow = { id: number; name: string };
+type TypeRows = Array<TypeRow>;
+type CreatureCollectionItem = {
+  capturedAt: string;
+  elements: Array<string>;
+  experience: string;
+  gender: string;
+  id: string;
+  ivAttack: number;
+  ivDefense: number;
+  ivHealth: number;
+  ivSpecialAttack: number;
+  ivSpecialDefense: number;
+  ivSpeed: number;
+  level: number;
+  partySlot: number | null;
+  rarity: string;
+  species: SpeciesRow;
+};
+type CreatureCollectionItems = Array<CreatureCollectionItem>;
+
+export type CreatureCollection = {
+  party: CreatureCollectionItems;
+  storage: CreatureCollectionItems;
+  storagePage: number;
+  storagePageCount: number;
+  storageTotal: number;
+};
+
+const STORAGE_PAGE_SIZE = 50;
+
+function numberIds(rows: CreatureRows): Array<number> {
+  const ids = new Set<number>();
+  for (const row of rows) {
+    ids.add(row.species_id);
+  }
+  return [...ids];
+}
+
+function collectionItem(
+  row: CreatureRow,
+  species: SpeciesRow,
+  elementsBySpecies: Map<number, Array<string>>,
+): CreatureCollectionItem {
+  return {
+    capturedAt: row.captured_at,
+    elements: elementsBySpecies.get(row.species_id) ?? [],
+    experience: String(row.experience),
+    gender: row.gender,
+    id: row.id,
+    ivAttack: row.iv_attack,
+    ivDefense: row.iv_defense,
+    ivHealth: row.iv_hp,
+    ivSpecialAttack: row.iv_special_attack,
+    ivSpecialDefense: row.iv_special_defense,
+    ivSpeed: row.iv_speed,
+    level: row.level,
+    partySlot: row.party_slot,
+    rarity: row.rarity,
+    species,
+  };
+}
+
+function compareParty(first: CreatureCollectionItem, second: CreatureCollectionItem): number {
+  return (first.partySlot ?? 0) - (second.partySlot ?? 0);
+}
+
+export async function loadCreatureCollection(
+  client: SupabaseClient,
+  characterId: string,
+  requestedStoragePage = 1,
+): Promise<CreatureCollection> {
+  const requestedPage = Math.max(1, Math.trunc(requestedStoragePage));
+  const storageStart = (requestedPage - 1) * STORAGE_PAGE_SIZE;
+  const storageEnd = storageStart + STORAGE_PAGE_SIZE - 1;
+  const fields =
+    'id, species_id, party_slot, gender, experience, level, rarity, captured_at, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed';
+  const [partyResult, storageResult] = await Promise.all([
+    client
+      .from('creatures')
+      .select(fields)
+      .eq('character_id', characterId)
+      .not('party_slot', 'is', null)
+      .order('party_slot', { ascending: true }),
+    client
+      .from('creatures')
+      .select(fields, { count: 'exact' })
+      .eq('character_id', characterId)
+      .is('party_slot', null)
+      .order('captured_at', { ascending: false })
+      .range(storageStart, storageEnd),
+  ]);
+  if (partyResult.error) {
+    throw partyResult.error;
+  }
+  if (storageResult.error) {
+    throw storageResult.error;
+  }
+  const storageTotal = storageResult.count ?? 0;
+  const storagePageCount = Math.max(1, Math.ceil(storageTotal / STORAGE_PAGE_SIZE));
+  const storagePage = Math.min(requestedPage, storagePageCount);
+  let storageRows = storageResult.data as CreatureRows;
+  if (storagePage !== requestedPage) {
+    const pageStart = (storagePage - 1) * STORAGE_PAGE_SIZE;
+    const pageEnd = pageStart + STORAGE_PAGE_SIZE - 1;
+    const storagePageResult = await client
+      .from('creatures')
+      .select(fields)
+      .eq('character_id', characterId)
+      .is('party_slot', null)
+      .order('captured_at', { ascending: false })
+      .range(pageStart, pageEnd);
+    if (storagePageResult.error) {
+      throw storagePageResult.error;
+    }
+    storageRows = storagePageResult.data as CreatureRows;
+  }
+  const creatureRows = [...(partyResult.data as CreatureRows), ...storageRows];
+  const speciesIds = numberIds(creatureRows);
+  if (speciesIds.length === 0) {
+    return { party: [], storage: [], storagePage: 1, storagePageCount, storageTotal };
+  }
+  const [speciesResult, speciesTypesResult] = await Promise.all([
+    client
+      .from('species')
+      .select(
+        'id, name, description, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed',
+      )
+      .in('id', speciesIds),
+    client.from('species_types').select('species_id, type_id').in('species_id', speciesIds),
+  ]);
+  if (speciesResult.error) {
+    throw speciesResult.error;
+  }
+  if (speciesTypesResult.error) {
+    throw speciesTypesResult.error;
+  }
+  const speciesRows = speciesResult.data as SpeciesRows;
+  const speciesTypeRows = speciesTypesResult.data as SpeciesTypeRows;
+  const typeIds = [...new Set(speciesTypeRows.map(typeIdForSpecies))];
+  const typesResult =
+    typeIds.length > 0
+      ? await client.from('types').select('id, name').in('id', typeIds)
+      : { data: [], error: null };
+  if (typesResult.error) {
+    throw typesResult.error;
+  }
+  const types = typesResult.data as TypeRows;
+  const typeNames = new Map<number, string>();
+  for (const type of types) {
+    typeNames.set(type.id, type.name);
+  }
+  const elementsBySpecies = new Map<number, Array<string>>();
+  for (const relation of speciesTypeRows) {
+    const elements = elementsBySpecies.get(relation.species_id) ?? [];
+    const name = typeNames.get(relation.type_id);
+    if (name) {
+      elements.push(name);
+    }
+    elementsBySpecies.set(relation.species_id, elements);
+  }
+  const speciesById = new Map<number, SpeciesRow>();
+  for (const species of speciesRows) {
+    speciesById.set(species.id, species);
+  }
+  const party: CreatureCollectionItems = [];
+  const storage: CreatureCollectionItems = [];
+  for (const row of creatureRows) {
+    const species = speciesById.get(row.species_id);
+    if (!species) {
+      continue;
+    }
+    const item = collectionItem(row, species, elementsBySpecies);
+    if (item.partySlot === null) {
+      storage.push(item);
+    } else {
+      party.push(item);
+    }
+  }
+  party.sort(compareParty);
+  return { party, storage, storagePage, storagePageCount, storageTotal };
+}
+
+function typeIdForSpecies(relation: SpeciesTypeRow): number {
+  return relation.type_id;
+}

@@ -42,6 +42,17 @@ async function getAuthorizationHeader(): Promise<string | null> {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+function apiBaseUrl(): string {
+  const url = new globalThis.URL(API_BASE_URL, globalThis.location.origin);
+  const isLocalServer = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isRemoteClient =
+    globalThis.location.hostname !== 'localhost' && globalThis.location.hostname !== '127.0.0.1';
+  if (isLocalServer && isRemoteClient) {
+    url.hostname = globalThis.location.hostname;
+  }
+  return url.origin + url.pathname.replace(/\/$/u, '');
+}
+
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const authorization = await getAuthorizationHeader();
   const initialHeaders = init ? init.headers : undefined;
@@ -53,7 +64,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     headers.set('Content-Type', 'application/json');
   }
   const requestInit: RequestInit = { ...init, headers };
-  const response = await globalThis.fetch(API_BASE_URL + path, requestInit);
+  const response = await globalThis.fetch(apiBaseUrl() + path, requestInit);
   if (!response.ok) {
     const payload = await getErrorPayload(response);
     throw new ApiError(response.status, payload);

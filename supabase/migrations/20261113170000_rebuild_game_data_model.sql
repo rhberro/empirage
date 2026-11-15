@@ -321,14 +321,6 @@ begin
   insert into public.creatures (character_id, species_id, party_slot, gender, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed)
   values (target_character_id, (array[1, 4, 7])[1 + floor(random() * 3)::integer], 1, case when random() < .5 then 'male' else 'female' end, 15, 15, 15, 15, 15, 15)
   returning id into created_creature_id;
-  insert into public.creature_learned_moves (creature_id, move_id, learned_at_level)
-  select created_creature_id, learnset.move_id, learnset.required_level
-  from public.creatures join public.species_move_learnsets as learnset on learnset.species_id = creatures.species_id
-  where creatures.id = created_creature_id and learnset.learn_method = 'level' and learnset.required_level <= creatures.level;
-  insert into public.creature_equipped_moves (creature_id, move_id, slot)
-  select created_creature_id, learned.move_id, row_number() over (order by learned.learned_at_level, learned.move_id)::smallint
-  from public.creature_learned_moves as learned where learned.creature_id = created_creature_id
-  order by learned.learned_at_level, learned.move_id limit 4;
   return created_creature_id;
 end; $$;
 
@@ -347,7 +339,10 @@ begin
   perform public.give_starter_creature(created_character_id);
   return created_character_id;
 exception when unique_violation then
-  raise exception using message = 'character_name_unavailable';
+  if exists (select 1 from public.characters where name_normalized = public.normalize_character_name(character_name)) then
+    raise exception using message = 'character_name_unavailable';
+  end if;
+  raise;
 end; $$;
 revoke all on function public.create_character(text, text) from public, anon;
 grant execute on function public.create_character(text, text) to authenticated;

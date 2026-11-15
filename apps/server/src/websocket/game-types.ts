@@ -39,6 +39,7 @@ export type SocketData = {
   authenticationTimer?: ReturnType<typeof globalThis.setTimeout>;
   authenticating: boolean;
   id: string;
+  ipAddress: string;
   lastPongAt: number;
   messageCount: number;
   messageWindowStartedAt: number;
@@ -47,14 +48,27 @@ export type ClientMessage = {
   abilityId?: unknown;
   abilitySlot?: unknown;
   characterId?: unknown;
+  creatureId?: unknown;
+  captureItemId?: unknown;
+  captureRarities?: unknown;
   healingItemId?: unknown;
   healingThresholdPercentage?: unknown;
   input?: unknown;
   priority?: unknown;
   sequence?: unknown;
   sentAt?: unknown;
+  storagePage?: unknown;
   token?: unknown;
   type?: unknown;
   version?: unknown;
 };
-export type CharacterRow = { id: string; position_x: number; position_y: number; user_id: string };
+export type CharacterRow = {
+  avatar_url: string | null;
+  gold: number;
+  id: string;
+  level: number;
+  name: string;
+  position_x: number;
+  position_y: number;
+  user_id: string;
+};

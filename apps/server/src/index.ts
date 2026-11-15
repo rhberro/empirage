@@ -5,6 +5,7 @@ import { config } from './config.ts';
 import { logger } from './logger.ts';
 import { beginGameShutdown, gameWebSocket, stopGameSimulation } from './websocket/game.ts';
 import { stopHuntSimulation } from './websocket/hunting.ts';
+import { stopWebSocketMetrics } from './websocket/metrics.ts';
 import { handleWebSocketRequest } from './websocket/request.ts';
 
 const SHUTDOWN_TIMEOUT_MS = 15_000;
@@ -27,7 +28,17 @@ function fetch(
   return app.fetch(request);
 }
 
-const serverOptions = { fetch, port: config.port, websocket: gameWebSocket };
+const websocketOptions = {
+  backpressureLimit: config.websocketMaximumBufferedBytes,
+  closeOnBackpressureLimit: false,
+  maxPayloadLength: config.websocketMaximumMessageBytes,
+};
+const serverOptions = {
+  fetch,
+  hostname: '0.0.0.0',
+  port: config.port,
+  websocket: { ...gameWebSocket, ...websocketOptions },
+};
 
 const server = globalThis.Bun.serve(serverOptions);
 
@@ -81,6 +92,7 @@ async function shutdown(signal: ShutdownSignal): Promise<void> {
     const failureDetails = { error, signal, timeoutMs: SHUTDOWN_TIMEOUT_MS };
     logger.error(failureDetails, 'server shutdown checkpoint failed');
   } finally {
+    stopWebSocketMetrics();
     server.stop(true).catch(logServerStopError);
   }
 }

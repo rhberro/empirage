@@ -1,6 +1,8 @@
+/* eslint-disable max-lines */
 import { Scene } from 'phaser';
 
-import type { GameEvent, Tile } from '../api/game-protocol';
+import type { CharacterProfile, GameEvent, Tile } from '../api/game-protocol';
+import type { CollectionStateEvent } from '../api/game-protocol';
 import { GameSession } from '../api/game-socket';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
 import { configureCameraViewport } from '../lib/camera-viewport';
@@ -25,6 +27,8 @@ const MAP_ROWS = 100;
 const SNAP_DISTANCE = 3;
 type EventHandler = () => void;
 type HuntStateChangeHandler = (hunt: HuntState | null) => void;
+type CollectionChangeHandler = (collection: CollectionStateEvent['collection']) => void;
+type CharacterProfileChangeHandler = (profile: CharacterProfile) => void;
 type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
@@ -33,6 +37,8 @@ export class CityScene extends Scene {
   private readonly characterId: string;
   private readonly deactivationHandler: EventHandler;
   private readonly onHuntStateChange: HuntStateChangeHandler;
+  private readonly onCollectionChange: CollectionChangeHandler;
+  private readonly onCharacterProfileChange: CharacterProfileChangeHandler;
   private readonly onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
   private readonly playerInput: PlayerInput;
   private readonly session: GameSession;
@@ -43,11 +49,15 @@ export class CityScene extends Scene {
 
   public constructor(
     characterId: string,
+    onCharacterProfileChange: CharacterProfileChangeHandler,
+    onCollectionChange: CollectionChangeHandler,
     onHuntStateChange: HuntStateChangeHandler,
     onHuntCommandSenderChange: HuntCommandSenderChangeHandler,
   ) {
     super('CityScene');
     this.characterId = characterId;
+    this.onCharacterProfileChange = onCharacterProfileChange;
+    this.onCollectionChange = onCollectionChange;
     this.deactivationHandler = this.handleDeactivation.bind(this);
     this.onHuntStateChange = onHuntStateChange;
     this.onHuntCommandSenderChange = onHuntCommandSenderChange;
@@ -143,6 +153,10 @@ export class CityScene extends Scene {
       this.playerInput.enabled = !event.hunt && Boolean(huntView && huntView.connected);
       return;
     }
+    if (event.type === 'collection_state') {
+      this.onCollectionChange(event.collection);
+      return;
+    }
     if (event.type === 'hunt_clock') {
       if (huntView) {
         huntView.synchronizeClock(event.sentAt, event.receivedAt, event.serverTime);
@@ -157,6 +171,7 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'authenticated') {
+      this.onCharacterProfileChange(event.profile);
       if (huntView) {
         huntView.authenticate();
       }

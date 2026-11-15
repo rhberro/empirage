@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* eslint-disable max-lines, complexity, max-lines-per-function, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import type { ProtocolDirection, Tile } from './game-protocol';
 import { readCombatEvents } from './hunt-combat-events';
 import type { HuntCombatEvent } from './hunt-combat-events';
@@ -50,18 +50,59 @@ export type HealingItem = {
   slug: string;
 };
 export type HealingConfiguration = { itemId: number; thresholdPercentage: number };
+export type CaptureRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CaptureItem = {
+  captureRateMultiplier: number;
+  goldCost: number;
+  id: number;
+  name: string;
+  slug: string;
+};
+export type CaptureConfiguration = { itemId: number; rarities: Array<CaptureRarity> };
+export type CaptureAttempt = {
+  completesAt: number;
+  id: string;
+  position: Tile;
+  succeeded: boolean;
+};
 type HuntAbilities = Array<HuntAbility>;
+type HuntStatus = Pick<
+  HuntState,
+  | 'activeCreatureElements'
+  | 'activeCreatureExperience'
+  | 'activeCreatureExperienceLevelStart'
+  | 'activeCreatureExperienceNextLevel'
+  | 'activeCreatureName'
+  | 'characterAvatarUrl'
+  | 'characterLevel'
+  | 'characterName'
+>;
+type HuntRuntimeState = Pick<HuntState, 'runtimeGeneration' | 'serverTime'>;
 export type HuntGrid = { blocked: Tiles; height: number; tileSize: number; width: number };
 export type HuntState = {
+  activeCreatureAvailableAt: number;
+  activeCreatureElements: Array<string>;
+  activeCreatureExperience: string;
+  activeCreatureExperienceLevelStart: string;
+  activeCreatureExperienceNextLevel: string;
   activeCreatureAbilities: HuntAbilities;
   activeCreatureAvailableAbilities: Array<HuntAvailableAbility>;
   activeCreatureHealth: number;
   activeCreatureId: string;
   activeCreatureLevel: number;
   activeCreatureMaximumHealth: number;
+  activeCreatureName: string;
   activeCreatureSpeciesId: number | null;
+  activeCreatureSwitchCompletesAt: number | undefined;
+  activeCreatureSwitchCooldownEndsAt: number;
   allyPosition: Tile;
   combatEvents: CombatEvents;
+  characterAvatarUrl: string | null;
+  characterLevel: number;
+  characterName: string;
+  captureAttempts: Array<CaptureAttempt>;
+  captureConfiguration: CaptureConfiguration | undefined;
+  captureItems: Array<CaptureItem>;
   enemies: Array<HuntEnemy>;
   gold: number;
   grid: HuntGrid;
@@ -86,6 +127,18 @@ export type HuntCommand =
       type: 'configure_healing_item';
       version: 1;
     }
+  | {
+      captureItemId: number;
+      captureRarities: Array<CaptureRarity>;
+      type: 'configure_capture';
+      version: 1;
+    }
+  | {
+      creatureId: string;
+      type: 'move_creature_to_party' | 'move_creature_to_storage' | 'switch_active_creature';
+      version: 1;
+    }
+  | { storagePage: number; type: 'request_creature_storage'; version: 1 }
   | { abilityId: number | null; abilitySlot: number; type: 'configure_ability'; version: 1 };
 type UnknownRecord = Record<string, unknown>;
 type Tiles = Array<Tile>;
@@ -111,6 +164,14 @@ function isRecord(value: unknown): value is UnknownRecord {
 
 function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isExperience(value: unknown): value is string {
+  return typeof value === 'string' && /^\d+$/u.test(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
 }
 
 function readTile(value: unknown): Tile | null {
@@ -381,6 +442,88 @@ function hasHealingState(value: UnknownRecord): boolean {
   );
 }
 
+function readCaptureRarity(value: unknown): CaptureRarity | null {
+  return value === 'common' ||
+    value === 'uncommon' ||
+    value === 'rare' ||
+    value === 'epic' ||
+    value === 'legendary'
+    ? value
+    : null;
+}
+
+function readCaptureState(
+  value: UnknownRecord,
+): Pick<HuntState, 'captureAttempts' | 'captureConfiguration' | 'captureItems'> | null {
+  if (!Array.isArray(value.captureAttempts) || !Array.isArray(value.captureItems)) {
+    return null;
+  }
+  const captureItems: Array<CaptureItem> = [];
+  for (const item of value.captureItems) {
+    if (
+      !isRecord(item) ||
+      !isCount(item.captureRateMultiplier) ||
+      !isCount(item.goldCost) ||
+      !isCount(item.id) ||
+      !isString(item.name) ||
+      !isString(item.slug)
+    ) {
+      return null;
+    }
+    captureItems.push({
+      captureRateMultiplier: item.captureRateMultiplier,
+      goldCost: item.goldCost,
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+    });
+  }
+  const captureAttempts: Array<CaptureAttempt> = [];
+  for (const attempt of value.captureAttempts) {
+    if (
+      !isRecord(attempt) ||
+      typeof attempt.completesAt !== 'number' ||
+      !isString(attempt.id) ||
+      typeof attempt.succeeded !== 'boolean'
+    ) {
+      return null;
+    }
+    const position = readTile(attempt.position);
+    if (!position) {
+      return null;
+    }
+    captureAttempts.push({
+      completesAt: attempt.completesAt,
+      id: attempt.id,
+      position,
+      succeeded: attempt.succeeded,
+    });
+  }
+  if (value.captureConfiguration === undefined) {
+    return { captureAttempts, captureConfiguration: undefined, captureItems };
+  }
+  if (
+    !isRecord(value.captureConfiguration) ||
+    !isCount(value.captureConfiguration.itemId) ||
+    !Array.isArray(value.captureConfiguration.rarities)
+  ) {
+    return null;
+  }
+  const rarities: Array<CaptureRarity> = [];
+  for (const rarityValue of value.captureConfiguration.rarities) {
+    const rarity = readCaptureRarity(rarityValue);
+    if (!rarity) {
+      return null;
+    }
+    rarities.push(rarity);
+  }
+  return {
+    captureAttempts,
+    captureConfiguration: { itemId: value.captureConfiguration.itemId, rarities },
+    captureItems,
+  };
+}
+
 function hasHuntIdentity(value: UnknownRecord): boolean {
   return (
     typeof value.activeCreatureId === 'string' &&
@@ -401,14 +544,54 @@ function hasOptionalRuntimeState(value: UnknownRecord): boolean {
   );
 }
 
+function hasHuntStatus(value: UnknownRecord): boolean {
+  return (
+    Array.isArray(value.activeCreatureElements) &&
+    value.activeCreatureElements.every(isString) &&
+    isExperience(value.activeCreatureExperience) &&
+    isExperience(value.activeCreatureExperienceLevelStart) &&
+    isExperience(value.activeCreatureExperienceNextLevel) &&
+    typeof value.activeCreatureName === 'string' &&
+    (value.characterAvatarUrl === null || typeof value.characterAvatarUrl === 'string') &&
+    isCount(value.characterLevel) &&
+    typeof value.characterName === 'string'
+  );
+}
+
+function readHuntStatus(value: UnknownRecord): HuntStatus {
+  return {
+    activeCreatureElements: value.activeCreatureElements as Array<string>,
+    activeCreatureExperience: value.activeCreatureExperience as string,
+    activeCreatureExperienceLevelStart: value.activeCreatureExperienceLevelStart as string,
+    activeCreatureExperienceNextLevel: value.activeCreatureExperienceNextLevel as string,
+    activeCreatureName: value.activeCreatureName as string,
+    characterAvatarUrl: value.characterAvatarUrl as string | null,
+    characterLevel: value.characterLevel as number,
+    characterName: value.characterName as string,
+  };
+}
+
+function readHuntRuntimeState(value: UnknownRecord): HuntRuntimeState {
+  return {
+    runtimeGeneration:
+      typeof value.runtimeGeneration === 'string' ? value.runtimeGeneration : undefined,
+    serverTime: typeof value.serverTime === 'number' ? value.serverTime : undefined,
+  };
+}
+
 function isHuntRecord(value: unknown): value is UnknownRecord {
   return (
     isRecord(value) &&
+    hasHuntStatus(value) &&
     Array.isArray(value.activeCreatureAbilities) &&
     Array.isArray(value.activeCreatureAvailableAbilities) &&
     isCount(value.activeCreatureHealth) &&
+    isCount(value.activeCreatureAvailableAt) &&
     isCount(value.activeCreatureLevel) &&
     isCount(value.activeCreatureMaximumHealth) &&
+    isCount(value.activeCreatureSwitchCooldownEndsAt) &&
+    (value.activeCreatureSwitchCompletesAt === undefined ||
+      isCount(value.activeCreatureSwitchCompletesAt)) &&
     hasHealingState(value) &&
     hasHuntIdentity(value) &&
     isCount(value.huntingLocationId) &&
@@ -430,6 +613,7 @@ function readHunt(value: UnknownRecord): HuntState | null {
   );
   const healingItems = readHealingItems(value.healingItems);
   const healingConfiguration = readHealingConfiguration(value.healingConfiguration);
+  const captureState = readCaptureState(value);
   if (
     !grid ||
     !allyPosition ||
@@ -438,18 +622,29 @@ function readHunt(value: UnknownRecord): HuntState | null {
     !activeCreatureAbilities ||
     !activeCreatureAvailableAbilities ||
     !healingItems ||
-    healingConfiguration === null
+    healingConfiguration === null ||
+    !captureState
   ) {
     return null;
   }
+  const status = readHuntStatus(value);
   return {
+    ...readHuntRuntimeState(value),
+    ...captureState,
+    ...status,
     activeCreatureAbilities,
     activeCreatureAvailableAbilities,
+    activeCreatureAvailableAt: value.activeCreatureAvailableAt as number,
     activeCreatureHealth: value.activeCreatureHealth as number,
     activeCreatureId: value.activeCreatureId as string,
     activeCreatureLevel: value.activeCreatureLevel as number,
     activeCreatureMaximumHealth: value.activeCreatureMaximumHealth as number,
     activeCreatureSpeciesId: readSpeciesId(value.activeCreatureSpeciesId),
+    activeCreatureSwitchCompletesAt:
+      value.activeCreatureSwitchCompletesAt === undefined
+        ? undefined
+        : (value.activeCreatureSwitchCompletesAt as number),
+    activeCreatureSwitchCooldownEndsAt: value.activeCreatureSwitchCooldownEndsAt as number,
     allyPosition,
     combatEvents: readCombatEvents(value.combatEvents),
     enemies,
@@ -463,9 +658,6 @@ function readHunt(value: UnknownRecord): HuntState | null {
     nextEventAt: value.nextEventAt as string,
     playerPosition,
     revision: value.revision as number,
-    runtimeGeneration:
-      typeof value.runtimeGeneration === 'string' ? value.runtimeGeneration : undefined,
-    serverTime: typeof value.serverTime === 'number' ? value.serverTime : undefined,
     wave: value.wave as number,
   };
 }

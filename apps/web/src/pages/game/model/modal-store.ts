@@ -1,10 +1,20 @@
 import { createStore, useStore } from 'zustand';
 
-type ModalStore = { abilitySlot: number | null; healingItem: boolean };
+type ModalStore = {
+  abilitySlot: number | null;
+  capture: boolean;
+  healingItem: boolean;
+  storage: boolean;
+};
 
 export type ModalStoreSelector<T> = (state: ModalStore) => T;
 
-const initialModalStoreValues: ModalStore = { abilitySlot: null, healingItem: false };
+const initialModalStoreValues: ModalStore = {
+  abilitySlot: null,
+  capture: false,
+  healingItem: false,
+  storage: false,
+};
 
 function createInitialState(): ModalStore {
   return initialModalStoreValues;
@@ -22,6 +32,26 @@ export function selectHealingItemModalState(state: ModalStore): boolean {
 
 export function selectAbilitySlot(state: ModalStore): number | null {
   return state.abilitySlot;
+}
+
+export function selectCaptureModalState(state: ModalStore): boolean {
+  return state.capture;
+}
+
+export function toggleCaptureModal(): void {
+  const currentState = modalStore.getState();
+  const nextState = { ...currentState, capture: !currentState.capture };
+  modalStore.setState(nextState);
+}
+
+export function selectStorageModalState(state: ModalStore): boolean {
+  return state.storage;
+}
+
+export function toggleStorageModal(): void {
+  const currentState = modalStore.getState();
+  const nextState = { ...currentState, storage: !currentState.storage };
+  modalStore.setState(nextState);
 }
 
 export function toggleHealingItemModal(): void {

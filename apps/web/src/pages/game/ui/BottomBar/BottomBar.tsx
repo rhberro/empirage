@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import type { HuntAbility, HuntCommand, HuntState } from '../../api/hunt-protocol';
 import { AbilitySlot } from './AbilitySlot';
+import { CaptureSlot } from './CaptureSlot';
 import { HealingSlot } from './HealingSlot';
 
 type HuntCommandSender = (command: HuntCommand) => boolean;
@@ -12,14 +13,21 @@ type BottomBarProps = { hunt: HuntState | null; onCommand: HuntCommandSender };
 
 export function BottomBar(props: BottomBarProps): React.ReactElement {
   const { hunt } = props;
-  const { activeCreatureAbilities, healingConfiguration, healingItemCooldownEndsAt, healingItems } =
-    hunt ?? {
-      activeCreatureAbilities: [],
-    };
+  const {
+    activeCreatureAbilities,
+    captureConfiguration,
+    captureItems,
+    healingConfiguration,
+    healingItemCooldownEndsAt,
+    healingItems,
+  } = hunt ?? {
+    activeCreatureAbilities: [],
+  };
   const ability1 = findAbilityBySlot(activeCreatureAbilities, 1);
   const ability2 = findAbilityBySlot(activeCreatureAbilities, 2);
   const ability3 = findAbilityBySlot(activeCreatureAbilities, 3);
   const ability4 = findAbilityBySlot(activeCreatureAbilities, 4);
+  const availableCaptureItems = captureItems ?? [];
   return (
     <ActionBar.Root closeOnEscape={false} defaultOpen closeOnInteractOutside={false}>
       <Portal>
@@ -35,6 +43,8 @@ export function BottomBar(props: BottomBarProps): React.ReactElement {
               healingItemCooldownEndsAt={healingItemCooldownEndsAt}
               healingItems={healingItems}
             />
+            <ActionBar.Separator />
+            <CaptureSlot configuration={captureConfiguration} items={availableCaptureItems} />
           </ActionBar.Content>
         </ActionBar.Positioner>
       </Portal>

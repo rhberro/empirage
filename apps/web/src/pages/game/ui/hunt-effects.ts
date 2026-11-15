@@ -1,6 +1,6 @@
 import type { GameObjects, Scene } from 'phaser';
 
-import type { HuntCombatEvent, HuntState } from '../api/hunt-protocol';
+import type { CaptureAttempt, HuntCombatEvent, HuntState } from '../api/hunt-protocol';
 import { huntElementBackgroundColor } from '../lib/hunt-element-colors';
 
 type CombatVisual = { event: HuntCombatEvent; startedAt: number };
@@ -12,12 +12,14 @@ type FeedbackVisual = {
 };
 type FeedbackList = Array<FeedbackVisual>;
 type Feedbacks = { labels: FeedbackList; startedAt: number };
+type CaptureVisual = { attempt: CaptureAttempt; startedAt: number };
 
 const EFFECT_DURATION_MS = 260;
 const FEEDBACK_DURATION_MS = 900;
 const LATENCY_FLOOR_MS = 120;
 const MAXIMUM_SEEN_EVENTS = 256;
 const RANGED_DURATION_MS = 360;
+const IMPACT_START_PROGRESS = 0.55;
 
 // One snapshot may carry several combat events with server-side staggered
 // occurredAt values; each effect becomes visible at its own logical instant.
@@ -26,6 +28,7 @@ export class HuntEffects {
   private readonly effects: GameObjects.Graphics;
   private readonly feedback = new Map<string, Feedbacks>();
   private readonly seenCombat = new Set<string>();
+  private readonly captures = new Map<string, CaptureVisual>();
   private gridOriginX = 0;
   private gridOriginY = 0;
   private tileSize = 16;
@@ -41,6 +44,11 @@ export class HuntEffects {
   }
 
   public apply(state: HuntState, now: number): void {
+    for (const attempt of state.captureAttempts) {
+      if (!this.captures.has(attempt.id)) {
+        this.captures.set(attempt.id, { attempt, startedAt: now });
+      }
+    }
     for (const event of state.combatEvents) {
       if (this.seenCombat.has(event.id)) {
         continue;
@@ -65,6 +73,7 @@ export class HuntEffects {
 
   public clear(): void {
     this.combat.clear();
+    this.captures.clear();
     this.seenCombat.clear();
     this.effects.clear();
     for (const visual of this.feedback.values()) {
@@ -87,15 +96,40 @@ export class HuntEffects {
         this.combat.delete(id);
         continue;
       }
-      if (visual.event.kind === 'ranged') {
-        this.drawProjectile(visual.event, progress);
-      } else if (visual.event.kind === 'area') {
-        this.drawArea(visual.event, progress);
-      } else {
-        this.drawImpact(visual.event, progress);
+      this.drawProjectile(visual.event, progress);
+      if (progress >= IMPACT_START_PROGRESS) {
+        this.drawImpactTiles(visual.event, progress);
       }
     }
     this.updateFeedback(now);
+    this.updateCaptures(now);
+  }
+
+  private updateCaptures(now: number): void {
+    for (const [id, visual] of this.captures) {
+      const totalDuration = Math.max(1, visual.attempt.completesAt - visual.startedAt);
+      const progress = Math.max(0, Math.min(1, (now - visual.startedAt) / totalDuration));
+      const flightProgress = Math.min(1, progress * 5);
+      const from = { x: 2, y: 3 };
+      const target = visual.attempt.position;
+      const x = from.x + (target.x - from.x) * flightProgress;
+      const y = from.y + (target.y - from.y) * flightProgress;
+      const blinking = flightProgress === 1;
+      const finished = progress >= 0.98;
+      const blinkingRed = Math.floor((now - visual.startedAt) / 550) % 2 === 0;
+      const color = finished
+        ? visual.attempt.succeeded
+          ? 0x43a047
+          : 0xe53935
+        : blinking && blinkingRed
+          ? 0xe53935
+          : 0x43a047;
+      this.effects.fillStyle(color);
+      this.effects.fillCircle(this.screenX(x), this.screenY(y), Math.max(3, this.tileSize / 3));
+      if (progress >= 1) {
+        this.captures.delete(id);
+      }
+    }
   }
 
   private drawProjectile(event: HuntCombatEvent, progress: number): void {
@@ -110,23 +144,22 @@ export class HuntEffects {
     );
   }
 
-  private drawArea(event: HuntCombatEvent, progress: number): void {
-    this.effects.fillStyle(0xffd38a, 1 - progress * 0.75);
-    for (const tile of event.tiles) {
-      this.effects.fillRect(
-        this.gridOriginX + (tile.x + 0.5) * this.tileSize - 4,
-        this.gridOriginY + (tile.y + 0.5) * this.tileSize - 4,
-        8,
-        8,
-      );
+  private drawImpactTiles(event: HuntCombatEvent, progress: number): void {
+    const fade = 1 - (progress - IMPACT_START_PROGRESS) / (1 - IMPACT_START_PROGRESS);
+    const color = Number.parseInt(huntElementBackgroundColor(event.element).slice(1), 16);
+    const tiles = event.tiles.length > 0 ? event.tiles : event.damages.map(HuntEffects.damageTile);
+    for (const tile of tiles) {
+      const x = this.gridOriginX + tile.x * this.tileSize;
+      const y = this.gridOriginY + tile.y * this.tileSize;
+      this.effects.fillStyle(color, 0.4 * fade);
+      this.effects.fillRect(x, y, this.tileSize, this.tileSize);
+      this.effects.lineStyle(1, color, fade);
+      this.effects.strokeRect(x + 0.5, y + 0.5, this.tileSize - 1, this.tileSize - 1);
     }
   }
 
-  private drawImpact(event: HuntCombatEvent, progress: number): void {
-    const x = this.gridOriginX + (event.to.x + 0.5) * this.tileSize;
-    const y = this.gridOriginY + (event.to.y + 0.5) * this.tileSize;
-    this.effects.lineStyle(2, 0xffd38a, 1 - progress);
-    this.effects.strokeCircle(x, y, Math.max(3, this.tileSize * (0.2 + progress * 0.25)));
+  private static damageTile(damage: Damage): Damage['tile'] {
+    return damage.tile;
   }
 
   private createFeedback(event: HuntCombatEvent, startedAt: number): void {

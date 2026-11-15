@@ -10,6 +10,13 @@ A tabela a seguir lista todas as documentações disponíveis para consulta pelo
 | ------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | Coding Styles | Convenções de código do projeto: padrões de estilo, nomenclatura, organização e boas práticas que o código deve seguir. | Sempre que for escrever, alterar ou revisar código, antes de criar novos arquivos ou módulos, e diante de qualquer dúvida sobre como algo deve ser escrito ou estruturado. | `docs/CODING_STYLES.md` |
 | Game Design   | Fonte de verdade sobre como o jogo funciona no nível de produto: regras, entidades, mecânicas e opções disponíveis.     | Sempre que a tarefa envolver comportamento, regras ou conteúdo do jogo, ou quando houver dúvida sobre alguma mecânica ou regra.                                            | `docs/game/GAME.md`     |
+| Comunicação Cliente-Servidor | Contrato de HTTP, Supabase Auth e WebSocket: mensagens, payloads, respostas, validações, garantias e versionamento. | Sempre que a tarefa envolver uma requisição HTTP, autenticação, mensagem WebSocket, evento em tempo real, persistência disparada pela comunicação ou alteração de payload. | `docs/game/COMMUNICATION.md` |
+
+### Manutenção obrigatória do contrato de comunicação
+
+Toda alteração em uma requisição HTTP, integração de autenticação, mensagem WebSocket ou evento enviado pelo servidor deve atualizar `docs/game/COMMUNICATION.md` na mesma alteração. Isso inclui adicionar, remover ou renomear campos, mudar validações, frequência, resposta, códigos de erro, comportamento de reconexão, garantias de entrega, efeitos no banco ou versão do protocolo.
+
+Não trate o código como a única fonte de verdade do protocolo: antes de implementar uma mudança de comunicação, consulte o contrato; antes de concluir, atualize-o e revise os exemplos de payload afetados. Uma mudança incompatível deve indicar a estratégia de compatibilidade e elevar a versão do protocolo quando aplicável.
 
 ## Context7
 

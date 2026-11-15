@@ -2,6 +2,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import {
+  loadCharacterCaptureResources,
+  type CaptureConfigurationResource,
+  type CaptureItemResource,
+} from './capture-items.ts';
+import {
   loadCharacterHealingResources,
   type HealingConfigurationResource,
   type HealingItemResource,
@@ -40,6 +45,16 @@ export type HuntCreatureResource = {
   speciesId: number;
   teamPosition: number;
 };
+export type HuntCharacterResource = {
+  avatarUrl: string | null;
+  level: number;
+  name: string;
+};
+export type HuntEvolutionResource = {
+  fromSpeciesId: number;
+  requiredLevel: number;
+  toSpeciesId: number;
+};
 export type HuntSpeciesResource = {
   abilities: Array<HuntAbilityResource>;
   baseAttack: number;
@@ -51,6 +66,7 @@ export type HuntSpeciesResource = {
   id: number;
   name: string;
   typeIds: Array<number>;
+  typeSlugs: Array<string>;
 };
 export type HuntEncounterResource = {
   maximumLevel: number;
@@ -59,8 +75,12 @@ export type HuntEncounterResource = {
   weight: number;
 };
 export type HuntResources = {
+  captureConfiguration: CaptureConfigurationResource | undefined;
+  captureItems: Array<CaptureItemResource>;
+  character: HuntCharacterResource;
   creatures: Array<HuntCreatureResource>;
   encounters: Array<HuntEncounterResource>;
+  evolutions: Array<HuntEvolutionResource>;
   gold: number;
   healingConfiguration: HealingConfigurationResource | undefined;
   healingItems: Array<HealingItemResource>;
@@ -81,6 +101,12 @@ type CreatureRow = {
   level: number;
   species_id: number;
   party_slot: number;
+};
+type CharacterRow = { avatar_url: string | null; level: number; name: string };
+type EvolutionRow = {
+  from_species_id: number;
+  required_level: number;
+  to_species_id: number;
 };
 type EncounterRow = {
   encounter_weight: number;
@@ -169,13 +195,43 @@ export async function loadHuntResources(
   if (encounterRows.length === 0) {
     throw new Error('hunting_location_has_no_species');
   }
-  const healingResources = await loadCharacterHealingResources(client, characterId);
+  const [healingResources, captureResources] = await Promise.all([
+    loadCharacterHealingResources(client, characterId),
+    loadCharacterCaptureResources(client, characterId),
+  ]);
+  const [characterResult, evolutionResult] = await Promise.all([
+    client.from('characters').select('name, level, avatar_url').eq('id', characterId).single(),
+    client
+      .from('evolutions')
+      .select('from_species_id, to_species_id, required_level')
+      .eq('trigger', 'level'),
+  ]);
+  if (characterResult.error) {
+    throw characterResult.error;
+  }
+  if (evolutionResult.error) {
+    throw evolutionResult.error;
+  }
+  const character = characterResult.data as CharacterRow;
+  const evolutionRows = evolutionResult.data as Array<EvolutionRow>;
+  const evolutions = evolutionRows.map(function evolution(
+    row: EvolutionRow,
+  ): HuntEvolutionResource {
+    return {
+      fromSpeciesId: row.from_species_id,
+      requiredLevel: row.required_level,
+      toSpeciesId: row.to_species_id,
+    };
+  });
   const speciesIds = uniqueNumbers([
     ...creatureRows.map(function creatureSpecies(row: CreatureRow): number {
       return row.species_id;
     }),
     ...encounterRows.map(function encounterSpecies(row: EncounterRow): number {
       return row.species_id;
+    }),
+    ...evolutionRows.map(function evolutionSpecies(row: EvolutionRow): number {
+      return row.to_species_id;
     }),
   ]);
   const creatureIds = creatureRows.map(function creatureId(row: CreatureRow): string {
@@ -364,6 +420,13 @@ export async function loadHuntResources(
         .map(function typeId(type: SpeciesTypeRow): number {
           return type.type_id;
         }),
+      typeSlugs: speciesTypes
+        .filter(function sameSpecies(type: SpeciesTypeRow): boolean {
+          return type.species_id === row.id;
+        })
+        .map(function typeSlug(type: SpeciesTypeRow): string {
+          return typeSlugs.get(type.type_id) ?? 'normal';
+        }),
     };
   }
   const encounters = encounterRows.map(function encounter(
@@ -381,8 +444,15 @@ export async function loadHuntResources(
     typeEffectiveness[row.attacker_type_id + ':' + row.defender_type_id] = row.multiplier;
   }
   return {
+    ...captureResources,
+    character: {
+      avatarUrl: character.avatar_url,
+      level: character.level,
+      name: character.name,
+    },
     creatures,
     encounters,
+    evolutions,
     ...healingResources,
     locationId,
     species,

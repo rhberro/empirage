@@ -17,6 +17,221 @@
   display: block;
 }
 
+.hunt-status {
+  position: absolute;
+  z-index: 1;
+  inset: 12px 12px auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+  font-family: 'Outfit Variable', sans-serif;
+  color: #fff;
+}
+
+.hunt-status__panel,
+.hunt-status__money {
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 8px;
+  background: rgb(25 27 36 / 88%);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
+}
+
+.hunt-status__party {
+  position: absolute;
+  inset: 66px auto auto 0;
+  pointer-events: auto;
+}
+
+.hunt-status__panel {
+  display: flex;
+  width: 194px;
+  gap: 8px;
+  padding: 8px;
+}
+
+.hunt-status__trainer {
+  position: absolute;
+  inset: 0 auto auto 0;
+}
+
+.hunt-status__creature {
+  position: absolute;
+  inset: 142px auto auto 0;
+  width: 218px;
+}
+
+.hunt-status__creature--party {
+  position: relative;
+  inset: auto;
+  width: 108px;
+  min-height: 52px;
+  padding: 5px;
+}
+
+.hunt-status__creature-select {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.hunt-status__creature-select:not(:disabled) {
+  cursor: pointer;
+}
+
+.hunt-status__creature-select:disabled {
+  cursor: default;
+}
+
+.hunt-status__creature--party .hunt-status__creature-image {
+  width: 34px;
+  height: 34px;
+}
+
+.hunt-status__creature--party .hunt-status__creature-details > strong {
+  max-width: 58px;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hunt-status__creature--party .hunt-status__creature-details > span {
+  font-size: 9px;
+}
+
+.hunt-status__creature--active {
+  border-color: #5e9c50;
+}
+
+.hunt-status__rarity {
+  display: inline-block;
+  margin-top: 3px;
+  color: #f8db73;
+  font-size: 9px;
+  text-transform: capitalize;
+}
+
+.hunt-status__avatar,
+.hunt-status__creature-image {
+  display: grid;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #4e84c7;
+  image-rendering: pixelated;
+}
+
+.hunt-status__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hunt-status__creature-image {
+  object-fit: contain;
+  background: rgb(255 255 255 / 8%);
+}
+
+.hunt-status__trainer strong,
+.hunt-status__creature-details > strong {
+  display: block;
+  font-size: 14px;
+}
+
+.hunt-status__trainer span,
+.hunt-status__creature-details > span {
+  display: block;
+  color: rgb(255 255 255 / 72%);
+  font-size: 11px;
+}
+
+.hunt-status__creature-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.hunt-status__bar-row {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.hunt-status__bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgb(0 0 0 / 50%);
+}
+
+.hunt-status__bar-fill {
+  display: block;
+  width: var(--status-value);
+  height: 100%;
+  border-radius: inherit;
+  background: #5e9c50;
+  transition: width 180ms ease-out;
+}
+
+.hunt-status__bar-fill--health {
+  background: #4e84c7;
+}
+
+.hunt-status__elements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.hunt-status__element {
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.hunt-status__money {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 8px 11px;
+  color: #f8db73;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (width <= 420px) {
+  .hunt-status {
+    inset: 8px;
+  }
+
+  .hunt-status__panel {
+    transform: scale(0.86);
+    transform-origin: top left;
+  }
+
+  .hunt-status__money {
+    padding: 6px 8px;
+  }
+}
+
 .hunt-feedback {
   position: absolute;
   font-family: 'Outfit Variable', sans-serif;

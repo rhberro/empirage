@@ -2,17 +2,24 @@
 import { randomUUID } from 'node:crypto';
 
 import { logger } from '../logger.ts';
+import {
+  CAPTURE_RARITIES,
+  type CaptureConfigurationResource,
+  type CaptureItemResource,
+  type CaptureRarity,
+} from './capture-items.ts';
 import type { Movement, Position } from './game-types.ts';
 import { writeHuntCheckpoint, type HuntCheckpointRequest } from './hunt-checkpoints.ts';
 import {
   advanceEngine,
   applyHealingItem,
   createEngine,
+  experienceForLevel,
   healingItemCooldownEndsAt,
   healingItemDue,
   pauseEngine,
-  resumeEngine,
   snapshotEngine,
+  switchActiveCreature,
   type HuntCombatEvent,
   type HuntEngine,
   type HuntEngineCheckpoint,
@@ -29,13 +36,10 @@ import {
 } from './hunt-resources.ts';
 import { createServerClient } from './protocol.ts';
 
-const CHECKPOINT_INTERVAL_MS = 3_000;
-const MAXIMUM_UNCONFIRMED_MS = 5_000;
-const RETRY_INTERVAL_MS = 1_000;
+const CHECKPOINT_INTERVAL_MS = 5 * 60_000;
+const RETRY_INTERVAL_MS = 15_000;
 const STOP_TIMEOUT_MS = 10_000;
 const FINISH_WAIT_TIMEOUT_MS = 5_000;
-const BOOTSTRAP_RETRY_MS = 1_000;
-const BOOTSTRAP_BATCH_SIZE = 25;
 const TICK_INTERVAL_MS = Math.floor(1_000 / 30);
 const ALLY_POSITION: Position = { x: 6, y: 3 };
 const PLAYER_POSITION: Position = { x: 2, y: 3 };
@@ -88,6 +92,21 @@ type PublicHealingConfiguration = {
   itemId: number;
   thresholdPercentage: number;
 };
+type PublicCaptureItem = {
+  captureRateMultiplier: number;
+  goldCost: number;
+  id: number;
+  name: string;
+  slug: string;
+};
+type PublicCaptureConfiguration = { itemId: number; rarities: Array<CaptureRarity> };
+type PendingCapture = {
+  completesAt: number;
+  enemy: HuntEngineEnemy;
+  id: string;
+  item: CaptureItemResource;
+  succeeded: boolean;
+};
 type HuntGrid = { blocked: Array<Position>; height: number; tileSize: number; width: number };
 type HuntDatabaseRow = {
   ability_cooldowns: Record<string, Record<string, number>>;
@@ -118,6 +137,7 @@ type Runtime = {
   accountId: string;
   characterId: string;
   checkpoint?: PendingCheckpoint;
+  captureAttempts: Array<PendingCapture>;
   engine: HuntEngine;
   finalizePromise?: Promise<boolean>;
   finalizeResolve?: (finished: boolean) => void;
@@ -131,15 +151,29 @@ type Runtime = {
 type RuntimeSnapshotInput = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
 
 export type HuntState = {
+  activeCreatureAvailableAt: number;
+  activeCreatureElements: Array<string>;
+  activeCreatureExperience: string;
+  activeCreatureExperienceLevelStart: string;
+  activeCreatureExperienceNextLevel: string;
   activeCreatureAbilities: PublicActiveCreatureAbilities;
   activeCreatureAvailableAbilities: PublicActiveCreatureAbilities;
   activeCreatureHealth: number;
   activeCreatureId: string;
   activeCreatureLevel: number;
   activeCreatureMaximumHealth: number;
+  activeCreatureName: string;
   activeCreatureSpeciesId: number | null;
+  activeCreatureSwitchCompletesAt?: number;
+  activeCreatureSwitchCooldownEndsAt: number;
   allyPosition: Position;
   combatEvents: Array<HuntCombatEvent>;
+  characterAvatarUrl: string | null;
+  characterLevel: number;
+  characterName: string;
+  captureAttempts: Array<PublicCaptureAttempt>;
+  captureConfiguration?: PublicCaptureConfiguration;
+  captureItems: Array<PublicCaptureItem>;
   enemies: PublicEnemies;
   grid: HuntGrid;
   gold: number;
@@ -156,6 +190,12 @@ export type HuntState = {
   wave: number;
   waveSize: number;
 };
+export type PublicCaptureAttempt = {
+  completesAt: number;
+  id: string;
+  position: Position;
+  succeeded: boolean;
+};
 
 const serverClient = createServerClient();
 const runtimesByCharacter = new Map<string, Runtime>();
@@ -165,8 +205,7 @@ const recoveryFlights = new Map<string, Promise<Runtime | undefined>>();
 const startFlightsByCharacter = new Map<string, Promise<HuntState>>();
 const startFlightsByAccount = new Map<string, Promise<HuntState>>();
 const epochOrigin = Date.now() - globalThis.performance.now();
-let acceptingHunts = false;
-let bootstrapTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
+let acceptingHunts = true;
 let notifier: Notify | undefined;
 let stopComplete = false;
 let shutdownRequested = false;
@@ -238,6 +277,33 @@ function publicHealingConfiguration(
     : undefined;
 }
 
+function publicCaptureConfiguration(
+  configuration: CaptureConfigurationResource | undefined,
+): PublicCaptureConfiguration | undefined {
+  return configuration
+    ? { itemId: configuration.itemId, rarities: configuration.rarities }
+    : undefined;
+}
+
+function publicCaptureItem(item: CaptureItemResource): PublicCaptureItem {
+  return {
+    captureRateMultiplier: item.captureRateMultiplier,
+    goldCost: item.goldCost,
+    id: item.id,
+    name: item.name,
+    slug: item.slug,
+  };
+}
+
+function publicCaptureAttempt(attempt: PendingCapture): PublicCaptureAttempt {
+  return {
+    completesAt: attempt.completesAt,
+    id: attempt.id,
+    position: attempt.enemy.position,
+    succeeded: attempt.succeeded,
+  };
+}
+
 function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): HuntState {
   const { engine } = runtime;
   const active = engine.allies[engine.activeAllyIndex];
@@ -248,6 +314,10 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
       })
     : [];
   const activeSpecies = active ? engine.resources.species[String(active.speciesId)] : undefined;
+  const experience = active ? active.experience : '0';
+  const activeLevel = active ? active.level : 1;
+  const experienceLevelStart = experienceForLevel(activeLevel).toString();
+  const experienceNextLevel = experienceForLevel(activeLevel + 1).toString();
   const activeCreatureAvailableAbilities =
     active && activeSpecies
       ? activeSpecies.abilities.map(
@@ -257,15 +327,29 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
         )
       : [];
   return {
+    activeCreatureAvailableAt: engine.activeCreatureAvailableAt,
+    activeCreatureElements: activeSpecies ? activeSpecies.typeSlugs : [],
+    activeCreatureExperience: experience,
+    activeCreatureExperienceLevelStart: experienceLevelStart,
+    activeCreatureExperienceNextLevel: experienceNextLevel,
     activeCreatureAbilities,
     activeCreatureAvailableAbilities,
     activeCreatureHealth: active ? active.health : 0,
     activeCreatureId: active ? active.id : runtime.lastValidActiveCreatureId,
     activeCreatureLevel: active ? active.level : 1,
     activeCreatureMaximumHealth: active ? active.maximumHealth : 1,
+    activeCreatureName: activeSpecies ? activeSpecies.name : 'Criatura',
     activeCreatureSpeciesId: active ? active.speciesId : null,
+    activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
+    activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
     allyPosition: ALLY_POSITION,
     combatEvents,
+    characterAvatarUrl: engine.resources.character.avatarUrl,
+    characterLevel: engine.resources.character.level,
+    characterName: engine.resources.character.name,
+    captureAttempts: runtime.captureAttempts.map(publicCaptureAttempt),
+    captureConfiguration: publicCaptureConfiguration(engine.resources.captureConfiguration),
+    captureItems: engine.resources.captureItems.map(publicCaptureItem),
     enemies,
     gold: engine.resources.gold,
     grid: huntGrid(engine.resources.locationId),
@@ -282,6 +366,24 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
     wave: engine.wave,
     waveSize: engine.waveSize,
   };
+}
+
+export async function switchHuntActiveCreature(
+  characterId: string,
+  userId: string,
+  creatureId: string,
+): Promise<HuntState | undefined> {
+  const runtime = await runtimeForCharacter(characterId);
+  if (!runtime || runtime.accountId !== userId) {
+    return undefined;
+  }
+  if (!switchActiveCreature(runtime.engine, creatureId, epochNow())) {
+    return publicState(runtime, []);
+  }
+  launchCheckpoint(runtime, false);
+  const state = publicState(runtime, []);
+  notifyRuntime(runtime, []);
+  return state;
 }
 
 function publicAbilityResource(
@@ -393,22 +495,6 @@ async function performCheckpoint(runtime: Runtime, pending: PendingCheckpoint): 
     }
     if (runtime.status === 'finishing') {
       launchCheckpoint(runtime, true);
-      return;
-    }
-    const now = epochNow();
-    if (now - runtime.lastConfirmedCapture <= MAXIMUM_UNCONFIRMED_MS) {
-      if (runtime.status === 'paused' && acceptingHunts) {
-        resumeEngine(runtime.engine, now);
-        runtime.status = 'running';
-        notifyRuntime(runtime, []);
-      }
-      return;
-    }
-    if (runtime.status !== 'finishing') {
-      runtime.status = 'paused';
-      pauseEngine(runtime.engine, now);
-      notifyRuntime(runtime, []);
-      launchCheckpoint(runtime, false);
     }
   } catch (error) {
     if (runtime.checkpoint === pending) {
@@ -440,21 +526,13 @@ function processRuntime(runtime: Runtime, now: number): void {
   if (runtime.status === 'conflict' || runtime.status === 'finishing') {
     return;
   }
-  if (now - runtime.lastConfirmedCapture > MAXIMUM_UNCONFIRMED_MS) {
-    if (runtime.status !== 'paused') {
-      pauseEngine(runtime.engine, now);
-      runtime.status = 'paused';
-      notifyRuntime(runtime, []);
-    }
-    if (!runtime.checkpoint) {
-      launchCheckpoint(runtime, false);
-    }
-    return;
-  }
   if (runtime.status !== 'running') {
     return;
   }
   const result = advanceEngine(runtime.engine, now);
+  for (const enemy of result.defeatedEnemies) {
+    queueCaptureAttempt(runtime, enemy, now);
+  }
   if (result.changed) {
     const active = runtime.engine.allies[runtime.engine.activeAllyIndex];
     if (active) {
@@ -472,6 +550,93 @@ function processRuntime(runtime: Runtime, now: number): void {
   if (!runtime.checkpoint && now - runtime.lastConfirmedCapture >= CHECKPOINT_INTERVAL_MS) {
     launchCheckpoint(runtime, false);
   }
+}
+
+function captureSuccessChance(item: CaptureItemResource, rarity: CaptureRarity): number {
+  const rarityFactor: Record<CaptureRarity, number> = {
+    common: 1,
+    uncommon: 0.85,
+    rare: 0.7,
+    epic: 0.55,
+    legendary: 0.4,
+  };
+  return Math.min(0.95, 0.45 * item.captureRateMultiplier * rarityFactor[rarity]);
+}
+
+function randomIv(): number {
+  return Math.floor(Math.random() * 32);
+}
+
+function queueCaptureAttempt(runtime: Runtime, enemy: HuntEngineEnemy, now: number): void {
+  const configuration = runtime.engine.resources.captureConfiguration;
+  if (!configuration || !configuration.rarities.includes(enemy.rarity)) {
+    return;
+  }
+  const item = runtime.engine.resources.captureItems.find(function configuredItem(
+    candidate: CaptureItemResource,
+  ): boolean {
+    return candidate.id === configuration.itemId;
+  });
+  if (!item || runtime.engine.resources.gold < item.goldCost) {
+    return;
+  }
+  const duration = 4_000 + Math.floor(Math.random() * 1_001);
+  const attempt: PendingCapture = {
+    completesAt: now + duration,
+    enemy,
+    id: randomUUID(),
+    item,
+    succeeded: Math.random() < captureSuccessChance(item, enemy.rarity),
+  };
+  runtime.captureAttempts.push(attempt);
+  function commitCapture(): void {
+    completeCaptureAttempt(runtime, attempt).catch(function captureFailed(error: unknown): void {
+      const details = { characterId: runtime.characterId, error, huntId: runtime.engine.huntId };
+      logger.error(details, 'capture completion failed');
+    });
+  }
+  globalThis.setTimeout(commitCapture, duration);
+}
+
+type CapturePurchaseRow = { gold: number };
+
+async function completeCaptureAttempt(runtime: Runtime, attempt: PendingCapture): Promise<void> {
+  const index = runtime.captureAttempts.findIndex(function matchingAttempt(
+    candidate: PendingCapture,
+  ): boolean {
+    return candidate.id === attempt.id;
+  });
+  if (index < 0) {
+    return;
+  }
+  const enemy = attempt.enemy;
+  const parameters = {
+    capture_succeeded: attempt.succeeded,
+    command_id: attempt.id,
+    target_character_id: runtime.characterId,
+    target_gender: Math.random() < 0.5 ? 'male' : 'female',
+    target_item_id: attempt.item.id,
+    target_iv_attack: randomIv(),
+    target_iv_defense: randomIv(),
+    target_iv_hp: randomIv(),
+    target_iv_special_attack: randomIv(),
+    target_iv_special_defense: randomIv(),
+    target_iv_speed: randomIv(),
+    target_level: enemy.level,
+    target_rarity: enemy.rarity,
+    target_species_id: enemy.id,
+  };
+  const { data, error } = await serverClient.rpc('complete_character_capture', parameters);
+  if (error) {
+    throw error;
+  }
+  runtime.captureAttempts.splice(index, 1);
+  const purchase = (data as Array<CapturePurchaseRow>)[0];
+  if (purchase) {
+    runtime.engine.resources.gold = purchase.gold;
+  }
+  launchCheckpoint(runtime, false);
+  notifyRuntime(runtime, []);
 }
 
 type HealingItemPurchaseRow = {
@@ -512,6 +677,7 @@ function queueHealingItemUse(runtime: Runtime, now: number): void {
       ? Number.MAX_SAFE_INTEGER
       : (purchase.healing_amount ?? 0);
     if (applyHealingItem(runtime.engine, healingAmount, epochNow())) {
+      launchCheckpoint(runtime, false);
       notifyRuntime(runtime, []);
     }
   }
@@ -582,6 +748,55 @@ export async function configureHuntHealingItem(
   const state = publicState(runtime, []);
   notifyRuntime(runtime, []);
   return state;
+}
+
+export async function configureHuntCapture(
+  characterId: string,
+  userId: string,
+  itemId: number,
+  rarities: Array<CaptureRarity>,
+): Promise<HuntState | undefined> {
+  if (
+    !Number.isSafeInteger(itemId) ||
+    itemId < 0 ||
+    rarities.some(function invalidRarity(value): boolean {
+      return !isCaptureRarity(value);
+    })
+  ) {
+    throw new TypeError('invalid_capture_configuration');
+  }
+  const runtime = await runtimeForCharacter(characterId);
+  if (!runtime || runtime.accountId !== userId) {
+    return undefined;
+  }
+  if (itemId === 0) {
+    const { error } = await serverClient
+      .from('character_capture_configuration')
+      .delete()
+      .eq('character_id', characterId);
+    if (error) {
+      throw error;
+    }
+    runtime.engine.resources.captureConfiguration = undefined;
+    notifyRuntime(runtime, []);
+    return publicState(runtime, []);
+  }
+  const item = runtime.engine.resources.captureItems.find(function configuredItem(
+    candidate: CaptureItemResource,
+  ): boolean {
+    return candidate.id === itemId;
+  });
+  if (!item || rarities.length === 0) {
+    throw new TypeError('invalid_capture_item');
+  }
+  const update = { character_id: characterId, item_id: itemId, rarities };
+  const { error } = await serverClient.from('character_capture_configuration').upsert(update);
+  if (error) {
+    throw error;
+  }
+  runtime.engine.resources.captureConfiguration = { itemId, rarities };
+  notifyRuntime(runtime, []);
+  return publicState(runtime, []);
 }
 
 export async function configureHuntAbility(
@@ -681,48 +896,6 @@ function ensureSimulation(): void {
   if (!tickTimer) {
     tickTimer = globalThis.setInterval(simulationTick, TICK_INTERVAL_MS);
   }
-}
-
-async function bootstrapHunts(): Promise<void> {
-  let offset = 0;
-  while (true) {
-    if (acceptingHunts || shutdownRequested) {
-      return;
-    }
-    const { data, error } = await serverClient
-      .from('character_hunts')
-      .select('character_id')
-      .order('character_id')
-      .range(offset, offset + BOOTSTRAP_BATCH_SIZE - 1);
-    if (error) {
-      throw error;
-    }
-    const rows = data as Array<AccountHunt>;
-    for (const row of rows) {
-      await runtimeForCharacter(row.character_id);
-    }
-    if (rows.length < BOOTSTRAP_BATCH_SIZE) {
-      acceptingHunts = true;
-      logger.info('existing hunts bootstrapped into memory');
-      return;
-    }
-    offset += BOOTSTRAP_BATCH_SIZE;
-  }
-}
-
-function scheduleBootstrap(): void {
-  if (shutdownRequested || acceptingHunts) {
-    return;
-  }
-  bootstrapHunts().catch(function bootstrapFailed(error: unknown): void {
-    logger.error({ error }, 'hunt bootstrap failed; admissions remain closed');
-    if (!shutdownRequested && !bootstrapTimer) {
-      bootstrapTimer = globalThis.setTimeout(function retryBootstrap(): void {
-        bootstrapTimer = undefined;
-        scheduleBootstrap();
-      }, BOOTSTRAP_RETRY_MS);
-    }
-  });
 }
 
 function safeInteger(value: unknown, name: string): number {
@@ -828,6 +1001,7 @@ function runtimeEnemies(value: unknown, resources: HuntResources): Array<HuntEng
     if (!species) {
       throw new TypeError('Runtime enemy species missing');
     }
+    const rarity = isCaptureRarity(enemy.rarity) ? enemy.rarity : 'common';
     enemies.push({
       ...species,
       combatId: stringValue(enemy.combatId, 'enemy combat ID'),
@@ -841,9 +1015,14 @@ function runtimeEnemies(value: unknown, resources: HuntResources): Array<HuntEng
           ? undefined
           : safeInteger(enemy.nextMovementAt, 'enemy movement deadline'),
       position: position(enemy.position, 'enemy position'),
+      rarity,
     });
   }
   return enemies;
+}
+
+function isCaptureRarity(value: unknown): value is CaptureRarity {
+  return typeof value === 'string' && CAPTURE_RARITIES.includes(value as CaptureRarity);
 }
 
 function runtimeCooldowns(value: unknown): Record<string, Record<string, number>> {
@@ -867,6 +1046,7 @@ function runtimeCheckpoint(
   value: unknown,
   row: HuntDatabaseRow,
   resources: HuntResources,
+  now: number,
 ): RuntimeSnapshotInput | undefined {
   if (value === null || value === undefined) {
     return undefined;
@@ -876,9 +1056,31 @@ function runtimeCheckpoint(
     throw new TypeError('Invalid runtime snapshot identity');
   }
   return {
+    activeCreatureAvailableAt:
+      snapshot.activeCreatureAvailableAt === undefined
+        ? now
+        : safeInteger(snapshot.activeCreatureAvailableAt, 'active creature availability'),
     abilityCooldowns: runtimeCooldowns(snapshot.abilityCooldowns),
     activeCreatureHealth: safeInteger(snapshot.activeCreatureHealth, 'active creature health'),
     activeCreatureId: stringValue(snapshot.activeCreatureId, 'active creature ID'),
+    activeCreatureSwitchCompletesAt:
+      snapshot.activeCreatureSwitchCompletesAt === undefined
+        ? undefined
+        : safeInteger(
+            snapshot.activeCreatureSwitchCompletesAt,
+            'active creature switch completion',
+          ),
+    activeCreatureSwitchCooldownEndsAt:
+      snapshot.activeCreatureSwitchCooldownEndsAt === undefined
+        ? now
+        : safeInteger(
+            snapshot.activeCreatureSwitchCooldownEndsAt,
+            'active creature switch cooldown',
+          ),
+    activeCreatureSwitchTargetId:
+      snapshot.activeCreatureSwitchTargetId === undefined
+        ? undefined
+        : stringValue(snapshot.activeCreatureSwitchTargetId, 'active creature switch target'),
     capturedAt: safeInteger(snapshot.capturedAt, 'snapshot capture'),
     enemies: runtimeEnemies(snapshot.enemies, resources),
     enemyActionNotBefore: safeInteger(snapshot.enemyActionNotBefore, 'enemy action deadline'),
@@ -900,11 +1102,12 @@ function checkpointFromRow(
   resources: HuntResources,
   now: number,
 ): HuntEngineCheckpoint {
-  const snapshot = runtimeCheckpoint(row.runtime_snapshot, row, resources);
+  const snapshot = runtimeCheckpoint(row.runtime_snapshot, row, resources, now);
   if (snapshot) {
     return snapshot;
   }
   return {
+    activeCreatureAvailableAt: now,
     abilityCooldowns: {},
     activeCreatureHealth: safeInteger(row.active_creature_health, 'active creature health'),
     activeCreatureId: row.active_creature_id,
@@ -958,6 +1161,7 @@ async function recoverRuntime(characterId: string): Promise<Runtime | undefined>
   const engine = createEngine(checkpoint, resources, now);
   const runtime: Runtime = {
     accountId: row.user_id,
+    captureAttempts: [],
     characterId,
     engine,
     lastConfirmedCapture: now,
@@ -1118,6 +1322,7 @@ async function startHuntExclusive(characterId: string, userId: string): Promise<
   }
   const runtime: Runtime = {
     accountId: userId,
+    captureAttempts: [],
     characterId,
     engine,
     lastConfirmedCapture: now,
@@ -1249,10 +1454,6 @@ export async function stopHuntSimulation(): Promise<void> {
   }
   acceptingHunts = false;
   shutdownRequested = true;
-  if (bootstrapTimer) {
-    globalThis.clearTimeout(bootstrapTimer);
-    bootstrapTimer = undefined;
-  }
   if (tickTimer) {
     globalThis.clearInterval(tickTimer);
     tickTimer = undefined;
@@ -1274,6 +1475,18 @@ export async function stopHuntSimulation(): Promise<void> {
   stopComplete = true;
 }
 
+export async function suspendHunt(characterId: string): Promise<void> {
+  const runtime = runtimesByCharacter.get(characterId);
+  if (!runtime) {
+    return;
+  }
+  const deadline = epochNow() + STOP_TIMEOUT_MS;
+  const persisted = await stopRuntime(runtime, deadline);
+  if (!persisted) {
+    throw new Error('hunt_suspend_checkpoint_failed');
+  }
+  removeRuntime(runtime);
+}
+
 ensureSimulation();
-scheduleBootstrap();
 logger.info('in-memory hunt simulation initialized');

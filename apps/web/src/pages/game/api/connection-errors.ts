@@ -15,7 +15,7 @@ export function createSocketUrl(): string {
   if (typeof baseUrl !== 'string' || !baseUrl.trim()) {
     throw new Error('VITE_API_BASE_URL não configurada. Configure o endereço do servidor.');
   }
-  const url = new globalThis.URL(baseUrl, globalThis.location.origin);
+  const url = apiUrl(baseUrl);
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     throw new Error('Endereço do servidor inválido. Use HTTP ou HTTPS.');
   }
@@ -27,4 +27,15 @@ export function createSocketUrl(): string {
   url.search = '';
   url.hash = '';
   return url.toString();
+}
+
+function apiUrl(baseUrl: string): URL {
+  const url = new globalThis.URL(baseUrl, globalThis.location.origin);
+  const isLocalServer = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isRemoteClient =
+    globalThis.location.hostname !== 'localhost' && globalThis.location.hostname !== '127.0.0.1';
+  if (isLocalServer && isRemoteClient) {
+    url.hostname = globalThis.location.hostname;
+  }
+  return url;
 }

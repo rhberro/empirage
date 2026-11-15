@@ -253,6 +253,7 @@ export class HuntView {
   }
 
   private addCreatures(state: HuntState, now: number): void {
+    const hasActiveCreatureTarget = now >= state.activeCreatureAvailableAt;
     const allySpec: CreatureSpec = {
       direction: ALLY_DIRECTION,
       faceTargetUntil: Number.POSITIVE_INFINITY,
@@ -261,7 +262,8 @@ export class HuntView {
       maximumHealth: state.activeCreatureMaximumHealth,
       movement: null,
       speciesId: state.activeCreatureSpeciesId,
-      target: HuntView.closestEnemyPosition(state),
+      switchesOutAt: state.activeCreatureSwitchCompletesAt,
+      target: hasActiveCreatureTarget ? HuntView.closestEnemyPosition(state) : null,
       tile: state.allyPosition,
     };
     this.creatures.add(allySpec, now);
@@ -276,7 +278,8 @@ export class HuntView {
         maximumHealth: enemy.maximumHealth,
         movement: enemy.movement,
         speciesId: enemy.id,
-        target: state.allyPosition,
+        switchesOutAt: undefined,
+        target: hasActiveCreatureTarget ? state.allyPosition : null,
         tile: enemy.position,
       };
       this.creatures.add(enemySpec, now);

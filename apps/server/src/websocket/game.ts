@@ -1,8 +1,12 @@
+import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-/* eslint-disable max-lines */
+/* eslint-disable import/max-dependencies, max-lines */
 
 import { config } from '../config.ts';
+import { SerialCommandQueue } from '../game/serial-command-queue.ts';
 import { logger } from '../logger.ts';
+import { CAPTURE_RARITIES, type CaptureRarity } from './capture-items.ts';
+import { loadCreatureCollection } from './creature-collection.ts';
 import type {
   AuthenticatedState,
   CardinalDirection,
@@ -18,15 +22,26 @@ import type {
 import { isPositionWithin, positionAfterVector } from './grid-movement.ts';
 import {
   configureHuntHealingItem,
+  configureHuntCapture,
   configureHuntAbility,
+  switchHuntActiveCreature,
   findAccountHunt,
   findHunt,
   leaveHunt,
   setHuntNotifier,
   startHunt,
+  suspendHunt,
   type HuntState,
 } from './hunting.ts';
+import { isWithinInterest } from './interest.ts';
+import {
+  recordWebSocketBackpressureDrop,
+  recordWebSocketConnectionClosed,
+  recordWebSocketReceived,
+  recordWebSocketSent,
+} from './metrics.ts';
 import { createAuthenticatedClient, createServerClient, parseMessage } from './protocol.ts';
+import { releaseWebSocketConnection } from './request.ts';
 
 const PROTOCOL_VERSION = 1;
 const TICKS_PER_SECOND = 30;
@@ -37,10 +52,9 @@ const RUNNING_CARDINAL_DURATION_TICKS = 8;
 const WALKING_DIAGONAL_DURATION_TICKS = Math.round(WALKING_CARDINAL_DURATION_TICKS * Math.SQRT2);
 const RUNNING_DIAGONAL_DURATION_TICKS = Math.round(RUNNING_CARDINAL_DURATION_TICKS * Math.SQRT2);
 const SNAPSHOT_INTERVAL_TICKS = TICKS_PER_SECOND * 5;
-const PERSISTENCE_INTERVAL_MS = 5_000;
+const PERSISTENCE_INTERVAL_MS = 30_000;
 const HEARTBEAT_INTERVAL_MS = 15_000;
 const INPUT_TIMEOUT_MS = 2_000;
-const MAXIMUM_BUFFERED_BYTES = 64 * 1_024;
 const MAP_MAXIMUM_TILE = 99;
 const SERVER_EPOCH = randomUUID();
 const characterPersistenceClient = createServerClient();
@@ -60,10 +74,12 @@ type CardinalDirections = Array<CardinalDirection>;
 type GameSocket = Bun.ServerWebSocket<SocketData>;
 type PlayerSnapshots = Array<PlayerSnapshot>;
 type Persistences = Array<Promise<void>>;
+type MessagePayload = { type?: unknown };
 const CARDINAL_DIRECTIONS: CardinalDirections = ['down', 'left', 'right', 'up'];
 const connectionsByAccount = new Map<string, GameSocket>();
 const authenticatedSockets = new Set<GameSocket>();
 const connectionGenerationByCharacter = new Map<string, number>();
+const commandQueueByCharacter = new SerialCommandQueue();
 const persistenceByCharacter = new Map<string, Promise<void>>();
 let nextConnectionGeneration = 1;
 let tickNumber = 0;
@@ -77,10 +93,11 @@ function emptyInput(): InputState {
 
 function send(
   socket: Bun.ServerWebSocket<SocketData>,
-  payload: object,
+  payload: MessagePayload,
   replaceable = false,
 ): boolean {
-  if (socket.getBufferedAmount() > MAXIMUM_BUFFERED_BYTES) {
+  if (socket.getBufferedAmount() > config.websocketMaximumBufferedBytes) {
+    recordWebSocketBackpressureDrop();
     if (!replaceable) {
       socket.close(1013, 'backpressure');
     }
@@ -92,8 +109,25 @@ function send(
     connectionGeneration: authenticated ? authenticated.connectionGeneration : undefined,
     serverEpoch: SERVER_EPOCH,
   };
-  socket.send(JSON.stringify(envelope));
+  const serialized = JSON.stringify(envelope);
+  socket.send(serialized);
+  const messageType = messagePayloadType(payload);
+  const byteLength = Buffer.byteLength(serialized);
+  recordWebSocketSent(messageType, byteLength);
   return true;
+}
+
+function messagePayloadType(payload: MessagePayload): string {
+  return typeof payload.type === 'string' ? payload.type : 'unknown';
+}
+
+function containsCharacter(players: PlayerSnapshots, characterId: string): boolean {
+  for (const player of players) {
+    if (player.characterId === characterId) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function movementSnapshot(movement: Movement): MovementSnapshot {
@@ -108,11 +142,11 @@ function movementSnapshot(movement: Movement): MovementSnapshot {
   };
 }
 
-function createSnapshot(initialState?: AuthenticatedState): object {
+function createSnapshot(observer: AuthenticatedState): object {
   const players: PlayerSnapshots = [];
   for (const socket of authenticatedSockets) {
     const state = socket.data.authenticated;
-    if (!state || state.hunting) {
+    if (!state || state.hunting || !isWithinInterest(observer.position, state.position)) {
       continue;
     }
     const player: PlayerSnapshot = {
@@ -125,14 +159,14 @@ function createSnapshot(initialState?: AuthenticatedState): object {
     }
     players.push(player);
   }
-  if (initialState && !initialState.hunting) {
+  if (!observer.hunting && !containsCharacter(players, observer.characterId)) {
     const player: PlayerSnapshot = {
-      characterId: initialState.characterId,
-      x: initialState.position.x,
-      y: initialState.position.y,
+      characterId: observer.characterId,
+      x: observer.position.x,
+      y: observer.position.y,
     };
-    if (initialState.movement) {
-      player.movement = movementSnapshot(initialState.movement);
+    if (observer.movement) {
+      player.movement = movementSnapshot(observer.movement);
     }
     players.push(player);
   }
@@ -170,10 +204,19 @@ function replacePreviousConnection(
   }
 }
 
-function broadcastExcept(payload: object, excludedSocket: GameSocket): void {
+function broadcastExcept(
+  subject: AuthenticatedState,
+  payload: object,
+  excludedSocket: GameSocket,
+): void {
   for (const socket of authenticatedSockets) {
     const state = socket.data.authenticated;
-    if (socket !== excludedSocket && state && !state.hunting) {
+    if (
+      socket !== excludedSocket &&
+      state &&
+      !state.hunting &&
+      isWithinInterest(state.position, subject.position)
+    ) {
       send(socket, payload);
     }
   }
@@ -201,7 +244,7 @@ async function authenticate(
   }
   const { data, error } = await supabase
     .from('characters')
-    .select('id, user_id, position_x, position_y')
+    .select('id, user_id, position_x, position_y, name, level, gold, avatar_url')
     .eq('id', clientMessage.characterId)
     .eq('user_id', userData.user.id)
     .maybeSingle<CharacterRow>();
@@ -253,6 +296,12 @@ async function authenticate(
   const authenticatedSent = send(socket, {
     characterId: data.id,
     position,
+    profile: {
+      avatarUrl: data.avatar_url,
+      gold: data.gold,
+      level: data.level,
+      name: data.name,
+    },
     type: 'authenticated',
     version: PROTOCOL_VERSION,
   });
@@ -264,11 +313,36 @@ async function authenticate(
   connectionsByAccount.set(userData.user.id, socket);
   authenticatedSockets.add(socket);
   if (!hunt) {
-    broadcastExcept(joined, socket);
+    broadcastExcept(state, joined, socket);
   }
   if (hunt) {
     sendHuntState(socket, hunt);
   }
+  await sendCreatureCollection(socket, state);
+}
+
+async function sendCreatureCollection(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  storagePage?: number,
+): Promise<void> {
+  const collection = await loadCreatureCollection(state.supabase, state.characterId, storagePage);
+  send(socket, { collection, type: 'collection_state', version: PROTOCOL_VERSION });
+}
+
+async function requestCreatureStorage(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (
+    typeof clientMessage.storagePage !== 'number' ||
+    !Number.isSafeInteger(clientMessage.storagePage) ||
+    clientMessage.storagePage < 1
+  ) {
+    throw new TypeError('invalid_storage_page');
+  }
+  await sendCreatureCollection(socket, state, clientMessage.storagePage);
 }
 
 function sendHuntState(
@@ -359,6 +433,85 @@ async function configureAbility(
   }
 }
 
+async function switchActiveCreature(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (typeof clientMessage.creatureId !== 'string') {
+    throw new TypeError('invalid_creature');
+  }
+  const hunt = await switchHuntActiveCreature(
+    state.characterId,
+    state.accountId,
+    clientMessage.creatureId,
+  );
+  if (hunt) {
+    sendHuntState(socket, hunt);
+  }
+}
+
+// The operation stays together so validation and its resulting collection snapshot remain coupled.
+// eslint-disable-next-line max-lines-per-function
+async function moveCreature(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (typeof clientMessage.creatureId !== 'string') {
+    throw new TypeError('invalid_creature');
+  }
+  const creatureId = clientMessage.creatureId;
+  if (clientMessage.type === 'move_creature_to_storage') {
+    const moveToStorageParams = { target_creature_id: creatureId };
+    const { error } = await state.supabase.rpc('move_creature_to_storage', moveToStorageParams);
+    if (error) {
+      throw error;
+    }
+    await sendCreatureCollection(socket, state);
+    return;
+  }
+  const moveToPartyParams = { target_creature_id: creatureId };
+  const { error } = await state.supabase.rpc('move_creature_to_party', moveToPartyParams);
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
+}
+
+type CaptureRarities = Array<CaptureRarity>;
+function isValidCaptureRarity(rarity: unknown): boolean {
+  return typeof rarity === 'string' && CAPTURE_RARITIES.includes(rarity as CaptureRarity);
+}
+
+function isCaptureRarities(value: unknown): value is CaptureRarities {
+  return Array.isArray(value) && value.length > 0 && value.every(isValidCaptureRarity);
+}
+
+async function configureCapture(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (
+    typeof clientMessage.captureItemId !== 'number' ||
+    !Number.isSafeInteger(clientMessage.captureItemId) ||
+    (clientMessage.captureItemId !== 0 && !isCaptureRarities(clientMessage.captureRarities))
+  ) {
+    throw new TypeError('invalid_capture_configuration');
+  }
+  const rarities = clientMessage.captureItemId === 0 ? [] : clientMessage.captureRarities;
+  const hunt = await configureHuntCapture(
+    state.characterId,
+    state.accountId,
+    clientMessage.captureItemId,
+    rarities,
+  );
+  if (hunt) {
+    sendHuntState(socket, hunt);
+  }
+}
+
 async function handleStartHunt(socket: GameSocket, state: AuthenticatedState): Promise<void> {
   if (state.hunting) {
     sendHuntState(socket, await findHunt(state.characterId));
@@ -369,7 +522,8 @@ async function handleStartHunt(socket: GameSocket, state: AuthenticatedState): P
   await persist(socket);
   const hunt = await startHunt(state.characterId, state.accountId);
   state.hunting = true;
-  broadcastExcept(cityPresence(state, 'player_left'), socket);
+  const left = cityPresence(state, 'player_left');
+  broadcastExcept(state, left, socket);
   sendHuntState(socket, hunt);
 }
 
@@ -386,8 +540,9 @@ async function handleLeaveHunt(socket: GameSocket, state: AuthenticatedState): P
   }
   state.hunting = false;
   sendHuntState(socket, undefined, hunt ? hunt.huntId : undefined);
-  broadcastExcept(cityPresence(state, 'player_joined'), socket);
-  send(socket, createSnapshot());
+  const joined = cityPresence(state, 'player_joined');
+  broadcastExcept(state, joined, socket);
+  send(socket, createSnapshot(state));
 }
 
 async function handleHuntCommand(
@@ -404,6 +559,25 @@ async function handleHuntCommand(
   }
   if (clientMessage.type === 'configure_ability') {
     await configureAbility(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'configure_capture') {
+    await configureCapture(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'switch_active_creature') {
+    await switchActiveCreature(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'request_creature_storage') {
+    await requestCreatureStorage(socket, state, clientMessage);
+    return true;
+  }
+  if (
+    clientMessage.type === 'move_creature_to_party' ||
+    clientMessage.type === 'move_creature_to_storage'
+  ) {
+    await moveCreature(socket, state, clientMessage);
     return true;
   }
   if (clientMessage.type !== 'start_hunt' && clientMessage.type !== 'leave_hunt') {
@@ -507,6 +681,44 @@ function exceedsRateLimit(data: SocketData): boolean {
   return data.messageCount > config.websocketMaximumMessagesPerSecond;
 }
 
+async function processAuthenticatedMessage(
+  socket: GameSocket,
+  parsed: ClientMessage,
+): Promise<void> {
+  if (handleHuntClock(socket, parsed)) {
+    return;
+  }
+  const activeState = socket.data.authenticated;
+  if (activeState && activeState.huntTransitioning) {
+    if (parsed.type === 'input') {
+      handleInput(socket, parsed);
+    } else {
+      send(socket, { code: 'hunt_transitioning', type: 'error', version: PROTOCOL_VERSION });
+    }
+    return;
+  }
+  try {
+    const state = socket.data.authenticated;
+    if (!state) {
+      return;
+    }
+    const handled = await commandQueueByCharacter.run(
+      state.characterId,
+      function processCharacterCommand(): Promise<boolean> {
+        return handleHuntCommand(socket, parsed);
+      },
+    );
+    if (!handled) {
+      handleInput(socket, parsed);
+    }
+  } catch (error) {
+    const state = socket.data.authenticated;
+    const details = { characterId: state ? state.characterId : undefined, error };
+    logger.error(details, 'hunt command failed');
+    send(socket, { code: 'hunt_command_failed', type: 'error', version: PROTOCOL_VERSION });
+  }
+}
+
 async function processMessage(
   socket: Bun.ServerWebSocket<SocketData>,
   rawMessage: string | Buffer,
@@ -524,29 +736,10 @@ async function processMessage(
     closeWithError(socket, 1008, 'invalid_json');
     return;
   }
+  const messageType = typeof parsed.type === 'string' ? parsed.type : 'unknown';
+  recordWebSocketReceived(messageType, rawMessage.length);
   if (socket.data.authenticated) {
-    if (handleHuntClock(socket, parsed)) {
-      return;
-    }
-    if (socket.data.authenticated.huntTransitioning) {
-      if (parsed.type === 'input') {
-        handleInput(socket, parsed);
-      } else {
-        send(socket, { code: 'hunt_transitioning', type: 'error', version: PROTOCOL_VERSION });
-      }
-      return;
-    }
-    try {
-      if (await handleHuntCommand(socket, parsed)) {
-        return;
-      }
-    } catch (error) {
-      const details = { characterId: socket.data.authenticated.characterId, error };
-      logger.error(details, 'hunt command failed');
-      send(socket, { code: 'hunt_command_failed', type: 'error', version: PROTOCOL_VERSION });
-      return;
-    }
-    handleInput(socket, parsed);
+    await processAuthenticatedMessage(socket, parsed);
     return;
   }
   if (socket.data.authenticating) {
@@ -625,10 +818,15 @@ function startMovement(state: AuthenticatedState): Movement | undefined {
   };
 }
 
-function broadcast(payload: object, replaceable = false): void {
+function broadcast(subject: AuthenticatedState, payload: object, replaceable = false): void {
   for (const socket of authenticatedSockets) {
     const state = socket.data.authenticated;
-    if (state && !state.hunting && !state.huntTransitioning) {
+    if (
+      state &&
+      !state.hunting &&
+      !state.huntTransitioning &&
+      isWithinInterest(state.position, subject.position)
+    ) {
       send(socket, payload, replaceable);
     }
   }
@@ -662,7 +860,7 @@ function updatePlayer(state: AuthenticatedState): void {
         type: 'player_idle',
         version: PROTOCOL_VERSION,
       };
-      broadcast(idle);
+      broadcast(state, idle);
     }
     return;
   }
@@ -679,7 +877,7 @@ function updatePlayer(state: AuthenticatedState): void {
     type: 'movement_started',
     version: PROTOCOL_VERSION,
   };
-  broadcast(started);
+  broadcast(state, started);
 }
 
 function tick(): void {
@@ -691,7 +889,12 @@ function tick(): void {
     }
   }
   if (tickNumber % SNAPSHOT_INTERVAL_TICKS === 0) {
-    broadcast(createSnapshot(), true);
+    for (const socket of authenticatedSockets) {
+      const state = socket.data.authenticated;
+      if (state && !state.hunting && !state.huntTransitioning) {
+        send(socket, createSnapshot(state), true);
+      }
+    }
   }
 }
 
@@ -735,6 +938,8 @@ async function persist(socket: Bun.ServerWebSocket<SocketData>): Promise<void> {
 
 function close(socket: Bun.ServerWebSocket<SocketData>): void {
   globalThis.clearTimeout(socket.data.authenticationTimer);
+  releaseWebSocketConnection(socket.data.ipAddress);
+  recordWebSocketConnectionClosed();
   const state = socket.data.authenticated;
   if (!state) {
     return;
@@ -742,7 +947,7 @@ function close(socket: Bun.ServerWebSocket<SocketData>): void {
   state.input = emptyInput();
   authenticatedSockets.delete(socket);
   if (connectionsByAccount.get(state.accountId) !== socket) {
-    persist(socket).catch(logger.error);
+    persist(socket).catch(logPersistenceError);
     return;
   }
   connectionsByAccount.delete(state.accountId);
@@ -750,9 +955,16 @@ function close(socket: Bun.ServerWebSocket<SocketData>): void {
     connectionGenerationByCharacter.delete(state.characterId);
   }
   if (!state.hunting) {
-    broadcast(cityPresence(state, 'player_left'));
+    const left = cityPresence(state, 'player_left');
+    broadcast(state, left);
   }
-  persist(socket).catch(logger.error);
+  persist(socket).catch(logPersistenceError);
+  suspendHunt(state.characterId).catch(logHuntSuspensionError);
+}
+
+function logHuntSuspensionError(error: unknown): void {
+  const details = { error };
+  logger.error(details, 'failed to suspend hunt after socket close');
 }
 
 function pong(socket: Bun.ServerWebSocket<SocketData>): void {
@@ -792,7 +1004,12 @@ async function persistAll(): Promise<void> {
 }
 
 function persistAllInBackground(): void {
-  persistAll().catch(logger.error);
+  persistAll().catch(logPersistenceError);
+}
+
+function logPersistenceError(error: unknown): void {
+  const details = { error };
+  logger.error(details, 'failed to persist game state');
 }
 
 function heartbeat(): void {
@@ -816,12 +1033,19 @@ function notifyHunt(characterId: string, hunt: HuntState | undefined, endedHuntI
     if (state && state.characterId === characterId) {
       if (!hunt && state.hunting) {
         state.hunting = false;
-        broadcastExcept(cityPresence(state, 'player_joined'), socket);
-        send(socket, createSnapshot());
+        const joined = cityPresence(state, 'player_joined');
+        broadcastExcept(state, joined, socket);
+        send(socket, createSnapshot(state));
       }
       sendHuntState(socket, hunt, endedHuntId);
+      sendCreatureCollection(socket, state).catch(logCreatureCollectionError);
     }
   }
+}
+
+function logCreatureCollectionError(error: unknown): void {
+  const details = { error };
+  logger.error(details, 'failed to send creature collection');
 }
 
 setHuntNotifier(notifyHunt);

@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { authStore } from '~/shared/auth';
 import { getSelectedCharacter } from '~/shared/session';
 
+import type { CharacterProfile, CollectionStateEvent } from '../api/game-protocol';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
 import { CityScene } from './CityScene';
 
@@ -12,27 +13,48 @@ const GAME_WIDTH = 480;
 const GAME_HEIGHT = 288;
 type Cleanup = () => void;
 type HuntStateChangeHandler = (hunt: HuntState | null) => void;
+type CollectionChangeHandler = (collection: CollectionStateEvent['collection']) => void;
+type CharacterProfileChangeHandler = (profile: CharacterProfile) => void;
 type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
 type GameCanvasProps = {
+  onCharacterProfileChange: CharacterProfileChangeHandler;
   onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
+  onCollectionChange: CollectionChangeHandler;
   onHuntStateChange: HuntStateChangeHandler;
 };
 
 export function GameCanvas(props: GameCanvasProps): ReactElement {
-  const { onHuntCommandSenderChange, onHuntStateChange } = props;
+  const {
+    onCharacterProfileChange,
+    onCollectionChange,
+    onHuntCommandSenderChange,
+    onHuntStateChange,
+  } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const onHuntCommandSenderChangeRef = useRef(onHuntCommandSenderChange);
   const onHuntStateChangeRef = useRef(onHuntStateChange);
+  const onCollectionChangeRef = useRef(onCollectionChange);
+  const onCharacterProfileChangeRef = useRef(onCharacterProfileChange);
 
   function synchronizeHuntStateHandler(): void {
+    onCharacterProfileChangeRef.current = onCharacterProfileChange;
     onHuntStateChangeRef.current = onHuntStateChange;
+    onCollectionChangeRef.current = onCollectionChange;
     onHuntCommandSenderChangeRef.current = onHuntCommandSenderChange;
+  }
+
+  function handleCharacterProfileChange(profile: CharacterProfile): void {
+    onCharacterProfileChangeRef.current(profile);
   }
 
   function handleHuntStateChange(hunt: HuntState | null): void {
     onHuntStateChangeRef.current(hunt);
+  }
+
+  function handleCollectionChange(collection: CollectionStateEvent['collection']): void {
+    onCollectionChangeRef.current(collection);
   }
 
   function mountGame(): Cleanup | undefined {
@@ -44,6 +66,8 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     }
     const scene = new CityScene(
       characterId,
+      handleCharacterProfileChange,
+      handleCollectionChange,
       handleHuntStateChange,
       onHuntCommandSenderChangeRef.current,
     );
@@ -73,7 +97,12 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     return unmountGame;
   }
 
-  useEffect(synchronizeHuntStateHandler, [onHuntCommandSenderChange, onHuntStateChange]);
+  useEffect(synchronizeHuntStateHandler, [
+    onCharacterProfileChange,
+    onCollectionChange,
+    onHuntCommandSenderChange,
+    onHuntStateChange,
+  ]);
   useEffect(mountGame, []);
   return <div className="game-canvas" ref={containerRef} />;
 }

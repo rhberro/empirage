@@ -14,8 +14,13 @@ const MOVE_NAME_ALIASES: Record<string, string> = {
 export function AbilityIcon(props: AbilityIconProps): React.ReactElement | null {
   const { element, name } = props;
   const moveName = normalizeMoveName(name);
-  const style = createMoveIconStyle(element, moveName);
-  return <span aria-hidden="true" className="ability-icon" style={style} />;
+  const iconPath = '/assets/moves/icons/' + moveName + '.png';
+  const style = createMoveIconStyle(element);
+  return (
+    <span aria-hidden="true" className="ability-icon" style={style}>
+      <img alt="" src={iconPath} />
+    </span>
+  );
 }
 
 function normalizeMoveName(name: string): string {
@@ -23,15 +28,10 @@ function normalizeMoveName(name: string): string {
   return MOVE_NAME_ALIASES[normalizedName] ?? normalizedName;
 }
 
-function createMoveIconStyle(element: string, moveName: string): MoveIconStyle {
+function createMoveIconStyle(element: string): MoveIconStyle {
   const backgroundColor = huntElementBackgroundColor(element);
-  const iconPath = '/assets/moves/icons/' + moveName + '.png';
   return {
     backgroundColor,
-    backgroundImage:
-      'linear-gradient(135deg, rgb(255 255 255 / 28%), transparent 52%), url(' + iconPath + ')',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '100% 100%, contain',
+    backgroundImage: 'linear-gradient(135deg, rgb(255 255 255 / 28%), transparent 52%)',
   };
 }

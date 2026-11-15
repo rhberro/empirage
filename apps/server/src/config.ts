@@ -8,6 +8,9 @@ type Config = {
   supabaseUrl: string;
   webOrigin: string;
   websocketAuthenticationTimeoutMs: number;
+  websocketInterestCellSizeTiles: number;
+  websocketMaximumBufferedBytes: number;
+  websocketMaximumConnectionsPerIp: number;
   websocketMaximumMessageBytes: number;
   websocketMaximumMessagesPerSecond: number;
 };
@@ -62,6 +65,22 @@ function webOrigin(): string {
   return url.origin;
 }
 
+function invalidOctet(octet: number): boolean {
+  return !Number.isInteger(octet) || octet < 0 || octet > 255;
+}
+
+function isLocalNetworkHost(hostname: string): boolean {
+  const octets = hostname.split('.').map(Number);
+  if (octets.length !== 4 || octets.some(invalidOctet)) {
+    return false;
+  }
+  return (
+    octets[0] === 10 ||
+    (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+    (octets[0] === 192 && octets[1] === 168)
+  );
+}
+
 function positiveIntegerEnvironmentVariable(name: string, fallback: number): number {
   const value = env[name];
   const parsed = value ? Number(value) : fallback;
@@ -83,6 +102,18 @@ export const config: Config = {
     'WEBSOCKET_AUTHENTICATION_TIMEOUT_MS',
     10_000,
   ),
+  websocketInterestCellSizeTiles: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_INTEREST_CELL_SIZE_TILES',
+    16,
+  ),
+  websocketMaximumBufferedBytes: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_MAXIMUM_BUFFERED_BYTES',
+    64 * 1_024,
+  ),
+  websocketMaximumConnectionsPerIp: positiveIntegerEnvironmentVariable(
+    'WEBSOCKET_MAXIMUM_CONNECTIONS_PER_IP',
+    10,
+  ),
   websocketMaximumMessageBytes: positiveIntegerEnvironmentVariable(
     'WEBSOCKET_MAXIMUM_MESSAGE_BYTES',
     4_096,
@@ -92,3 +123,19 @@ export const config: Config = {
     30,
   ),
 };
+
+export function isAllowedWebOrigin(origin: string | null): boolean {
+  if (!origin) {
+    return false;
+  }
+  try {
+    const url = new URL(origin);
+    const isLoopbackHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    return (
+      url.protocol === 'http:' &&
+      (url.origin === config.webOrigin || isLoopbackHost || isLocalNetworkHost(url.hostname))
+    );
+  } catch {
+    return false;
+  }
+}

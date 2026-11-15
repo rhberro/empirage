@@ -1,3 +1,4 @@
+/* eslint-disable oxsome/no-inline-structural-types */
 import { readHuntState } from './hunt-protocol';
 /* eslint-disable max-lines */
 import type { HuntStateEvent } from './hunt-protocol';
@@ -56,7 +57,18 @@ export type HuntClockEvent = {
   serverTime: number;
   type: 'hunt_clock';
 };
-export type AuthenticatedEvent = { characterId: string; position: Tile; type: 'authenticated' };
+export type CharacterProfile = {
+  avatarUrl: string | null;
+  gold: number;
+  level: number;
+  name: string;
+};
+export type AuthenticatedEvent = {
+  characterId: string;
+  position: Tile;
+  profile: CharacterProfile;
+  type: 'authenticated';
+};
 export type SnapshotEvent = { players: PlayerStates; tick: number; type: 'snapshot' };
 export type MovementStartedEvent = {
   characterId: string;
@@ -75,15 +87,52 @@ export type PlayerJoinedEvent = {
 type PlayerIdleEventType = { type: 'player_idle' };
 export type PlayerIdleEvent = Omit<PlayerJoinedEvent, 'type'> & PlayerIdleEventType;
 export type PlayerLeftEvent = { characterId: string; tick: number; type: 'player_left' };
-export type HeartbeatEvent = { type: 'heartbeat' };
+export type CollectionCreature = {
+  capturedAt: string;
+  elements: Array<string>;
+  experience: string;
+  gender: string;
+  id: string;
+  ivAttack: number;
+  ivDefense: number;
+  ivHealth: number;
+  ivSpecialAttack: number;
+  ivSpecialDefense: number;
+  ivSpeed: number;
+  level: number;
+  partySlot: number | null;
+  rarity: string;
+  species: CollectionSpecies;
+};
+export type CollectionSpecies = {
+  base_attack: number;
+  base_defense: number;
+  base_hp: number;
+  base_special_attack: number;
+  base_special_defense: number;
+  base_speed: number;
+  description: string;
+  id: number;
+  name: string;
+};
+export type CollectionStateEvent = {
+  collection: {
+    party: Array<CollectionCreature>;
+    storage: Array<CollectionCreature>;
+    storagePage: number;
+    storagePageCount: number;
+    storageTotal: number;
+  };
+  type: 'collection_state';
+};
 export type ErrorEvent = { code: string; type: 'error' };
 export type InputRejectedEvent = { code: string; reason: string; type: 'input_rejected' };
 export type ConnectionStatusEvent = { message: string; type: 'connection_status' };
 export type GameEvent =
   | AuthenticatedEvent
+  | CollectionStateEvent
   | ConnectionStatusEvent
   | ErrorEvent
-  | HeartbeatEvent
   | HuntClockEvent
   | HuntStateEvent
   | InputRejectedEvent
@@ -134,6 +183,10 @@ function readPresenceDirection(value: unknown): Direction | null {
 
 function isTick(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
 function isDurationTicks(value: unknown): value is number {
@@ -221,10 +274,119 @@ function readPresence(
 
 function readAuthenticated(value: UnknownRecord): AuthenticatedEvent | null {
   const position = readTile(value.position);
-  if (!position || typeof value.characterId !== 'string') {
+  const profile = readCharacterProfile(value.profile);
+  if (!position || !profile || typeof value.characterId !== 'string') {
     return null;
   }
-  return { characterId: value.characterId, position, type: 'authenticated' };
+  return { characterId: value.characterId, position, profile, type: 'authenticated' };
+}
+
+function readCharacterProfile(value: unknown): CharacterProfile | null {
+  if (
+    !isRecord(value) ||
+    (typeof value.avatarUrl !== 'string' && value.avatarUrl !== null) ||
+    !isCount(value.gold) ||
+    !isCount(value.level) ||
+    typeof value.name !== 'string'
+  ) {
+    return null;
+  }
+  return {
+    avatarUrl: value.avatarUrl,
+    gold: value.gold,
+    level: value.level,
+    name: value.name,
+  };
+}
+
+function readCollectionCreature(value: unknown): CollectionCreature | null {
+  if (!isRecord(value) || !isRecord(value.species) || !Array.isArray(value.elements)) {
+    return null;
+  }
+  const species = value.species;
+  const numericKeys = [
+    'base_attack',
+    'base_defense',
+    'base_hp',
+    'base_special_attack',
+    'base_special_defense',
+    'base_speed',
+    'id',
+  ];
+  for (const key of numericKeys) {
+    if (typeof species[key] !== 'number' || !Number.isFinite(species[key] as number)) {
+      return null;
+    }
+  }
+  if (typeof species.description !== 'string' || typeof species.name !== 'string') {
+    return null;
+  }
+  const numberKeys = [
+    'ivAttack',
+    'ivDefense',
+    'ivHealth',
+    'ivSpecialAttack',
+    'ivSpecialDefense',
+    'ivSpeed',
+    'level',
+  ];
+  for (const key of numberKeys) {
+    if (typeof value[key] !== 'number' || !Number.isFinite(value[key] as number)) {
+      return null;
+    }
+  }
+  if (
+    typeof value.capturedAt !== 'string' ||
+    typeof value.experience !== 'string' ||
+    typeof value.gender !== 'string' ||
+    typeof value.id !== 'string' ||
+    typeof value.rarity !== 'string' ||
+    (value.partySlot !== null && typeof value.partySlot !== 'number') ||
+    !value.elements.every(isString)
+  ) {
+    return null;
+  }
+  return value as CollectionCreature;
+}
+
+function readCollectionState(value: UnknownRecord): CollectionStateEvent | null {
+  if (
+    !isRecord(value.collection) ||
+    !Array.isArray(value.collection.party) ||
+    !Array.isArray(value.collection.storage) ||
+    !isPositiveInteger(value.collection.storagePage) ||
+    !isPositiveInteger(value.collection.storagePageCount) ||
+    !isCount(value.collection.storageTotal)
+  ) {
+    return null;
+  }
+  const party = value.collection.party.map(readCollectionCreature);
+  const storage = value.collection.storage.map(readCollectionCreature);
+  if (party.some(isNull) || storage.some(isNull)) {
+    return null;
+  }
+  return {
+    collection: {
+      party: party as Array<CollectionCreature>,
+      storage: storage as Array<CollectionCreature>,
+      storagePage: value.collection.storagePage,
+      storagePageCount: value.collection.storagePageCount,
+      storageTotal: value.collection.storageTotal,
+    },
+    type: 'collection_state',
+  };
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 1;
+}
+
+function isNull<T>(value: T | null): value is null {
+  return value === null;
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
 }
 
 function readSnapshot(value: UnknownRecord): SnapshotEvent | null {
@@ -293,6 +455,9 @@ export function parseGameEvent(value: unknown): GameEvent | null {
   if (value.type === 'hunt_state') {
     return readHuntState(value.hunt, value.huntId);
   }
+  if (value.type === 'collection_state') {
+    return readCollectionState(value);
+  }
   if (value.type === 'hunt_clock') {
     return readHuntClock(value);
   }
@@ -307,9 +472,6 @@ export function parseGameEvent(value: unknown): GameEvent | null {
   }
   if (value.type === 'player_left') {
     return readPlayerLeft(value);
-  }
-  if (value.type === 'heartbeat') {
-    return { type: 'heartbeat' };
   }
   if (value.type === 'error' && typeof value.code === 'string') {
     return { code: value.code, type: 'error' };

@@ -28,6 +28,7 @@ type CreatureVisual = {
   faceTargetUntil: number;
   sprite: CreatureSprite;
   spriteOffsetY: number;
+  switchesOutAt: number | undefined;
   target: Tile | null;
   tile: Tile;
 };
@@ -40,14 +41,17 @@ export type CreatureSpec = {
   maximumHealth: number;
   movement: HuntMovement | null;
   speciesId: number | null;
+  switchesOutAt: number | undefined;
   target: Tile | null;
   tile: Tile;
 };
 
-const FRAME_INTERVAL_MS = 250;
+const CREATURE_WALK_FRAME_COUNT = 2;
+const WALK_CYCLES_PER_TILE = 2;
 const ALLY_KEY = 'ally';
 const DAMAGE_DURATION_MS = 220;
 const TRANSITION_DURATION_MS = 320;
+const ACTIVE_CREATURE_SWITCH_MS = 1_000;
 
 function hslColor(hue: number): string {
   function channel(offset: number): string {
@@ -93,6 +97,12 @@ function movementProgress(movement: HuntMovement, now: number): number {
     return 1;
   }
   return Math.max(0, Math.min(1, (now - movement.startTime) / duration));
+}
+
+function movementFrame(movement: HuntMovement, now: number): number {
+  const progress = movementProgress(movement, now);
+  const frameProgress = Math.floor(progress * CREATURE_WALK_FRAME_COUNT * WALK_CYCLES_PER_TILE);
+  return (frameProgress % CREATURE_WALK_FRAME_COUNT) + 1;
 }
 
 export class HuntCreatures {
@@ -149,6 +159,7 @@ export class HuntCreatures {
       if (!this.present.has(key) && visual.feedback.defeatedAt === null) {
         visual.feedback.defeatedAt = now;
         visual.feedback.health = 0;
+        visual.feedback.displayedHealth = 0;
         visual.feedback.healthChangedAt = now;
       }
     }
@@ -196,6 +207,7 @@ export class HuntCreatures {
       movement: existing ? existing.movement : spec.movement,
       sprite,
       spriteOffsetY,
+      switchesOutAt: spec.switchesOutAt,
       target: spec.target,
       tile: initialTile,
     });
@@ -206,6 +218,7 @@ export class HuntCreatures {
     visual.faceTargetUntil = spec.faceTargetUntil;
     visual.target = spec.target;
     visual.tile = spec.tile;
+    visual.switchesOutAt = spec.switchesOutAt;
     this.finishAuthoritativeMovement(visual, now);
     visual.feedback = this.resolveFeedback(spec, now);
     visual.maximumHealth = spec.maximumHealth;
@@ -229,6 +242,8 @@ export class HuntCreatures {
       }
       if (spec.health === 0 && feedback.health > 0) {
         feedback.defeatedAt = now;
+        feedback.displayedHealth = 0;
+        feedback.healthChangedAt = now;
       } else if (spec.health > 0 && feedback.health === 0) {
         feedback.defeatedAt = null;
         feedback.spawnedAt = now;
@@ -249,9 +264,9 @@ export class HuntCreatures {
   }
 
   public update(now: number): void {
-    const frame = (Math.floor(now / FRAME_INTERVAL_MS) % 2) + 1;
     for (const [key, visual] of this.creatures) {
       const movement = visual.movement;
+      const frame = movement ? movementFrame(movement, now) : 1;
       let tileX = visual.tile.x;
       let tileY = visual.tile.y;
       if (movement) {
@@ -323,7 +338,8 @@ export class HuntCreatures {
         ? 1
         : 0.25
       : arrival * (1 - departure * 0.75);
-    sprite.setAlpha(alpha);
+    const switchDeparture = switchDepartureProgress(visual.switchesOutAt, now);
+    sprite.setAlpha(alpha * (1 - switchDeparture));
     sprite.setScale(this.reducedMotion ? 1 : 0.9 + arrival * 0.1 - departure * 0.1);
     if (animated) {
       if (damaged) {
@@ -345,8 +361,10 @@ export class HuntCreatures {
       ? 1
       : Math.min(1, (now - visual.feedback.healthChangedAt) / 220);
     const shownHealth =
-      visual.feedback.displayedHealth +
-      (visual.feedback.health - visual.feedback.displayedHealth) * progress;
+      visual.feedback.defeatedAt === null
+        ? visual.feedback.displayedHealth +
+          (visual.feedback.health - visual.feedback.displayedHealth) * progress
+        : 0;
     const healthRatio = Math.max(0, Math.min(1, shownHealth / visual.maximumHealth));
     const color = healthRatio > 0.5 ? 0x4caf50 : healthRatio > 0.2 ? 0xf0b429 : 0xd64545;
     visual.healthBar.clear();
@@ -358,7 +376,9 @@ export class HuntCreatures {
       visual.feedback.defeatedAt === null
         ? 0
         : Math.min(1, Math.max(0, (now - visual.feedback.defeatedAt) / TRANSITION_DURATION_MS));
-    visual.healthBar.setAlpha(1 - departure);
+    visual.healthBar.setAlpha(
+      (1 - departure) * (1 - switchDepartureProgress(visual.switchesOutAt, now)),
+    );
     visual.healthBar.setDepth(y + visual.spriteOffsetY + 0.1);
   }
 
@@ -386,6 +406,14 @@ export class HuntCreatures {
     this.scene.load.start();
     return false;
   }
+}
+
+function switchDepartureProgress(switchesOutAt: number | undefined, now: number): number {
+  if (switchesOutAt === undefined) {
+    return 0;
+  }
+  const startedAt = switchesOutAt - ACTIVE_CREATURE_SWITCH_MS;
+  return Math.min(1, Math.max(0, (now - startedAt) / TRANSITION_DURATION_MS));
 }
 
 export const CREATURE_ALLY_KEY = ALLY_KEY;
