@@ -53,11 +53,14 @@ export type ClientMessage = {
   captureRarities?: unknown;
   healingItemId?: unknown;
   healingThresholdPercentage?: unknown;
+  huntingLocationId?: unknown;
   input?: unknown;
   priority?: unknown;
   sequence?: unknown;
   sentAt?: unknown;
   storagePage?: unknown;
+  waveRangeMaximumSize?: unknown;
+  waveRangeMinimumSize?: unknown;
   token?: unknown;
   type?: unknown;
   version?: unknown;

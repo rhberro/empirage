@@ -5003,6 +5003,14 @@ insert into public.hunting_locations (id, slug, name, description, position_x, p
   (5, 'storm-grove', 'Storm Grove', 'A woodland clearing charged by frequent storms.', 33, 39, 3)
 on conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, position_x = excluded.position_x, position_y = excluded.position_y, wave_delay_seconds = excluded.wave_delay_seconds;
 
+insert into public.hunting_location_wave_ranges (hunting_location_id, minimum_size, maximum_size) values
+  (1, 1, 2), (1, 2, 4), (1, 4, 6),
+  (2, 1, 3), (2, 3, 5), (2, 5, 7),
+  (3, 2, 4), (3, 4, 6), (3, 6, 8),
+  (4, 1, 2), (4, 2, 4), (4, 4, 5),
+  (5, 2, 4), (5, 4, 6), (5, 6, 8)
+on conflict (hunting_location_id, minimum_size, maximum_size) do nothing;
+
 insert into public.hunting_location_species (hunting_location_id, species_id, slot, minimum_level, maximum_level, encounter_weight) values
   (1, 16, 1, 2, 4, 70),
   (1, 19, 2, 2, 3, 30),

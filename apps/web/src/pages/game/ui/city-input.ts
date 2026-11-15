@@ -2,14 +2,11 @@ import type { Input } from 'phaser';
 
 import type { PlayerInput } from '../lib/player-input';
 
-type HuntRequest = (event: KeyboardEvent) => void;
-
 export function bindCityInput(
   keyboard: Input.Keyboard.KeyboardPlugin,
   playerInput: PlayerInput,
-  requestHunt: HuntRequest,
 ): void {
-  const capturedKeys = ['W', 'A', 'S', 'D', 'SHIFT', 'SPACE'];
+  const capturedKeys = ['W', 'A', 'S', 'D', 'SHIFT'];
   function activateNorth(): void {
     playerInput.setDirection('north', true);
   }
@@ -51,5 +48,4 @@ export function bindCityInput(
   keyboard.on('keyup-D', deactivateEast);
   keyboard.on('keydown-SHIFT', activateRunning);
   keyboard.on('keyup-SHIFT', deactivateRunning);
-  keyboard.on('keydown-SPACE', requestHunt);
 }

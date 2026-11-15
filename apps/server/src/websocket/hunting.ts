@@ -26,6 +26,7 @@ import {
   type HuntEngineCheckpoint,
   type HuntEngineEnemy,
   type HuntEngineSnapshot,
+  type HuntWaveRange,
 } from './hunt-engine.ts';
 import {
   loadHuntResources,
@@ -38,9 +39,34 @@ import {
 import { createServerClient } from './protocol.ts';
 
 const CHECKPOINT_INTERVAL_MS = 5 * 60_000;
+const CAPTURE_RETRY_INTERVAL_MS = 3_000;
+const CAPTURE_RESULT_DURATION_MS = 900;
 const RETRY_INTERVAL_MS = 15_000;
 const STOP_TIMEOUT_MS = 10_000;
 const FINISH_WAIT_TIMEOUT_MS = 5_000;
+const CAPTURE_SUCCESS_CHANCES: Record<string, Record<CaptureRarity, number>> = {
+  'great-ball': {
+    common: 0.437,
+    uncommon: 0.051,
+    rare: 0.014,
+    epic: 0.00018,
+    legendary: 0.00014,
+  },
+  'poke-ball': {
+    common: 0.38,
+    uncommon: 0.045,
+    rare: 0.012,
+    epic: 0.00012,
+    legendary: 0.000095,
+  },
+  'ultra-ball': {
+    common: 0.437,
+    uncommon: 0.051,
+    rare: 0.014,
+    epic: 0.00049,
+    legendary: 0.00038,
+  },
+};
 const TICK_INTERVAL_MS = Math.floor(1_000 / 30);
 const ALLY_POSITION: Position = { x: 6, y: 3 };
 const PLAYER_POSITION: Position = { x: 2, y: 3 };
@@ -107,10 +133,14 @@ type PublicCaptureItem = {
 };
 type PublicCaptureConfiguration = { itemId: number; rarities: Array<CaptureRarity> };
 type PendingCapture = {
+  commitInFlight: boolean;
   completesAt: number;
   enemy: HuntEngineEnemy;
   id: string;
   item: CaptureItemResource;
+  retryAt: number;
+  settledAt?: number;
+  status: 'pending' | 'failed' | 'succeeded';
   succeeded: boolean;
 };
 type HuntGrid = { blocked: Array<Position>; height: number; tileSize: number; width: number };
@@ -130,6 +160,7 @@ type HuntDatabaseRow = {
   user_id: string;
   wave: number;
   wave_delay_seconds: number;
+  wave_range?: HuntWaveRange;
   wave_size: number;
 };
 type AccountHunt = { character_id: string };
@@ -194,12 +225,15 @@ export type HuntState = {
   runtimeGeneration: string;
   serverTime: number;
   wave: number;
+  waveRange: HuntWaveRange;
   waveSize: number;
 };
 export type PublicCaptureAttempt = {
   completesAt: number;
   id: string;
   position: Position;
+  settledAt?: number;
+  status: PendingCapture['status'];
   succeeded: boolean;
 };
 
@@ -306,7 +340,9 @@ function publicCaptureAttempt(attempt: PendingCapture): PublicCaptureAttempt {
     completesAt: attempt.completesAt,
     id: attempt.id,
     position: attempt.enemy.position,
-    succeeded: attempt.succeeded,
+    settledAt: attempt.settledAt,
+    status: attempt.status,
+    succeeded: attempt.status === 'succeeded',
   };
 }
 
@@ -370,6 +406,7 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
     runtimeGeneration: engine.runtimeGeneration,
     serverTime: Date.now(),
     wave: engine.wave,
+    waveRange: engine.waveRange,
     waveSize: engine.waveSize,
   };
 }
@@ -386,6 +423,47 @@ export async function switchHuntActiveCreature(
   if (!switchActiveCreature(runtime.engine, creatureId, epochNow())) {
     return publicState(runtime, []);
   }
+  launchCheckpoint(runtime, false);
+  const state = publicState(runtime, []);
+  notifyRuntime(runtime, []);
+  return state;
+}
+
+function matchingWaveRange(
+  range: LocationWaveRangeRow,
+  minimumSize: number,
+  maximumSize: number,
+): boolean {
+  return range.minimum_size === minimumSize && range.maximum_size === maximumSize;
+}
+
+export async function configureHuntWaveRange(
+  characterId: string,
+  userId: string,
+  minimumSize: number,
+  maximumSize: number,
+): Promise<HuntState | undefined> {
+  if (
+    !Number.isSafeInteger(minimumSize) ||
+    !Number.isSafeInteger(maximumSize) ||
+    minimumSize < 1 ||
+    maximumSize < minimumSize
+  ) {
+    throw new TypeError('invalid_wave_range');
+  }
+  const runtime = await runtimeForCharacter(characterId);
+  if (!runtime || runtime.accountId !== userId) {
+    return undefined;
+  }
+  const location = await locationById(runtime.engine.resources.locationId);
+  const range = location.hunting_location_wave_ranges.find(function findRange(candidate): boolean {
+    return matchingWaveRange(candidate, minimumSize, maximumSize);
+  });
+  if (!range) {
+    throw new TypeError('wave_range_is_not_available');
+  }
+  runtime.engine.waveRange = locationWaveRange(range);
+  runtime.engine.revision += 1;
   launchCheckpoint(runtime, false);
   const state = publicState(runtime, []);
   notifyRuntime(runtime, []);
@@ -526,6 +604,7 @@ function launchCheckpoint(runtime: Runtime, finishHunt: boolean): void {
 }
 
 function processRuntime(runtime: Runtime, now: number): void {
+  processCaptureAttempts(runtime, now);
   const pending = runtime.checkpoint;
   if (pending && pending.retryAt > 0 && pending.retryAt <= now) {
     pending.retryAt = Number.POSITIVE_INFINITY;
@@ -563,18 +642,8 @@ function processRuntime(runtime: Runtime, now: number): void {
 }
 
 function captureSuccessChance(item: CaptureItemResource, rarity: CaptureRarity): number {
-  const rarityFactor: Record<CaptureRarity, number> = {
-    common: 1,
-    uncommon: 0.85,
-    rare: 0.7,
-    epic: 0.55,
-    legendary: 0.4,
-  };
-  return Math.min(0.95, 0.45 * item.captureRateMultiplier * rarityFactor[rarity]);
-}
-
-function randomIv(): number {
-  return Math.floor(Math.random() * 32);
+  const chances = CAPTURE_SUCCESS_CHANCES[item.slug];
+  return chances ? chances[rarity] : 0;
 }
 
 function queueCaptureAttempt(runtime: Runtime, enemy: HuntEngineEnemy, now: number): void {
@@ -592,31 +661,47 @@ function queueCaptureAttempt(runtime: Runtime, enemy: HuntEngineEnemy, now: numb
   }
   const duration = 4_000 + Math.floor(Math.random() * 1_001);
   const attempt: PendingCapture = {
+    commitInFlight: false,
     completesAt: now + duration,
     enemy,
     id: randomUUID(),
     item,
+    retryAt: now + duration,
+    status: 'pending',
     succeeded: Math.random() < captureSuccessChance(item, enemy.rarity),
   };
   runtime.captureAttempts.push(attempt);
-  function commitCapture(): void {
-    completeCaptureAttempt(runtime, attempt).catch(function captureFailed(error: unknown): void {
-      const details = { characterId: runtime.characterId, error, huntId: runtime.engine.huntId };
-      logger.error(details, 'capture completion failed');
-    });
-  }
-  globalThis.setTimeout(commitCapture, duration);
 }
 
-type CapturePurchaseRow = { gold: number };
+type CapturePurchaseRow = { creature_id: string | null; gold: number | null };
+
+function processCaptureAttempts(runtime: Runtime, now: number): void {
+  for (const attempt of runtime.captureAttempts) {
+    if (attempt.status !== 'pending') {
+      if (attempt.settledAt && now - attempt.settledAt >= CAPTURE_RESULT_DURATION_MS) {
+        const index = runtime.captureAttempts.indexOf(attempt);
+        if (index >= 0) {
+          runtime.captureAttempts.splice(index, 1);
+          notifyRuntime(runtime, []);
+        }
+      }
+      continue;
+    }
+    if (attempt.commitInFlight || attempt.retryAt > now) {
+      continue;
+    }
+    attempt.commitInFlight = true;
+    completeCaptureAttempt(runtime, attempt).catch(function captureFailed(error: unknown): void {
+      attempt.commitInFlight = false;
+      attempt.retryAt = epochNow() + CAPTURE_RETRY_INTERVAL_MS;
+      const details = { characterId: runtime.characterId, error, huntId: runtime.engine.huntId };
+      logger.error(details, 'capture completion failed; retry scheduled');
+    });
+  }
+}
 
 async function completeCaptureAttempt(runtime: Runtime, attempt: PendingCapture): Promise<void> {
-  const index = runtime.captureAttempts.findIndex(function matchingAttempt(
-    candidate: PendingCapture,
-  ): boolean {
-    return candidate.id === attempt.id;
-  });
-  if (index < 0) {
+  if (!runtime.captureAttempts.includes(attempt) || attempt.status !== 'pending') {
     return;
   }
   const enemy = attempt.enemy;
@@ -626,12 +711,12 @@ async function completeCaptureAttempt(runtime: Runtime, attempt: PendingCapture)
     target_character_id: runtime.characterId,
     target_gender: Math.random() < 0.5 ? 'male' : 'female',
     target_item_id: attempt.item.id,
-    target_iv_attack: randomIv(),
-    target_iv_defense: randomIv(),
-    target_iv_hp: randomIv(),
-    target_iv_special_attack: randomIv(),
-    target_iv_special_defense: randomIv(),
-    target_iv_speed: randomIv(),
+    target_iv_attack: enemy.ivAttack,
+    target_iv_defense: enemy.ivDefense,
+    target_iv_hp: enemy.ivHealth,
+    target_iv_special_attack: enemy.ivSpecialAttack,
+    target_iv_special_defense: enemy.ivSpecialDefense,
+    target_iv_speed: enemy.ivSpeed,
     target_level: enemy.level,
     target_rarity: enemy.rarity,
     target_species_id: enemy.id,
@@ -640,13 +725,15 @@ async function completeCaptureAttempt(runtime: Runtime, attempt: PendingCapture)
   if (error) {
     throw error;
   }
-  runtime.captureAttempts.splice(index, 1);
   const purchase = (data as Array<CapturePurchaseRow>)[0];
-  if (purchase) {
+  if (purchase && purchase.gold !== null) {
     runtime.engine.resources.gold = purchase.gold;
   }
+  attempt.commitInFlight = false;
+  attempt.settledAt = epochNow();
+  attempt.status = attempt.succeeded && purchase && purchase.creature_id ? 'succeeded' : 'failed';
   launchCheckpoint(runtime, false);
-  notifyRuntime(runtime, [], true);
+  notifyRuntime(runtime, [], attempt.status === 'succeeded');
 }
 
 type HealingItemPurchaseRow = {
@@ -915,6 +1002,33 @@ function safeInteger(value: unknown, name: string): number {
   return value as number;
 }
 
+function enemyIv(value: unknown, name: string): number {
+  if (value === undefined) {
+    return 15;
+  }
+  const iv = safeInteger(value, name);
+  if (iv < 0 || iv > 31) {
+    throw new TypeError(`Invalid ${name}`);
+  }
+  return iv;
+}
+
+function enemyIvs(
+  value: Record<string, unknown>,
+): Pick<
+  HuntEngineEnemy,
+  'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
+> {
+  return {
+    ivAttack: enemyIv(value.ivAttack, 'enemy attack IV'),
+    ivDefense: enemyIv(value.ivDefense, 'enemy defense IV'),
+    ivHealth: enemyIv(value.ivHealth, 'enemy health IV'),
+    ivSpecialAttack: enemyIv(value.ivSpecialAttack, 'enemy special attack IV'),
+    ivSpecialDefense: enemyIv(value.ivSpecialDefense, 'enemy special defense IV'),
+    ivSpeed: enemyIv(value.ivSpeed, 'enemy speed IV'),
+  };
+}
+
 function position(value: unknown, name: string): Position {
   if (!value || typeof value !== 'object') {
     throw new TypeError(`Invalid ${name}`);
@@ -940,8 +1054,10 @@ function legacyEnemies(
       throw new TypeError('Legacy enemy species missing');
     }
     const maximumHealth = safeInteger(row.maximumHealth, 'enemy.maximumHealth');
+    const ivs = enemyIvs(row);
     enemies.push({
       ...species,
+      ...ivs,
       combatId: typeof row.combatId === 'string' ? row.combatId : randomUUID(),
       health: safeInteger(row.health, 'enemy.health'),
       level: safeInteger(row.level, 'enemy.level'),
@@ -1012,8 +1128,10 @@ function runtimeEnemies(value: unknown, resources: HuntResources): Array<HuntEng
       throw new TypeError('Runtime enemy species missing');
     }
     const rarity = isCaptureRarity(enemy.rarity) ? enemy.rarity : 'common';
+    const ivs = enemyIvs(enemy);
     enemies.push({
       ...species,
+      ...ivs,
       combatId: stringValue(enemy.combatId, 'enemy combat ID'),
       health: safeInteger(enemy.health, 'enemy health'),
       level: safeInteger(enemy.level, 'enemy level'),
@@ -1102,6 +1220,8 @@ function runtimeCheckpoint(
     version: 1,
     wave: safeInteger(snapshot.wave, 'wave'),
     waveDelayMs: safeInteger(snapshot.waveDelayMs, 'wave delay'),
+    waveRange:
+      snapshot.waveRange === undefined ? defaultWaveRange() : waveRange(snapshot.waveRange),
     waveSize: safeInteger(snapshot.waveSize, 'wave size'),
     xpPending: {},
   };
@@ -1130,6 +1250,7 @@ function checkpointFromRow(
     revision: safeInteger(row.revision, 'revision'),
     wave: safeInteger(row.wave, 'wave'),
     waveDelayMs: safeInteger(row.wave_delay_seconds, 'wave delay') * 1_000,
+    waveRange: defaultWaveRange(),
     waveSize: safeInteger(row.wave_size, 'wave size'),
     xpPending: {},
   };
@@ -1240,17 +1361,58 @@ export async function findAccountHunt(userId: string): Promise<AccountHunt | und
   return data ?? undefined;
 }
 
-async function randomLocation(): Promise<{ id: number; wave_delay_seconds: number }> {
-  const { data, error } = await serverClient
-    .from('hunting_locations')
-    .select('id, wave_delay_seconds');
-  if (error || !data || data.length === 0) {
-    throw error ?? new Error('no_hunting_locations');
-  }
-  return data[Math.floor(Math.random() * data.length)];
+type LocationWaveRangeRow = { maximum_size: number; minimum_size: number };
+type HuntingLocationRow = {
+  id: number;
+  hunting_location_wave_ranges: Array<LocationWaveRangeRow>;
+  wave_delay_seconds: number;
+};
+
+function defaultWaveRange(): HuntWaveRange {
+  return { maximumSize: 1, minimumSize: 1 };
 }
 
-async function startHuntExclusive(characterId: string, userId: string): Promise<HuntState> {
+function waveRange(value: unknown): HuntWaveRange {
+  const range = record(value, 'wave range');
+  const minimumSize = safeInteger(range.minimumSize, 'wave range minimum');
+  const maximumSize = safeInteger(range.maximumSize, 'wave range maximum');
+  if (minimumSize < 1 || maximumSize < minimumSize) {
+    throw new TypeError('Invalid wave range');
+  }
+  return { maximumSize, minimumSize };
+}
+
+function locationWaveRange(range: LocationWaveRangeRow): HuntWaveRange {
+  return { maximumSize: range.maximum_size, minimumSize: range.minimum_size };
+}
+
+function lowestWaveRange(ranges: Array<LocationWaveRangeRow>): HuntWaveRange {
+  const first = ranges[0];
+  if (!first) {
+    throw new Error('hunting_location_has_no_wave_ranges');
+  }
+  return locationWaveRange(first);
+}
+
+async function locationById(locationId: number): Promise<HuntingLocationRow> {
+  const { data, error } = await serverClient
+    .from('hunting_locations')
+    .select('id, wave_delay_seconds, hunting_location_wave_ranges(minimum_size, maximum_size)')
+    .eq('id', locationId)
+    .order('minimum_size', { referencedTable: 'hunting_location_wave_ranges' })
+    .order('maximum_size', { referencedTable: 'hunting_location_wave_ranges' })
+    .maybeSingle();
+  if (error || !data) {
+    throw error ?? new Error('hunting_location_not_found');
+  }
+  return data as HuntingLocationRow;
+}
+
+async function startHuntExclusive(
+  characterId: string,
+  userId: string,
+  locationId: number,
+): Promise<HuntState> {
   if (!acceptingHunts) {
     throw new Error(shutdownRequested ? 'hunt_simulation_stopping' : 'hunt_bootstrap_pending');
   }
@@ -1262,7 +1424,7 @@ async function startHuntExclusive(characterId: string, userId: string): Promise<
   if (accountRuntime) {
     throw new Error('another_character_is_hunting');
   }
-  const location = await randomLocation();
+  const location = await locationById(locationId);
   const resources = await loadHuntResources(serverClient, characterId, location.id);
   const recoveredDuringLoad = runtimesByCharacter.get(characterId);
   if (recoveredDuringLoad) {
@@ -1278,7 +1440,8 @@ async function startHuntExclusive(characterId: string, userId: string): Promise<
   }
   const now = epochNow();
   const huntId = randomUUID();
-  const waveSize = 1 + Math.floor(Math.random() * 5);
+  const selectedWaveRange = lowestWaveRange(location.hunting_location_wave_ranges);
+  const waveSize = selectedWaveRange.minimumSize;
   const checkpoint: HuntEngineCheckpoint = {
     activeCreatureHealth: maximumHealthForCreature(species, active),
     activeCreatureId: active.id,
@@ -1290,6 +1453,7 @@ async function startHuntExclusive(characterId: string, userId: string): Promise<
     revision: 1,
     wave: 1,
     waveDelayMs: location.wave_delay_seconds * 1_000,
+    waveRange: selectedWaveRange,
     waveSize,
     xpPending: {},
   };
@@ -1358,7 +1522,11 @@ async function waitForAccountStart(
   return state;
 }
 
-export function startHunt(characterId: string, userId: string): Promise<HuntState> {
+export function startHunt(
+  characterId: string,
+  userId: string,
+  locationId: number,
+): Promise<HuntState> {
   const characterFlight = startFlightsByCharacter.get(characterId);
   if (characterFlight) {
     return characterFlight;
@@ -1367,7 +1535,7 @@ export function startHunt(characterId: string, userId: string): Promise<HuntStat
   if (accountFlight) {
     return waitForAccountStart(accountFlight, characterId);
   }
-  const flight = startHuntExclusive(characterId, userId);
+  const flight = startHuntExclusive(characterId, userId, locationId);
   startFlightsByCharacter.set(characterId, flight);
   startFlightsByAccount.set(userId, flight);
   function clearFlight(): void {

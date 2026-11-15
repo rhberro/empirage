@@ -1,14 +1,17 @@
+/* eslint-disable eslint/no-void, oxsome/no-inline-structural-types */
 import type { GameObjects, Scene } from 'phaser';
 /* eslint-disable max-lines */
 
 import type { Tile } from '../api/game-protocol';
 import type { HuntCommand, HuntGrid, HuntState } from '../api/hunt-protocol';
+import type { HuntingLocation } from '../api/hunting-locations';
 import { CREATURE_ALLY_KEY, HuntCreatures } from './hunt-creatures';
 import type { CreatureSpec } from './hunt-creatures';
 import { HuntEffects } from './hunt-effects';
 
 type CommandSender = (command: HuntCommand) => boolean;
 type CameraFocusHandler = (target: Tile | null) => void;
+type TransitionChangeHandler = (active: boolean, message: string) => void;
 
 const PLAYER_ATLAS_KEY = 'male-walking-running';
 const PLAYER_FRAME = 'idle/east/frame_1';
@@ -41,6 +44,7 @@ export class HuntView {
   private readonly scene: Scene;
   private readonly send: CommandSender;
   private readonly focusCamera: CameraFocusHandler;
+  private readonly onTransitionChange: TransitionChangeHandler;
   private readonly status: GameObjects.Text;
   private readonly creatures: HuntCreatures;
   private readonly effects: HuntEffects;
@@ -57,11 +61,21 @@ export class HuntView {
   private bestClockRtt = Number.POSITIVE_INFINITY;
   private clockSynchronized = false;
   private readonly retiredHunts = new Set<string>();
+  private readonly huntingLocations = new Map<number, HuntingLocation>();
+  private partySpeciesIds: Array<number> = [];
+  private partySpeciesIdsReady = false;
+  private loadingHuntId: string | null = null;
   private combatEventCutoff = 0;
-  public constructor(scene: Scene, send: CommandSender, focusCamera: CameraFocusHandler) {
+  public constructor(
+    scene: Scene,
+    send: CommandSender,
+    focusCamera: CameraFocusHandler,
+    onTransitionChange: TransitionChangeHandler,
+  ) {
     this.scene = scene;
     this.send = send;
     this.focusCamera = focusCamera;
+    this.onTransitionChange = onTransitionChange;
     this.backdrop = scene.add.container(0, 0).setDepth(9_999).setScrollFactor(0);
     this.overlay = scene.add.container(0, 0).setDepth(10_000).setScrollFactor(0);
     this.effects = new HuntEffects(scene);
@@ -74,17 +88,48 @@ export class HuntView {
     scene.events.once('shutdown', this.destroy, this);
   }
 
-  public request(event: KeyboardEvent): void {
-    if (event.repeat || this.pending || !this.connected) {
-      return;
+  public start(
+    command: Extract<HuntCommand, { type: 'start_hunt' }>,
+    location: HuntingLocation,
+    partySpeciesIds: Array<number>,
+  ): boolean {
+    if (this.pending || !this.connected) {
+      return false;
     }
-    const command: HuntCommand = { type: this.active ? 'leave_hunt' : 'start_hunt', version: 1 };
-    if (this.send(command)) {
-      this.pending = true;
-      this.status.setText(this.active ? 'Voltando à cidade…' : 'Preparando caça…').setVisible(true);
-    } else {
+    this.pending = true;
+    this.onTransitionChange(true, 'Carregando local de caça…');
+    void this.loadHuntAssets(location, partySpeciesIds).then(
+      this.sendAfterLoading.bind(this, command),
+      this.handleLoadingFailure.bind(this),
+    );
+    return true;
+  }
+
+  public setHuntingLocations(locations: Array<HuntingLocation>): void {
+    this.huntingLocations.clear();
+    for (const location of locations) {
+      this.huntingLocations.set(location.id, location);
+    }
+    this.loadCurrentHuntAssets();
+  }
+
+  public setPartySpeciesIds(speciesIds: Array<number>): void {
+    this.partySpeciesIds = speciesIds;
+    this.partySpeciesIdsReady = true;
+    this.loadCurrentHuntAssets();
+  }
+
+  public leave(command: Extract<HuntCommand, { type: 'leave_hunt' }>): boolean {
+    if (this.pending || !this.connected) {
+      return false;
+    }
+    if (!this.send(command)) {
       this.disconnect();
+      return false;
     }
+    this.pending = true;
+    this.onTransitionChange(true, 'Voltando para a cidade…');
+    return true;
   }
 
   // Applying a hunt snapshot coordinates stale filtering, clocking, transitions, and rendering.
@@ -151,6 +196,10 @@ export class HuntView {
     this.state = state;
     this.active = state !== null;
     if (state) {
+      if (!this.huntAssetsReady(state)) {
+        this.loadCurrentHuntAssets();
+        return;
+      }
       this.configureGrid(state);
       this.applyEffects(state, now);
     } else {
@@ -158,6 +207,7 @@ export class HuntView {
     }
     if (!state || !wasActive) {
       this.pending = false;
+      this.onTransitionChange(false, '');
     }
     this.redraw();
   }
@@ -166,7 +216,6 @@ export class HuntView {
     this.connectionMessage = '';
     this.connected = true;
     this.pending = false;
-    this.apply(null);
   }
 
   public synchronizeClock(sentAt: number, receivedAt: number, serverTime: number): void {
@@ -184,6 +233,7 @@ export class HuntView {
 
   public fail(): void {
     this.pending = false;
+    this.onTransitionChange(false, '');
     this.status.setText('Não foi possível concluir. Tente novamente.').setVisible(true);
   }
 
@@ -205,6 +255,129 @@ export class HuntView {
     const serverNow = this.serverNow(Date.now());
     this.creatures.update(serverNow);
     this.effects.update(serverNow);
+  }
+
+  private sendAfterLoading(command: Extract<HuntCommand, { type: 'start_hunt' }>): void {
+    if (!this.connected || !this.send(command)) {
+      this.handleLoadingFailure();
+    }
+  }
+
+  private handleLoadingFailure(): void {
+    this.pending = false;
+    this.onTransitionChange(false, '');
+    this.fail();
+  }
+
+  private loadHuntAssets(location: HuntingLocation, partySpeciesIds: Array<number>): Promise<void> {
+    const speciesIds = new Set<number>(partySpeciesIds);
+    for (const species of location.species) {
+      speciesIds.add(species.id);
+    }
+    const locationKey = `hunting-location-${location.id}`;
+    if (!this.scene.textures.exists(locationKey)) {
+      this.scene.load.spritesheet(locationKey, location.tilesetUrl, {
+        frameHeight: location.map.tileSize,
+        frameWidth: location.map.tileSize,
+      });
+    }
+    for (const speciesId of speciesIds) {
+      const creatureKey = `creature-${speciesId}`;
+      if (!this.scene.textures.exists(creatureKey)) {
+        const imageUrl = `/assets/creatures/atlases/${speciesId}.png`;
+        const dataUrl = `/assets/creatures/atlases/${speciesId}.json`;
+        this.scene.load.atlas(creatureKey, imageUrl, dataUrl);
+      }
+    }
+    if (this.scene.load.totalToLoad === 0) {
+      return Promise.resolve();
+    }
+    const scene = this.scene;
+    function loadAssets(resolve: () => void, reject: () => void): void {
+      function complete(): void {
+        scene.load.off('loaderror', fail);
+        resolve();
+      }
+      function fail(): void {
+        scene.load.off('complete', complete);
+        reject();
+      }
+      scene.load.once('complete', complete);
+      scene.load.once('loaderror', fail);
+      scene.load.start();
+    }
+    return new Promise(loadAssets);
+  }
+
+  private huntAssetsReady(state: HuntState): boolean {
+    const location = this.huntingLocations.get(state.huntingLocationId);
+    if (!location || !this.partySpeciesIdsReady) {
+      return false;
+    }
+    const tilesetKey = `hunting-location-${location.id}`;
+    if (!this.scene.textures.exists(tilesetKey)) {
+      return false;
+    }
+    for (const speciesId of this.requiredSpeciesIds(state, location)) {
+      if (!this.scene.textures.exists(`creature-${speciesId}`)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private requiredSpeciesIds(state: HuntState, location: HuntingLocation): Array<number> {
+    const speciesIds = new Set<number>(this.partySpeciesIds);
+    for (const species of location.species) {
+      speciesIds.add(species.id);
+    }
+    if (state.activeCreatureSpeciesId !== null) {
+      speciesIds.add(state.activeCreatureSpeciesId);
+    }
+    for (const enemy of state.enemies) {
+      speciesIds.add(enemy.id);
+    }
+    return [...speciesIds];
+  }
+
+  private loadCurrentHuntAssets(): void {
+    const state = this.state;
+    if (!state || this.huntAssetsReady(state) || this.loadingHuntId === state.huntId) {
+      if (state && this.huntAssetsReady(state)) {
+        this.redraw();
+      }
+      return;
+    }
+    const location = this.huntingLocations.get(state.huntingLocationId);
+    if (!location || !this.partySpeciesIdsReady) {
+      this.pending = true;
+      this.onTransitionChange(true, 'Preparando local de caça…');
+      return;
+    }
+    const huntId = state.huntId;
+    this.loadingHuntId = huntId;
+    this.pending = true;
+    this.onTransitionChange(true, 'Carregando local de caça…');
+    void this.loadHuntAssets(location, this.requiredSpeciesIds(state, location)).then(
+      this.completeCurrentHuntAssetLoad.bind(this, huntId),
+      this.handleLoadingFailure.bind(this),
+    );
+  }
+
+  private completeCurrentHuntAssetLoad(huntId: string): void {
+    if (this.loadingHuntId === huntId) {
+      this.loadingHuntId = null;
+    }
+    if (!this.state || this.state.huntId !== huntId) {
+      return;
+    }
+    if (!this.huntAssetsReady(this.state)) {
+      this.loadCurrentHuntAssets();
+      return;
+    }
+    this.pending = false;
+    this.onTransitionChange(false, '');
+    this.redraw();
   }
 
   private redraw(): void {
@@ -238,7 +411,7 @@ export class HuntView {
     const backdropKey = `${width}:${height}:${JSON.stringify(state.grid)}`;
     if (this.backdropKey !== backdropKey) {
       this.backdrop.removeAll(true);
-      this.drawBackdrop(width, height, state.grid);
+      this.drawBackdrop(width, height, state);
       this.backdropKey = backdropKey;
     }
     this.addPlayer(state.playerPosition);
@@ -247,8 +420,7 @@ export class HuntView {
     this.creatures.finish(now);
     this.creatures.update(now);
     this.focusCamera(this.activeCreaturePosition(state));
-    const waiting = state.enemies.length === 0 ? 'Aguardando próxima onda…' : '';
-    const message = this.pending ? 'Voltando à cidade…' : waiting;
+    const message = this.pending ? 'Voltando à cidade…' : '';
     this.status.setText(message).setVisible(message.length > 0);
   }
 
@@ -336,10 +508,17 @@ export class HuntView {
     return Math.max(Math.abs(first.x - second.x), Math.abs(first.y - second.y)) <= 1;
   }
 
-  private drawBackdrop(width: number, height: number, grid: HuntGrid): void {
+  private drawBackdrop(width: number, height: number, state: HuntState): void {
+    const { grid } = state;
     this.backdrop.add(
       this.scene.add.rectangle(width / 2, height / 2, width, height, BACKDROP_COLOR),
     );
+    const location = this.huntingLocations.get(state.huntingLocationId);
+    const tilesetKey = `hunting-location-${state.huntingLocationId}`;
+    if (location && this.scene.textures.exists(tilesetKey)) {
+      this.drawTilesetBackdrop(location, tilesetKey, grid);
+      return;
+    }
     const blocked = new Set(grid.blocked.map(tileKey));
     const tiles = this.scene.add.graphics();
     const extraColumns = Math.ceil(Math.max(0, this.gridOriginX) / this.tileSize);
@@ -370,6 +549,26 @@ export class HuntView {
     //   grid.height * this.tileSize + 2,
     // );
     this.backdrop.add(tiles);
+  }
+
+  private drawTilesetBackdrop(location: HuntingLocation, tilesetKey: string, grid: HuntGrid): void {
+    const frames = new Map<string, number>();
+    for (const tile of location.map.tiles) {
+      frames.set(tileKey(tile), tile.frame);
+    }
+    for (let row = 0; row < grid.height; row += 1) {
+      for (let column = 0; column < grid.width; column += 1) {
+        const position = { x: column, y: row };
+        const frame = frames.get(tileKey(position)) ?? location.map.defaultTileFrame;
+        const tile = this.scene.add.sprite(
+          this.gridOriginX + column * this.tileSize + this.tileSize / 2,
+          this.gridOriginY + row * this.tileSize + this.tileSize / 2,
+          tilesetKey,
+          frame,
+        );
+        this.backdrop.add(tile);
+      }
+    }
   }
 
   private addPlayer(position: Tile): void {

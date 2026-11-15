@@ -1,10 +1,11 @@
-/* eslint-disable max-lines */
+/* eslint-disable import/max-dependencies, max-lines, oxc/no-optional-chaining, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import { Scene } from 'phaser';
 
 import type { CharacterProfile, GameEvent, Tile } from '../api/game-protocol';
 import type { CollectionStateEvent } from '../api/game-protocol';
 import { GameSession } from '../api/game-socket';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { HuntingLocation } from '../api/hunting-locations';
 import { configureCameraViewport } from '../lib/camera-viewport';
 import { PlayerInput } from '../lib/player-input';
 import { PlayerWorld } from '../model/player-world';
@@ -32,6 +33,7 @@ type CharacterProfileChangeHandler = (profile: CharacterProfile) => void;
 type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
+type TransitionChangeHandler = (active: boolean, message: string) => void;
 
 export class CityScene extends Scene {
   private readonly characterId: string;
@@ -40,12 +42,15 @@ export class CityScene extends Scene {
   private readonly onCollectionChange: CollectionChangeHandler;
   private readonly onCharacterProfileChange: CharacterProfileChangeHandler;
   private readonly onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
+  private readonly onTransitionChange: TransitionChangeHandler;
   private readonly playerInput: PlayerInput;
   private readonly session: GameSession;
   private readonly visibilityHandler: EventHandler;
   private readonly visuals = new Map<string, VisualPlayer>();
   private readonly world = new PlayerWorld();
   private huntView: HuntView | null = null;
+  private collection: CollectionStateEvent['collection'] | null = null;
+  private huntingLocations: Array<HuntingLocation> = [];
 
   public constructor(
     characterId: string,
@@ -53,6 +58,7 @@ export class CityScene extends Scene {
     onCollectionChange: CollectionChangeHandler,
     onHuntStateChange: HuntStateChangeHandler,
     onHuntCommandSenderChange: HuntCommandSenderChangeHandler,
+    onTransitionChange: TransitionChangeHandler,
   ) {
     super('CityScene');
     this.characterId = characterId;
@@ -61,6 +67,7 @@ export class CityScene extends Scene {
     this.deactivationHandler = this.handleDeactivation.bind(this);
     this.onHuntStateChange = onHuntStateChange;
     this.onHuntCommandSenderChange = onHuntCommandSenderChange;
+    this.onTransitionChange = onTransitionChange;
     this.visibilityHandler = this.handleVisibilityChange.bind(this);
     const options = {
       characterId,
@@ -85,6 +92,7 @@ export class CityScene extends Scene {
       this,
       this.session.send.bind(this.session),
       this.focusHuntCamera.bind(this),
+      this.onTransitionChange,
     );
     showAtlasError(this);
     this.playerInput.enabled = false;
@@ -95,7 +103,7 @@ export class CityScene extends Scene {
     globalThis.addEventListener('pagehide', this.deactivationHandler);
     globalThis.document.addEventListener('visibilitychange', this.visibilityHandler);
     this.events.once('shutdown', this.shutdown, this);
-    this.onHuntCommandSenderChange(this.session.send.bind(this.session));
+    this.onHuntCommandSenderChange(this.sendHuntCommand.bind(this));
     this.session.start();
   }
 
@@ -109,13 +117,17 @@ export class CityScene extends Scene {
     }
   }
 
+  public setHuntingLocations(locations: Array<HuntingLocation>): void {
+    this.huntingLocations = locations;
+    this.huntView?.setHuntingLocations(locations);
+  }
+
   private bindInput(): void {
     const keyboard = this.input.keyboard;
     if (!keyboard) {
       return;
     }
-    const requestHunt = this.toggleHunt.bind(this);
-    bindCityInput(keyboard, this.playerInput, requestHunt);
+    bindCityInput(keyboard, this.playerInput);
   }
 
   private drawCity(): void {
@@ -154,7 +166,12 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'collection_state') {
+      this.collection = event.collection;
       this.onCollectionChange(event.collection);
+      const partySpeciesIds = event.collection.party.map(function speciesId(creature): number {
+        return creature.species.id;
+      });
+      this.huntView?.setPartySpeciesIds(partySpeciesIds);
       return;
     }
     if (event.type === 'hunt_clock') {
@@ -280,14 +297,26 @@ export class CityScene extends Scene {
       this.huntView.disconnect();
     }
   }
-  private toggleHunt(event: KeyboardEvent): void {
-    if (!this.huntView || event.repeat || this.huntView.pending || !this.huntView.connected) {
-      return;
+
+  private sendHuntCommand(command: HuntCommand): boolean {
+    const huntView = this.huntView;
+    if (!huntView) {
+      return false;
     }
-    this.playerInput.neutralize();
-    this.huntView.request(event);
-    this.playerInput.enabled =
-      !this.huntView.active && !this.huntView.pending && this.huntView.connected;
+    if (command.type === 'start_hunt') {
+      const location = this.huntingLocations.find(function findLocation(candidate): boolean {
+        return candidate.id === command.huntingLocationId;
+      });
+      const party = this.collection?.party ?? [];
+      const speciesIds = party.map(function speciesId(creature): number {
+        return creature.species.id;
+      });
+      return location ? huntView.start(command, location, speciesIds) : false;
+    }
+    if (command.type === 'leave_hunt') {
+      return huntView.leave(command);
+    }
+    return this.session.send(command);
   }
   private handleVisibilityChange(): void {
     if (globalThis.document.hidden) {

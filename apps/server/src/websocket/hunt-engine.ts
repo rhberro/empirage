@@ -36,6 +36,10 @@ export type HuntCombatEvent = {
   tiles: Array<Position>;
   to: Position;
 };
+type StatIvs = Pick<
+  HuntCreatureResource,
+  'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
+>;
 export type HuntEngineEnemy = HuntSpeciesResource & {
   combatId: string;
   health: number;
@@ -46,7 +50,7 @@ export type HuntEngineEnemy = HuntSpeciesResource & {
   nextMovementAt?: number;
   position: Position;
   rarity: CaptureRarity;
-};
+} & StatIvs;
 export type HuntEngineAlly = HuntCreatureResource & {
   health: number;
   maximumHealth: number;
@@ -69,9 +73,11 @@ export type HuntEngineCheckpoint = {
   revision: number;
   wave: number;
   waveDelayMs: number;
+  waveRange: HuntWaveRange;
   waveSize: number;
   xpPending?: Record<string, number>;
 };
+export type HuntWaveRange = { maximumSize: number; minimumSize: number };
 export type HuntEngine = {
   activeCreatureAvailableAt: number;
   abilityCooldowns: Record<string, Record<string, number>>;
@@ -93,6 +99,7 @@ export type HuntEngine = {
   version: 1;
   wave: number;
   waveDelayMs: number;
+  waveRange: HuntWaveRange;
   waveSize: number;
   xpPending: Record<string, number>;
 };
@@ -134,13 +141,6 @@ type BattleStats = {
   specialDefense: number;
   speed: number;
 };
-type StatIvs = Pick<
-  HuntCreatureResource,
-  'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
->;
-
-const WILD_IV = 15;
-
 function calculatedStat(base: number, iv: number, level: number, health: boolean): number {
   const scaled = Math.floor(((base * 2 + iv) * level) / 100);
   // Nature will multiply non-HP stats here when creature natures are introduced.
@@ -165,15 +165,7 @@ export function maximumHealthForCreature(
   return battleStats(species, creature.level, creature).health;
 }
 
-function wildStats(species: HuntSpeciesResource, level: number): BattleStats {
-  const ivs: StatIvs = {
-    ivAttack: WILD_IV,
-    ivDefense: WILD_IV,
-    ivHealth: WILD_IV,
-    ivSpecialAttack: WILD_IV,
-    ivSpecialDefense: WILD_IV,
-    ivSpeed: WILD_IV,
-  };
+function wildStats(species: HuntSpeciesResource, level: number, ivs: StatIvs): BattleStats {
   return battleStats(species, level, ivs);
 }
 
@@ -314,6 +306,7 @@ export function createEngine(
     version: 1,
     wave: checkpoint.wave,
     waveDelayMs: checkpoint.waveDelayMs,
+    waveRange: checkpoint.waveRange,
     waveSize: checkpoint.waveSize,
     xpPending: {},
   };
@@ -395,25 +388,41 @@ function blockedTiles(engine: HuntEngine): Set<string> {
   return blocked;
 }
 
-function rarityForEncounterWeight(weight: number): CaptureRarity {
-  if (weight >= 20) {
+function randomWildIvs(): StatIvs {
+  return {
+    ivAttack: Math.floor(Math.random() * 32),
+    ivDefense: Math.floor(Math.random() * 32),
+    ivHealth: Math.floor(Math.random() * 32),
+    ivSpecialAttack: Math.floor(Math.random() * 32),
+    ivSpecialDefense: Math.floor(Math.random() * 32),
+    ivSpeed: Math.floor(Math.random() * 32),
+  };
+}
+
+function rarityForIvs(ivs: StatIvs): CaptureRarity {
+  const total =
+    ivs.ivAttack +
+    ivs.ivDefense +
+    ivs.ivHealth +
+    ivs.ivSpecialAttack +
+    ivs.ivSpecialDefense +
+    ivs.ivSpeed;
+  if (total <= 74) {
     return 'common';
   }
-  if (weight >= 10) {
+  if (total <= 111) {
     return 'uncommon';
   }
-  if (weight >= 5) {
+  if (total <= 139) {
     return 'rare';
   }
-  if (weight >= 2) {
+  if (total <= 167) {
     return 'epic';
   }
   return 'legendary';
 }
 
-function randomEncounter(
-  resources: HuntResources,
-): HuntSpeciesResource & { level: number; rarity: CaptureRarity } {
+function randomEncounter(resources: HuntResources): HuntSpeciesResource & { level: number } {
   let totalWeight = 0;
   for (const encounter of resources.encounters) {
     totalWeight += encounter.weight;
@@ -437,7 +446,7 @@ function randomEncounter(
   const level =
     selected.minimumLevel +
     Math.floor(Math.random() * (selected.maximumLevel - selected.minimumLevel + 1));
-  return { ...species, level, rarity: rarityForEncounterWeight(selected.weight) };
+  return { ...species, level };
 }
 
 function spawnPosition(engine: HuntEngine, blocked: Set<string>): Position {
@@ -454,22 +463,31 @@ function spawnPosition(engine: HuntEngine, blocked: Set<string>): Position {
 }
 
 function spawnWave(engine: HuntEngine, nowEpoch: number): void {
+  engine.waveSize = randomWaveSize(engine.waveRange);
   const blocked = blockedTiles(engine);
   for (let index = 0; index < engine.waveSize; index += 1) {
     const encounter = randomEncounter(engine.resources);
+    const ivs = randomWildIvs();
     const position = spawnPosition(engine, blocked);
     blocked.add(positionKey(position));
-    const health = wildStats(encounter, encounter.level).health;
+    const health = wildStats(encounter, encounter.level, ivs).health;
     engine.enemies.push({
       ...encounter,
+      ...ivs,
       combatId: randomUUID(),
       health,
       maximumHealth: health,
       nextAttackAt: nowEpoch,
       nextMovementAt: nowEpoch,
       position,
+      rarity: rarityForIvs(ivs),
     });
   }
+}
+
+function randomWaveSize(range: HuntWaveRange): number {
+  const length = range.maximumSize - range.minimumSize + 1;
+  return range.minimumSize + Math.floor(Math.random() * length);
 }
 
 function cooldowns(engine: HuntEngine, actorId: string): Record<string, number> {
@@ -636,7 +654,7 @@ function enemyAttack(
     engine,
     acting.enemy,
     acting.enemy.level,
-    wildStats(acting.enemy, acting.enemy.level),
+    wildStats(acting.enemy, acting.enemy.level, acting.enemy),
     allySpecies,
     battleStats(allySpecies, ally.level, ally),
     acting.policy,
@@ -676,7 +694,7 @@ function allyAttack(
         ally.level,
         battleStats(species, ally.level, ally),
         enemy,
-        wildStats(enemy, enemy.level),
+        wildStats(enemy, enemy.level, enemy),
         policy,
       );
       enemy.health = Math.max(0, enemy.health - damage);
@@ -766,8 +784,8 @@ function processAttacks(
     candidate: ActingEnemy,
   ): ActingEnemy {
     return !current ||
-      wildStats(candidate.enemy, candidate.enemy.level).speed >
-        wildStats(current.enemy, current.enemy.level).speed
+      wildStats(candidate.enemy, candidate.enemy.level, candidate.enemy).speed >
+        wildStats(current.enemy, current.enemy.level, current.enemy).speed
       ? candidate
       : current;
   }, undefined);
@@ -776,7 +794,7 @@ function processAttacks(
     target &&
     (!fastestEnemy ||
       battleStats(allySpecies, ally.level, ally).speed >=
-        wildStats(fastestEnemy.enemy, fastestEnemy.enemy.level).speed);
+        wildStats(fastestEnemy.enemy, fastestEnemy.enemy.level, fastestEnemy.enemy).speed);
   if (allyFirst && allyPolicy && target) {
     allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
   }
@@ -1121,6 +1139,7 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
     version: 1,
     wave: engine.wave,
     waveDelayMs: engine.waveDelayMs,
+    waveRange: engine.waveRange,
     waveSize: engine.waveSize,
     xpPending: engine.xpPending,
   });

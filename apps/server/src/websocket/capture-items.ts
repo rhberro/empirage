@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const CAPTURE_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+const AUTO_CAPTURE_ITEM_SLUG_VALUES = ['poke-ball', 'great-ball', 'ultra-ball'];
+const AUTO_CAPTURE_ITEM_SLUGS = new Set(AUTO_CAPTURE_ITEM_SLUG_VALUES);
 
 export type CaptureRarity = (typeof CAPTURE_RARITIES)[number];
 export type CaptureItemResource = {
@@ -50,7 +52,11 @@ function mapCaptureItem(row: CaptureItemRow): CaptureItemResource {
 }
 
 function isPurchasableCaptureItem(row: CaptureItemRow): boolean {
-  return row.buy_price > 0 && captureRateMultiplier(row.capture_rate_multiplier) > 0;
+  return (
+    AUTO_CAPTURE_ITEM_SLUGS.has(row.slug) &&
+    row.buy_price > 0 &&
+    captureRateMultiplier(row.capture_rate_multiplier) > 0
+  );
 }
 
 function configuredRarities(values: Array<string>): CaptureRarities {

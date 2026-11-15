@@ -1,3 +1,4 @@
+/* eslint-disable oxc/no-optional-chaining, react-hooks/exhaustive-deps, oxsome/no-inline-functions-objects-arrays */
 import { AUTO, Game, Scale } from 'phaser';
 import type { ReactElement } from 'react';
 import { useEffect, useRef } from 'react';
@@ -7,6 +8,7 @@ import { getSelectedCharacter } from '~/shared/session';
 
 import type { CharacterProfile, CollectionStateEvent } from '../api/game-protocol';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { HuntingLocation } from '../api/hunting-locations';
 import { CityScene } from './CityScene';
 
 const GAME_WIDTH = 480;
@@ -18,31 +20,39 @@ type CharacterProfileChangeHandler = (profile: CharacterProfile) => void;
 type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
+type TransitionChangeHandler = (active: boolean, message: string) => void;
 type GameCanvasProps = {
+  huntingLocations: Array<HuntingLocation>;
   onCharacterProfileChange: CharacterProfileChangeHandler;
   onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
   onCollectionChange: CollectionChangeHandler;
   onHuntStateChange: HuntStateChangeHandler;
+  onTransitionChange: TransitionChangeHandler;
 };
 
 export function GameCanvas(props: GameCanvasProps): ReactElement {
   const {
+    huntingLocations,
     onCharacterProfileChange,
     onCollectionChange,
     onHuntCommandSenderChange,
     onHuntStateChange,
+    onTransitionChange,
   } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const onHuntCommandSenderChangeRef = useRef(onHuntCommandSenderChange);
   const onHuntStateChangeRef = useRef(onHuntStateChange);
   const onCollectionChangeRef = useRef(onCollectionChange);
   const onCharacterProfileChangeRef = useRef(onCharacterProfileChange);
+  const onTransitionChangeRef = useRef(onTransitionChange);
+  const sceneRef = useRef<CityScene | null>(null);
 
   function synchronizeHuntStateHandler(): void {
     onCharacterProfileChangeRef.current = onCharacterProfileChange;
     onHuntStateChangeRef.current = onHuntStateChange;
     onCollectionChangeRef.current = onCollectionChange;
     onHuntCommandSenderChangeRef.current = onHuntCommandSenderChange;
+    onTransitionChangeRef.current = onTransitionChange;
   }
 
   function handleCharacterProfileChange(profile: CharacterProfile): void {
@@ -70,7 +80,9 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
       handleCollectionChange,
       handleHuntStateChange,
       onHuntCommandSenderChangeRef.current,
+      onTransitionChangeRef.current,
     );
+    sceneRef.current = scene;
     const config = {
       antialias: false,
       backgroundColor: '#77777f',
@@ -92,6 +104,7 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     };
     const game = new Game(config);
     function unmountGame(): void {
+      sceneRef.current = null;
       game.destroy(true);
     }
     return unmountGame;
@@ -104,5 +117,11 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     onHuntStateChange,
   ]);
   useEffect(mountGame, []);
+  useEffect(
+    function synchronizeHuntingLocations(): void {
+      sceneRef.current?.setHuntingLocations(huntingLocations);
+    },
+    [huntingLocations],
+  );
   return <div className="game-canvas" ref={containerRef} />;
 }

@@ -63,8 +63,11 @@ export type CaptureAttempt = {
   completesAt: number;
   id: string;
   position: Tile;
+  settledAt: number | undefined;
+  status: 'pending' | 'failed' | 'succeeded';
   succeeded: boolean;
 };
+export type HuntWaveRange = { maximumSize: number; minimumSize: number };
 type HuntAbilities = Array<HuntAbility>;
 type HuntStatus = Pick<
   HuntState,
@@ -117,10 +120,12 @@ export type HuntState = {
   runtimeGeneration?: string;
   serverTime?: number;
   wave: number;
+  waveRange: HuntWaveRange;
 };
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
 export type HuntCommand =
-  | { type: 'start_hunt' | 'leave_hunt'; version: 1 }
+  | { huntingLocationId: number; type: 'start_hunt'; version: 1 }
+  | { type: 'leave_hunt'; version: 1 }
   | {
       healingItemId: number;
       healingThresholdPercentage: number;
@@ -139,7 +144,13 @@ export type HuntCommand =
       version: 1;
     }
   | { storagePage: number; type: 'request_creature_storage'; version: 1 }
-  | { abilityId: number | null; abilitySlot: number; type: 'configure_ability'; version: 1 };
+  | { abilityId: number | null; abilitySlot: number; type: 'configure_ability'; version: 1 }
+  | {
+      type: 'configure_wave_range';
+      version: 1;
+      waveRangeMaximumSize: number;
+      waveRangeMinimumSize: number;
+    };
 type UnknownRecord = Record<string, unknown>;
 type Tiles = Array<Tile>;
 type HuntEnemies = Array<HuntEnemy>;
@@ -164,6 +175,20 @@ function isRecord(value: unknown): value is UnknownRecord {
 
 function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isWaveRange(value: unknown): value is HuntWaveRange {
+  if (!isRecord(value) || !isCount(value.minimumSize) || !isCount(value.maximumSize)) {
+    return false;
+  }
+  return value.minimumSize > 0 && value.maximumSize >= value.minimumSize;
+}
+
+function readWaveRange(value: unknown): HuntWaveRange {
+  if (!isWaveRange(value)) {
+    throw new TypeError('invalid_wave_range');
+  }
+  return { maximumSize: value.maximumSize, minimumSize: value.minimumSize };
 }
 
 function isExperience(value: unknown): value is string {
@@ -484,6 +509,10 @@ function readCaptureState(
       !isRecord(attempt) ||
       typeof attempt.completesAt !== 'number' ||
       !isString(attempt.id) ||
+      (attempt.settledAt !== undefined && typeof attempt.settledAt !== 'number') ||
+      (attempt.status !== 'pending' &&
+        attempt.status !== 'failed' &&
+        attempt.status !== 'succeeded') ||
       typeof attempt.succeeded !== 'boolean'
     ) {
       return null;
@@ -496,6 +525,8 @@ function readCaptureState(
       completesAt: attempt.completesAt,
       id: attempt.id,
       position,
+      settledAt: attempt.settledAt,
+      status: attempt.status,
       succeeded: attempt.succeeded,
     });
   }
@@ -598,6 +629,7 @@ function isHuntRecord(value: unknown): value is UnknownRecord {
     isCount(value.revision) &&
     hasOptionalRuntimeState(value) &&
     isCount(value.wave) &&
+    isWaveRange(value.waveRange) &&
     Array.isArray(value.enemies)
   );
 }
@@ -659,6 +691,7 @@ function readHunt(value: UnknownRecord): HuntState | null {
     playerPosition,
     revision: value.revision as number,
     wave: value.wave as number,
+    waveRange: readWaveRange(value.waveRange),
   };
 }
 

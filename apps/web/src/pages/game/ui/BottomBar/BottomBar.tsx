@@ -5,6 +5,7 @@ import type { HuntAbility, HuntCommand, HuntState } from '../../api/hunt-protoco
 import { AbilitySlot } from './AbilitySlot';
 import { CaptureSlot } from './CaptureSlot';
 import { HealingSlot } from './HealingSlot';
+import { WaveRangeSlot } from './WaveRangeSlot';
 
 type HuntCommandSender = (command: HuntCommand) => boolean;
 type HuntAbilities = Array<HuntAbility>;
@@ -28,11 +29,14 @@ export function BottomBar(props: BottomBarProps): React.ReactElement {
   const ability3 = findAbilityBySlot(activeCreatureAbilities, 3);
   const ability4 = findAbilityBySlot(activeCreatureAbilities, 4);
   const availableCaptureItems = captureItems ?? [];
+  const waveRange = hunt ? hunt.waveRange : undefined;
   return (
     <ActionBar.Root closeOnEscape={false} defaultOpen closeOnInteractOutside={false}>
       <Portal>
         <ActionBar.Positioner>
           <ActionBar.Content bg="bg.muted">
+            <WaveRangeSlot waveRange={waveRange} />
+            <ActionBar.Separator />
             <AbilitySlot ability={ability1} slot={1} />
             <AbilitySlot ability={ability2} slot={2} />
             <AbilitySlot ability={ability3} slot={3} />

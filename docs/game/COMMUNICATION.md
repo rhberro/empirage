@@ -204,22 +204,41 @@ Ou `null` quando não há caça. O servidor valida o token e filtra a busca pelo
     "slug": "forest",
     "name": "Floresta",
     "description": "Uma área inicial.",
+    "tilesetUrl": "/assets/hunting-locations/grassland-tiles.png",
+    "map": {
+      "width": 12,
+      "height": 8,
+      "tileSize": 16,
+      "defaultTileFrame": 0,
+      "tiles": [],
+      "objects": [
+        { "kind": "player_spawn", "x": 2, "y": 3 },
+        { "kind": "ally_spawn", "x": 6, "y": 3 }
+      ]
+    },
     "positionX": 12,
     "positionY": 8,
     "species": [
       {
         "id": 25,
         "name": "Exemplo",
+        "description": "Uma criatura encontrada neste local.",
         "minimumLevel": 2,
         "maximumLevel": 5,
         "encounterWeight": 70
       }
+    ],
+    "waveRanges": [
+      { "minimumSize": 1, "maximumSize": 2 },
+      { "minimumSize": 2, "maximumSize": 4 }
     ]
   }
 ]
 ```
 
-Valida o token e retorna a configuração disponível no banco.
+Valida o token e retorna a configuração disponível no banco. `tilesetUrl` referencia o spritesheet do cenário; `map` contém o tamanho, tiles por coordenada e objetos posicionados. O cliente usa esses dados para pré-carregar e, futuramente, pré-visualizar o mapa antes da transição.
+
+`waveRanges` lista, em ordem crescente, as únicas faixas de criaturas por onda que o jogador pode selecionar naquele local.
 
 ### `GET /ws` sem upgrade
 
@@ -244,7 +263,7 @@ Enviada imediatamente após abrir a conexão.
 }
 ```
 
-O servidor valida versão, tipos, JWT no Supabase, existência e propriedade do personagem, exclusividade de uma caça por conta e substitui uma conexão anterior da mesma conta após persistir sua posição. A confirmação é enviada por `snapshot`, `authenticated`, `collection_state` e, quando aplicável, `hunt_state`.
+O servidor valida versão, tipos, JWT no Supabase, existência e propriedade do personagem, exclusividade de uma caça por conta e substitui uma conexão anterior da mesma conta após persistir sua posição. A confirmação é enviada por `snapshot`, `authenticated`, `collection_state` e sempre por `hunt_state` — com `hunt: null` quando o personagem está na cidade.
 
 ### `input`
 
@@ -292,14 +311,14 @@ O servidor exige versão e timestamp finito e responde com `hunt_clock`. Não gr
 ### `start_hunt` e `leave_hunt`
 
 ```json
-{ "type": "start_hunt", "version": 1 }
+{ "type": "start_hunt", "version": 1, "huntingLocationId": 1 }
 ```
 
 ```json
 { "type": "leave_hunt", "version": 1 }
 ```
 
-`start_hunt` exige personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`.
+`start_hunt` exige um identificador inteiro de local existente, personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. O servidor usa exclusivamente o local solicitado; não há seleção aleatória. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`.
 
 ### `configure_healing_item`
 
@@ -325,7 +344,20 @@ Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, p
 }
 ```
 
-Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. Responde com `hunt_state`.
+Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. A seleção de raridades é comparada à raridade calculada pelos seis IVs sorteados quando o encontro surge; os mesmos IVs são persistidos caso a captura tenha sucesso. As faixas de raridade estão em `docs/game/HUNTING.md`. Responde com `hunt_state`.
+
+### `configure_wave_range`
+
+```json
+{
+  "type": "configure_wave_range",
+  "version": 1,
+  "waveRangeMinimumSize": 2,
+  "waveRangeMaximumSize": 4
+}
+```
+
+Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do local de caça atual. Atualiza a faixa selecionada no checkpoint da caça e responde com `hunt_state`. A troca nunca muda os inimigos da onda em curso: passa a ser usada somente no sorteio da próxima onda.
 
 ### `configure_ability`
 
@@ -456,6 +488,7 @@ Confirma que a conexão está autorizada a operar o personagem.
     "revision": 12,
     "serverTime": 1794672000034,
     "wave": 3,
+    "waveRange": { "minimumSize": 2, "maximumSize": 4 },
     "gold": 180,
     "activeCreatureId": "creature-uuid",
     "activeCreatureHealth": 42,
@@ -468,7 +501,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. O payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. Quando a caça termina, `hunt` é `null`.
+É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. Cada item em `captureAttempts` contém `status`: `pending` enquanto a captura aguarda confirmação atômica do banco, `succeeded` somente depois de a criatura ser criada e `failed` quando a tentativa termina sem criatura. Uma falha de comunicação mantém a tentativa como `pending` e o servidor a repete com o mesmo `id`, usado como `command_id` idempotente. Quando a caça termina, `hunt` é `null`.
 
 ### `collection_state`
 
@@ -504,7 +537,7 @@ O heartbeat real usa frames WebSocket nativos `ping` e `pong` a cada 15 segundos
 | --- | --- | --- |
 | `create_character` | criação de personagem | nome, limite, slot e concorrência no banco |
 | `checkpoint_character_hunt` | fronteira relevante, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
-| `complete_character_capture` | término de tentativa de captura | `command_id` idempotente, débito e criação atômicos |
+| `complete_character_capture` | término de tentativa de captura | `command_id` idempotente, débito e criação atômicos; em falha de comunicação, o servidor reenvia o mesmo comando até obter confirmação |
 | `purchase_character_battle_item` | cura automática | compra e saldo atômicos |
 | `configure_creature_equipped_move` | configuração de habilidade | criatura, slot e movimento válidos |
 | mover criatura | pedido de equipe/armazenamento | propriedade e limite de equipe |

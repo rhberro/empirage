@@ -18,6 +18,8 @@ const EFFECT_DURATION_MS = 260;
 const FEEDBACK_DURATION_MS = 900;
 const LATENCY_FLOOR_MS = 120;
 const MAXIMUM_SEEN_EVENTS = 256;
+const MAXIMUM_SEEN_CAPTURES = 256;
+const CAPTURE_RESULT_DURATION_MS = 900;
 const RANGED_DURATION_MS = 360;
 const IMPACT_START_PROGRESS = 0.55;
 
@@ -28,6 +30,7 @@ export class HuntEffects {
   private readonly effects: GameObjects.Graphics;
   private readonly feedback = new Map<string, Feedbacks>();
   private readonly seenCombat = new Set<string>();
+  private readonly seenCaptures = new Set<string>();
   private readonly captures = new Map<string, CaptureVisual>();
   private gridOriginX = 0;
   private gridOriginY = 0;
@@ -45,7 +48,11 @@ export class HuntEffects {
 
   public apply(state: HuntState, now: number): void {
     for (const attempt of state.captureAttempts) {
-      if (!this.captures.has(attempt.id)) {
+      const capture = this.captures.get(attempt.id);
+      if (capture) {
+        capture.attempt = attempt;
+      } else if (!this.seenCaptures.has(attempt.id)) {
+        this.seenCaptures.add(attempt.id);
         this.captures.set(attempt.id, { attempt, startedAt: now });
       }
     }
@@ -69,12 +76,20 @@ export class HuntEffects {
       }
       this.seenCombat.delete(oldest);
     }
+    while (this.seenCaptures.size > MAXIMUM_SEEN_CAPTURES) {
+      const oldest = this.seenCaptures.values().next().value;
+      if (oldest === undefined) {
+        break;
+      }
+      this.seenCaptures.delete(oldest);
+    }
   }
 
   public clear(): void {
     this.combat.clear();
     this.captures.clear();
     this.seenCombat.clear();
+    this.seenCaptures.clear();
     this.effects.clear();
     for (const visual of this.feedback.values()) {
       for (const feedback of visual.labels) {
@@ -115,18 +130,20 @@ export class HuntEffects {
       const x = from.x + (target.x - from.x) * flightProgress;
       const y = from.y + (target.y - from.y) * flightProgress;
       const blinking = flightProgress === 1;
-      const finished = progress >= 0.98;
-      const blinkingRed = Math.floor((now - visual.startedAt) / 550) % 2 === 0;
-      const color = finished
-        ? visual.attempt.succeeded
+      const settled = visual.attempt.status !== 'pending';
+      const color = settled
+        ? visual.attempt.status === 'succeeded'
           ? 0x43a047
           : 0xe53935
-        : blinking && blinkingRed
-          ? 0xe53935
-          : 0x43a047;
+        : blinking
+          ? 0xfdd835
+          : 0xffffff;
       this.effects.fillStyle(color);
       this.effects.fillCircle(this.screenX(x), this.screenY(y), Math.max(3, this.tileSize / 3));
-      if (progress >= 1) {
+      if (
+        visual.attempt.settledAt &&
+        now - visual.attempt.settledAt >= CAPTURE_RESULT_DURATION_MS
+      ) {
         this.captures.delete(id);
       }
     }

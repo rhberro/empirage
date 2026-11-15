@@ -4,7 +4,9 @@ type ModalStore = {
   abilitySlot: number | null;
   capture: boolean;
   healingItem: boolean;
+  huntingLocations: boolean;
   storage: boolean;
+  waveRange: boolean;
 };
 
 export type ModalStoreSelector<T> = (state: ModalStore) => T;
@@ -13,7 +15,9 @@ const initialModalStoreValues: ModalStore = {
   abilitySlot: null,
   capture: false,
   healingItem: false,
+  huntingLocations: false,
   storage: false,
+  waveRange: false,
 };
 
 function createInitialState(): ModalStore {
@@ -54,9 +58,29 @@ export function toggleStorageModal(): void {
   modalStore.setState(nextState);
 }
 
+export function selectHuntingLocationsModalState(state: ModalStore): boolean {
+  return state.huntingLocations;
+}
+
+export function toggleHuntingLocationsModal(): void {
+  const currentState = modalStore.getState();
+  const nextState = { ...currentState, huntingLocations: !currentState.huntingLocations };
+  modalStore.setState(nextState);
+}
+
 export function toggleHealingItemModal(): void {
   const currentState = modalStore.getState();
   const nextState = { ...currentState, healingItem: !currentState.healingItem };
+  modalStore.setState(nextState);
+}
+
+export function selectWaveRangeModalState(state: ModalStore): boolean {
+  return state.waveRange;
+}
+
+export function toggleWaveRangeModal(): void {
+  const currentState = modalStore.getState();
+  const nextState = { ...currentState, waveRange: !currentState.waveRange };
   modalStore.setState(nextState);
 }
 

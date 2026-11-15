@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-/* eslint-disable import/max-dependencies, max-lines */
+/* eslint-disable import/max-dependencies, max-lines, max-lines-per-function */
 
 import { config } from '../config.ts';
 import { SerialCommandQueue } from '../game/serial-command-queue.ts';
@@ -22,6 +22,7 @@ import type {
 import { isPositionWithin, positionAfterVector } from './grid-movement.ts';
 import {
   configureHuntHealingItem,
+  configureHuntWaveRange,
   configureHuntCapture,
   configureHuntAbility,
   switchHuntActiveCreature,
@@ -315,9 +316,7 @@ async function authenticate(
   if (!hunt) {
     broadcastExcept(state, joined, socket);
   }
-  if (hunt) {
-    sendHuntState(socket, hunt);
-  }
+  sendHuntState(socket, hunt);
   await sendCreatureCollection(socket, state);
 }
 
@@ -433,6 +432,30 @@ async function configureAbility(
   }
 }
 
+async function configureWaveRange(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (
+    typeof clientMessage.waveRangeMinimumSize !== 'number' ||
+    !Number.isSafeInteger(clientMessage.waveRangeMinimumSize) ||
+    typeof clientMessage.waveRangeMaximumSize !== 'number' ||
+    !Number.isSafeInteger(clientMessage.waveRangeMaximumSize)
+  ) {
+    throw new TypeError('invalid_wave_range');
+  }
+  const hunt = await configureHuntWaveRange(
+    state.characterId,
+    state.accountId,
+    clientMessage.waveRangeMinimumSize,
+    clientMessage.waveRangeMaximumSize,
+  );
+  if (hunt) {
+    sendHuntState(socket, hunt);
+  }
+}
+
 async function switchActiveCreature(
   socket: GameSocket,
   state: AuthenticatedState,
@@ -512,7 +535,11 @@ async function configureCapture(
   }
 }
 
-async function handleStartHunt(socket: GameSocket, state: AuthenticatedState): Promise<void> {
+async function handleStartHunt(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  huntingLocationId: unknown,
+): Promise<void> {
   if (state.hunting) {
     sendHuntState(socket, await findHunt(state.characterId));
     return;
@@ -520,7 +547,14 @@ async function handleStartHunt(socket: GameSocket, state: AuthenticatedState): P
   state.input = emptyInput();
   state.movement = undefined;
   await persist(socket);
-  const hunt = await startHunt(state.characterId, state.accountId);
+  if (
+    typeof huntingLocationId !== 'number' ||
+    !Number.isSafeInteger(huntingLocationId) ||
+    huntingLocationId < 1
+  ) {
+    throw new Error('invalid_hunting_location');
+  }
+  const hunt = await startHunt(state.characterId, state.accountId, huntingLocationId);
   state.hunting = true;
   const left = cityPresence(state, 'player_left');
   broadcastExcept(state, left, socket);
@@ -565,6 +599,10 @@ async function handleHuntCommand(
     await configureCapture(socket, state, clientMessage);
     return true;
   }
+  if (clientMessage.type === 'configure_wave_range') {
+    await configureWaveRange(socket, state, clientMessage);
+    return true;
+  }
   if (clientMessage.type === 'switch_active_creature') {
     await switchActiveCreature(socket, state, clientMessage);
     return true;
@@ -586,7 +624,7 @@ async function handleHuntCommand(
   state.huntTransitioning = true;
   try {
     if (clientMessage.type === 'start_hunt') {
-      await handleStartHunt(socket, state);
+      await handleStartHunt(socket, state, clientMessage.huntingLocationId);
     } else {
       await handleLeaveHunt(socket, state);
     }
