@@ -238,9 +238,7 @@ function buildAllies(
       health:
         creature.id === checkpoint.activeCreatureId
           ? checkpoint.activeCreatureHealth
-          : creature.teamPosition < activeCreature.teamPosition
-            ? 0
-            : maximumHealth,
+          : maximumHealth,
       maximumHealth,
     });
   }

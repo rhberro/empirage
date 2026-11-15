@@ -26,6 +26,10 @@ A raridade é derivada exclusivamente da soma dos seis IVs. Esta tabela é a fon
 
 O percentual é apenas uma representação de design do total máximo de 186 IVs. O servidor e o banco trabalham com o total inteiro para evitar arredondamento.
 
+## Equipe durante a caçada
+
+A vida da criatura ativa é persistida no checkpoint da caça. As criaturas reserva entram com vida máxima ao iniciar ou recuperar uma caça e podem ser selecionadas normalmente. Uma criatura que desmaiar durante a caçada permanece indisponível para troca enquanto aquela execução estiver ativa.
+
 ## Captura automática
 
 Quando uma criatura é derrotada, o sistema de captura automática usa a Pokébola selecionada, caso a raridade esteja configurada como alvo e haja ouro suficiente. Cada tentativa consome uma bola, com sucesso ou falha.
