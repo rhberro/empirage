@@ -60,7 +60,7 @@ O WebSocket aceita somente `GET /ws` com upgrade e origem permitida. Também lim
 | --- | --- | --- | --- |
 | `snapshot` da cidade | a cada 5 s e na entrada | não | reconciliar somente jogadores na área de interesse visível |
 | `hunt_clock` | a cada 7 s durante a caça | não | sincronizar relógio do cliente e servidor |
-| checkpoint da caça | transições importantes e, no máximo, a cada 5 min enquanto alterada | sim | recuperar o estado mínimo da caça |
+| checkpoint da caça | em transições importantes, após cada derrota e, no máximo, a cada 5 min enquanto alterada | sim | recuperar o estado mínimo da caça |
 
 `snapshot` da cidade nunca é um histórico de banco.
 
@@ -536,7 +536,7 @@ O heartbeat real usa frames WebSocket nativos `ping` e `pong` a cada 15 segundos
 | Operação | Quando ocorre | Garantia e validação |
 | --- | --- | --- |
 | `create_character` | criação de personagem | nome, limite, slot e concorrência no banco |
-| `checkpoint_character_hunt` | fronteira relevante, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
+| `checkpoint_character_hunt` | fronteira relevante, cada derrota, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; aplica a experiência acumulada da derrota na mesma transação do checkpoint; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
 | `complete_character_capture` | término de tentativa de captura | `command_id` idempotente, débito e criação atômicos; em falha de comunicação, o servidor reenvia o mesmo comando até obter confirmação |
 | `purchase_character_battle_item` | cura automática | compra e saldo atômicos |
 | `configure_creature_equipped_move` | configuração de habilidade | criatura, slot e movimento válidos |

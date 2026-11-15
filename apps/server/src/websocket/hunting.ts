@@ -622,6 +622,9 @@ function processRuntime(runtime: Runtime, now: number): void {
   for (const enemy of result.defeatedEnemies) {
     queueCaptureAttempt(runtime, enemy, now);
   }
+  if (result.defeatedEnemies.length > 0) {
+    launchCheckpoint(runtime, false);
+  }
   if (result.changed) {
     const active = runtime.engine.allies[runtime.engine.activeAllyIndex];
     if (active) {

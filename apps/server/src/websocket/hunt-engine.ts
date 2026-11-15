@@ -1117,7 +1117,8 @@ export function resumeEngine(engine: HuntEngine, nowEpoch: number): boolean {
 
 export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngineSnapshot {
   const active = engine.allies[engine.activeAllyIndex];
-  const activeHealth = active ? active.health : 0;
+  const activeHealth =
+    active && Number.isSafeInteger(active.health) && active.health >= 0 ? active.health : 0;
   const activeId = active ? active.id : '';
   const snapshot: HuntEngineSnapshot = globalThis.structuredClone({
     abilityCooldowns: engine.abilityCooldowns,
