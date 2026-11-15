@@ -42,7 +42,7 @@ export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactEleme
     <span aria-hidden="true">{trainerInitial}</span>
   );
   const displayedGoldLabel = displayedGold.toLocaleString('pt-BR');
-  const activeCreatureId = hunt?.activeCreatureId;
+  const activeCreatureId = hunt ? hunt.activeCreatureId : collection?.activeCreatureId;
   const activeCreature = hunt
     ? collectionCreatureFor(hunt.activeCreatureId, collection)
     : undefined;
@@ -62,10 +62,10 @@ export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactEleme
             <HuntPartyCard
               canRemove={creature.id !== activeCreatureId}
               canSwitch={
-                Boolean(hunt) &&
                 creature.id !== activeCreatureId &&
-                now >= (hunt?.activeCreatureSwitchCooldownEndsAt ?? Number.POSITIVE_INFINITY) &&
-                hunt?.activeCreatureSwitchCompletesAt === undefined
+                (!hunt ||
+                  (now >= hunt.activeCreatureSwitchCooldownEndsAt &&
+                    hunt.activeCreatureSwitchCompletesAt === undefined))
               }
               creature={creature}
               isActive={creature.id === activeCreatureId}

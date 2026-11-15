@@ -186,6 +186,10 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
     onCommand({ creatureId: creature.id, type, version: 1 });
   }
 
+  function activateCreature(): void {
+    onCommand({ creatureId: creature.id, type: 'switch_active_creature', version: 1 });
+  }
+
   return (
     <Menu.Root positioning={{ placement: 'bottom-start', strategy: 'fixed' }}>
       <Tooltip.Root openDelay={350}>
@@ -229,6 +233,15 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
       <Portal>
         <Menu.Positioner>
           <Menu.Content>
+            {party ? (
+              <Menu.Item
+                disabled={active}
+                onClick={activateCreature}
+                value={'activate-' + creature.id}
+              >
+                {active ? 'Criatura ativa' : 'Tornar ativa'}
+              </Menu.Item>
+            ) : null}
             <Menu.Item disabled={actionDisabled} onClick={moveCreature} value={creature.id}>
               {action}
             </Menu.Item>

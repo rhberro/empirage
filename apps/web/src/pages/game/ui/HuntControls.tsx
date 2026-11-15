@@ -1,24 +1,32 @@
-import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { BattleConfiguration, HuntCommand, HuntState } from '../api/hunt-protocol';
 import { AbilityDialog } from './AbilityDialog';
 import { CaptureDialog } from './CaptureDialog';
 import { HealingItemDialog } from './HealingItemDialog';
 
-type HuntControlsProps = { hunt: HuntState; onCommand: (command: HuntCommand) => boolean };
+type HuntControlsProps = {
+  configuration: BattleConfiguration | undefined;
+  hunt: HuntState | null;
+  onCommand: (command: HuntCommand) => boolean;
+};
 
 export function HuntControls(props: HuntControlsProps): React.ReactElement {
-  const { hunt, onCommand } = props;
+  const { configuration, hunt, onCommand } = props;
+  const state = hunt ?? configuration;
+  if (!state) {
+    return <div hidden />;
+  }
   const {
     activeCreatureAbilities,
     activeCreatureAvailableAbilities,
     activeCreatureLevel,
     healingConfiguration,
     healingItems,
-  } = hunt;
+  } = state;
   return (
     <>
       <CaptureDialog
-        configuration={hunt.captureConfiguration}
-        items={hunt.captureItems}
+        configuration={state.captureConfiguration}
+        items={state.captureItems}
         onConfigure={onCommand}
       />
       <HealingItemDialog

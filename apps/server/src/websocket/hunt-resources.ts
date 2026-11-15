@@ -75,6 +75,7 @@ export type HuntEncounterResource = {
   weight: number;
 };
 export type HuntResources = {
+  activeCreatureId: string | null;
   captureConfiguration: CaptureConfigurationResource | undefined;
   captureItems: Array<CaptureItemResource>;
   character: HuntCharacterResource;
@@ -102,7 +103,12 @@ type CreatureRow = {
   species_id: number;
   party_slot: number;
 };
-type CharacterRow = { avatar_url: string | null; level: number; name: string };
+type CharacterRow = {
+  active_creature_id: string | null;
+  avatar_url: string | null;
+  level: number;
+  name: string;
+};
 type EvolutionRow = {
   from_species_id: number;
   required_level: number;
@@ -200,7 +206,11 @@ export async function loadHuntResources(
     loadCharacterCaptureResources(client, characterId),
   ]);
   const [characterResult, evolutionResult] = await Promise.all([
-    client.from('characters').select('name, level, avatar_url').eq('id', characterId).single(),
+    client
+      .from('characters')
+      .select('name, level, avatar_url, active_creature_id')
+      .eq('id', characterId)
+      .single(),
     client
       .from('evolutions')
       .select('from_species_id, to_species_id, required_level')
@@ -444,6 +454,7 @@ export async function loadHuntResources(
     typeEffectiveness[row.attacker_type_id + ':' + row.defender_type_id] = row.multiplier;
   }
   return {
+    activeCreatureId: character.active_creature_id,
     ...captureResources,
     character: {
       avatarUrl: character.avatar_url,

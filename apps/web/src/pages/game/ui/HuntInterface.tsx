@@ -27,8 +27,13 @@ type LeaveHuntButtonProps = { onCommand: (command: HuntCommand) => boolean };
 
 export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
   const { collection, hunt, locations, profile, sendHuntCommand } = props;
-  const activeCreatureId = hunt ? hunt.activeCreatureId : undefined;
-  const huntInterface = hunt ? <HuntControls hunt={hunt} onCommand={sendHuntCommand} /> : null;
+  const collectionActiveCreatureId = collection ? collection.activeCreatureId : undefined;
+  const collectionConfiguration = collection ? collection.configuration : undefined;
+  const activeCreatureId = hunt ? hunt.activeCreatureId : collectionActiveCreatureId;
+  const configuration = hunt ?? collectionConfiguration;
+  const huntInterface = (
+    <HuntControls configuration={configuration} hunt={hunt} onCommand={sendHuntCommand} />
+  );
   return (
     <>
       <HuntStatusPanels
@@ -51,7 +56,7 @@ export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
           </Button>
         )}
       </HStack>
-      <BottomBar hunt={hunt} onCommand={sendHuntCommand} />
+      <BottomBar configuration={configuration} hunt={hunt} onCommand={sendHuntCommand} />
       <HuntWaveCountdown hunt={hunt} />
       <CreatureStorageDialog
         activeCreatureId={activeCreatureId}

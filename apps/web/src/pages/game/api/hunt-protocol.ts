@@ -122,6 +122,17 @@ export type HuntState = {
   wave: number;
   waveRange: HuntWaveRange;
 };
+export type BattleConfiguration = Pick<
+  HuntState,
+  | 'activeCreatureAbilities'
+  | 'activeCreatureAvailableAbilities'
+  | 'activeCreatureLevel'
+  | 'captureConfiguration'
+  | 'captureItems'
+  | 'healingConfiguration'
+  | 'healingItemCooldownEndsAt'
+  | 'healingItems'
+>;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
 export type HuntCommand =
   | { huntingLocationId: number; type: 'start_hunt'; version: 1 }

@@ -1,5 +1,6 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { readHuntState } from './hunt-protocol';
+import type { BattleConfiguration } from './hunt-protocol';
 /* eslint-disable max-lines */
 import type { HuntStateEvent } from './hunt-protocol';
 
@@ -117,6 +118,8 @@ export type CollectionSpecies = {
 };
 export type CollectionStateEvent = {
   collection: {
+    activeCreatureId: string | null;
+    configuration?: BattleConfiguration;
     party: Array<CollectionCreature>;
     storage: Array<CollectionCreature>;
     storagePage: number;
@@ -352,6 +355,8 @@ function readCollectionCreature(value: unknown): CollectionCreature | null {
 function readCollectionState(value: UnknownRecord): CollectionStateEvent | null {
   if (
     !isRecord(value.collection) ||
+    (value.collection.activeCreatureId !== null &&
+      typeof value.collection.activeCreatureId !== 'string') ||
     !Array.isArray(value.collection.party) ||
     !Array.isArray(value.collection.storage) ||
     !isPositiveInteger(value.collection.storagePage) ||
@@ -367,6 +372,8 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
   }
   return {
     collection: {
+      activeCreatureId: value.collection.activeCreatureId,
+      configuration: value.collection.configuration as BattleConfiguration | undefined,
       party: party as Array<CollectionCreature>,
       storage: storage as Array<CollectionCreature>,
       storagePage: value.collection.storagePage,

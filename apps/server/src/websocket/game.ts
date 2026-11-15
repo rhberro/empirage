@@ -1,12 +1,12 @@
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-/* eslint-disable import/max-dependencies, max-lines, max-lines-per-function */
+/* eslint-disable import/max-dependencies, max-lines, max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
 
 import { config } from '../config.ts';
 import { SerialCommandQueue } from '../game/serial-command-queue.ts';
 import { logger } from '../logger.ts';
 import { CAPTURE_RARITIES, type CaptureRarity } from './capture-items.ts';
-import { loadCreatureCollection } from './creature-collection.ts';
+import { loadCreatureCollection, type CreatureCollection } from './creature-collection.ts';
 import type {
   AuthenticatedState,
   CardinalDirection,
@@ -20,6 +20,7 @@ import type {
   SocketData,
 } from './game-types.ts';
 import { isPositionWithin, positionAfterVector } from './grid-movement.ts';
+import { loadHuntResources, type HuntResources } from './hunt-resources.ts';
 import {
   configureHuntHealingItem,
   configureHuntWaveRange,
@@ -75,6 +76,8 @@ type CardinalDirections = Array<CardinalDirection>;
 type GameSocket = Bun.ServerWebSocket<SocketData>;
 type PlayerSnapshots = Array<PlayerSnapshot>;
 type Persistences = Array<Promise<void>>;
+type CityConfigurationQueries = [Promise<CreatureCollection>, Promise<HuntResources>];
+type ActiveCreatureRow = { active_creature_id: string | null };
 type MessagePayload = { type?: unknown };
 const CARDINAL_DIRECTIONS: CardinalDirections = ['down', 'left', 'right', 'up'];
 const connectionsByAccount = new Map<string, GameSocket>();
@@ -325,7 +328,64 @@ async function sendCreatureCollection(
   state: AuthenticatedState,
   storagePage?: number,
 ): Promise<void> {
-  const collection = await loadCreatureCollection(state.supabase, state.characterId, storagePage);
+  const cityConfigurationQueries: CityConfigurationQueries = [
+    loadCreatureCollection(state.supabase, state.characterId, storagePage),
+    loadHuntResources(state.supabase, state.characterId, 1),
+  ];
+  const [collection, resources] = await Promise.all(cityConfigurationQueries);
+  const activeCreatureId = resources.activeCreatureId;
+  const activeCreature = activeCreatureId
+    ? resources.creatures.find(function selectedCreature(creature): boolean {
+        return creature.id === activeCreatureId;
+      })
+    : resources.creatures[0];
+  const activeSpecies = activeCreature
+    ? resources.species[String(activeCreature.speciesId)]
+    : undefined;
+  const configuration =
+    activeCreature && activeSpecies
+      ? {
+          activeCreatureAbilities: activeCreature.abilities.map(function ability(abilityResource) {
+            return {
+              accuracy: abilityResource.accuracy,
+              areaRadius: abilityResource.areaRadius,
+              category: abilityResource.category,
+              cooldownEndsAt: 0,
+              cooldownMs: abilityResource.cooldownMs,
+              element: abilityResource.typeSlug,
+              id: abilityResource.id,
+              name: abilityResource.name,
+              power: abilityResource.power,
+              range: abilityResource.rangeTiles,
+              requiredLevel: abilityResource.requiredLevel,
+              slot: abilityResource.slot,
+            };
+          }),
+          activeCreatureAvailableAbilities: activeSpecies.abilities.map(
+            function ability(abilityResource) {
+              return {
+                accuracy: abilityResource.accuracy,
+                areaRadius: abilityResource.areaRadius,
+                category: abilityResource.category,
+                cooldownMs: abilityResource.cooldownMs,
+                element: abilityResource.typeSlug,
+                id: abilityResource.id,
+                name: abilityResource.name,
+                power: abilityResource.power,
+                range: abilityResource.rangeTiles,
+                requiredLevel: abilityResource.requiredLevel,
+              };
+            },
+          ),
+          activeCreatureLevel: activeCreature.level,
+          captureConfiguration: resources.captureConfiguration,
+          captureItems: resources.captureItems,
+          healingConfiguration: resources.healingConfiguration,
+          healingItemCooldownEndsAt: 0,
+          healingItems: resources.healingItems,
+        }
+      : undefined;
+  collection.configuration = configuration;
   send(socket, { collection, type: 'collection_state', version: PROTOCOL_VERSION });
 }
 
@@ -404,7 +464,28 @@ async function configureHealingItem(
   );
   if (hunt) {
     sendHuntState(socket, hunt);
+    return;
   }
+  const itemId = clientMessage.healingItemId;
+  const cityHealingUpdate = {
+    character_id: state.characterId,
+    item_id: itemId,
+    threshold_percentage: clientMessage.healingThresholdPercentage,
+  };
+  const cityHealingRequest =
+    itemId === 0
+      ? characterPersistenceClient
+          .from('character_battle_item_configuration')
+          .delete()
+          .eq('character_id', state.characterId)
+      : characterPersistenceClient
+          .from('character_battle_item_configuration')
+          .upsert(cityHealingUpdate);
+  const { error } = await cityHealingRequest;
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
 }
 
 async function configureAbility(
@@ -429,7 +510,27 @@ async function configureAbility(
   );
   if (hunt) {
     sendHuntState(socket, hunt);
+    return;
   }
+  const { data, error: characterError } = await characterPersistenceClient
+    .from('characters')
+    .select('active_creature_id')
+    .eq('id', state.characterId)
+    .single<ActiveCreatureRow>();
+  const activeCreatureId = data ? data.active_creature_id : null;
+  if (characterError || !activeCreatureId) {
+    throw characterError ?? new TypeError('active_creature_missing');
+  }
+  const parameters = {
+    target_creature_id: activeCreatureId,
+    target_move_id: clientMessage.abilityId,
+    target_slot: clientMessage.abilitySlot,
+  };
+  const { error } = await createServerClient().rpc('configure_creature_equipped_move', parameters);
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
 }
 
 async function configureWaveRange(
@@ -471,7 +572,17 @@ async function switchActiveCreature(
   );
   if (hunt) {
     sendHuntState(socket, hunt);
+    return;
   }
+  const parameters = {
+    target_character_id: state.characterId,
+    target_creature_id: clientMessage.creatureId,
+  };
+  const { error } = await createServerClient().rpc('select_active_creature', parameters);
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
 }
 
 // The operation stays together so validation and its resulting collection snapshot remain coupled.
@@ -532,7 +643,28 @@ async function configureCapture(
   );
   if (hunt) {
     sendHuntState(socket, hunt);
+    return;
   }
+  const itemId = clientMessage.captureItemId;
+  const cityCaptureUpdate = {
+    character_id: state.characterId,
+    item_id: itemId,
+    rarities,
+  };
+  const cityCaptureRequest =
+    itemId === 0
+      ? characterPersistenceClient
+          .from('character_capture_configuration')
+          .delete()
+          .eq('character_id', state.characterId)
+      : characterPersistenceClient
+          .from('character_capture_configuration')
+          .upsert(cityCaptureUpdate);
+  const { error } = await cityCaptureRequest;
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
 }
 
 async function handleStartHunt(

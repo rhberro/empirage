@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
+/* eslint-disable complexity, max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 type CreatureRow = {
@@ -34,6 +34,7 @@ type SpeciesTypeRow = { species_id: number; type_id: number };
 type SpeciesTypeRows = Array<SpeciesTypeRow>;
 type TypeRow = { id: number; name: string };
 type TypeRows = Array<TypeRow>;
+type ActiveCreatureRow = { active_creature_id: string | null };
 type CreatureCollectionItem = {
   capturedAt: string;
   elements: Array<string>;
@@ -54,6 +55,8 @@ type CreatureCollectionItem = {
 type CreatureCollectionItems = Array<CreatureCollectionItem>;
 
 export type CreatureCollection = {
+  activeCreatureId: string | null;
+  configuration?: unknown;
   party: CreatureCollectionItems;
   storage: CreatureCollectionItems;
   storagePage: number;
@@ -109,7 +112,8 @@ export async function loadCreatureCollection(
   const storageEnd = storageStart + STORAGE_PAGE_SIZE - 1;
   const fields =
     'id, species_id, party_slot, gender, experience, level, rarity, captured_at, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed';
-  const [partyResult, storageResult] = await Promise.all([
+  const [activeCreatureResult, partyResult, storageResult] = await Promise.all([
+    client.from('characters').select('active_creature_id').eq('id', characterId).single(),
     client
       .from('creatures')
       .select(fields)
@@ -124,6 +128,9 @@ export async function loadCreatureCollection(
       .order('captured_at', { ascending: false })
       .range(storageStart, storageEnd),
   ]);
+  if (activeCreatureResult.error) {
+    throw activeCreatureResult.error;
+  }
   if (partyResult.error) {
     throw partyResult.error;
   }
@@ -152,7 +159,14 @@ export async function loadCreatureCollection(
   const creatureRows = [...(partyResult.data as CreatureRows), ...storageRows];
   const speciesIds = numberIds(creatureRows);
   if (speciesIds.length === 0) {
-    return { party: [], storage: [], storagePage: 1, storagePageCount, storageTotal };
+    return {
+      activeCreatureId: null,
+      party: [],
+      storage: [],
+      storagePage: 1,
+      storagePageCount,
+      storageTotal,
+    };
   }
   const [speciesResult, speciesTypesResult] = await Promise.all([
     client
@@ -212,7 +226,15 @@ export async function loadCreatureCollection(
     }
   }
   party.sort(compareParty);
-  return { party, storage, storagePage, storagePageCount, storageTotal };
+  const activeCreature = activeCreatureResult.data as ActiveCreatureRow;
+  return {
+    activeCreatureId: activeCreature.active_creature_id,
+    party,
+    storage,
+    storagePage,
+    storagePageCount,
+    storageTotal,
+  };
 }
 
 function typeIdForSpecies(relation: SpeciesTypeRow): number {
