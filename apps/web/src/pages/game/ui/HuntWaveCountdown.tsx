@@ -42,16 +42,20 @@ type WaveCountdownProps = { hunt: HuntState };
 function WaveCountdown(props: WaveCountdownProps): React.ReactElement {
   const { hunt } = props;
   const now = useCurrentTime();
-  const [startedAt] = React.useState(currentTime);
+  const [clock] = React.useState(function createClock(): CountdownClock {
+    const serverTime = hunt.serverTime ?? currentTime();
+    const endsAt = new Date(hunt.nextEventAt).getTime();
+    return { startedAt: serverTime, totalMs: Math.max(1, endsAt - serverTime) };
+  });
   const nextEventAt = new Date(hunt.nextEventAt).getTime();
-  const serverNow = hunt.serverTime ? hunt.serverTime + now - startedAt : now;
+  const elapsedMs = Math.max(0, now - clock.startedAt);
+  const serverNow = clock.startedAt + elapsedMs;
   const delayMs = Math.max(0, nextEventAt - serverNow);
   const seconds = Math.ceil(delayMs / 1_000);
-  const totalMs = Math.max(1, nextEventAt - (hunt.serverTime ?? serverNow));
-  const progress = Math.min(100, Math.max(0, ((totalMs - delayMs) / totalMs) * 100));
+  const progress = Math.min(100, Math.max(0, ((clock.totalMs - delayMs) / clock.totalMs) * 100));
   const progressWidth = `${progress}%`;
   return (
-    <Box bottom="20" left="50%" minW="xs" position="fixed" transform="translateX(-50%)" zIndex="2">
+    <Box bottom="28" left="50%" minW="xs" position="fixed" transform="translateX(-50%)" zIndex="2">
       <HStack bg="bg.muted" borderRadius="sm" boxShadow="panel" gap="3" p="3">
         <Icon name="autorenew" />
         <Box flex="1">
@@ -69,3 +73,5 @@ function WaveCountdown(props: WaveCountdownProps): React.ReactElement {
     </Box>
   );
 }
+
+type CountdownClock = { startedAt: number; totalMs: number };

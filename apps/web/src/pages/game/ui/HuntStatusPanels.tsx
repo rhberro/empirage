@@ -1,5 +1,4 @@
-import { Button, HStack } from '@chakra-ui/react';
-/* eslint-disable react/no-multi-comp, react/forbid-component-props, oxc/no-optional-chaining, oxsome/no-jsx-inline-computation, oxsome/no-inline-functions-objects-arrays */
+/* eslint-disable max-lines, react/no-multi-comp, react/forbid-component-props, oxc/no-optional-chaining, oxsome/no-jsx-inline-computation, oxsome/no-inline-functions-objects-arrays */
 import * as React from 'react';
 
 import type {
@@ -21,10 +20,20 @@ type HuntStatusPanelsProps = {
 type HuntPartyCardProps = {
   creature: CollectionCreature;
   canSwitch: boolean;
+  health: number;
+  hunt: HuntState | null;
   isActive: boolean;
-  canRemove: boolean;
+  maximumHealth: number;
   onCommand: (command: HuntCommand) => boolean;
 };
+type CreatureStatus = {
+  elements: Array<string>;
+  experiencePercentage: number;
+  level: number;
+  name: string;
+};
+type CreatureHealth = { health: number; maximumHealth: number };
+type Party = Array<CollectionCreature>;
 type AnimationCleanup = () => void;
 
 export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactElement {
@@ -43,10 +52,9 @@ export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactEleme
   );
   const displayedGoldLabel = displayedGold.toLocaleString('pt-BR');
   const activeCreatureId = hunt ? hunt.activeCreatureId : collection?.activeCreatureId;
-  const activeCreature = hunt
-    ? collectionCreatureFor(hunt.activeCreatureId, collection)
-    : undefined;
-  const party = collection?.party ?? [];
+  const party = partyForDisplay(collection?.party ?? [], activeCreatureId);
+  const cooldownSeconds = switchCooldownSeconds(hunt, now);
+  const cooldownLabel = cooldownSeconds === null ? null : `Troca disponível em ${cooldownSeconds}s`;
   return (
     <div className="hunt-status">
       <section className="hunt-status__panel hunt-status__trainer" aria-label="Treinador atual">
@@ -56,26 +64,33 @@ export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactEleme
           <span>Nível {status.level}</span>
         </div>
       </section>
-      <HStack className="hunt-status__party" gap="2">
+      <div className="hunt-status__party">
+        {cooldownLabel ? (
+          <span className="hunt-status__switch-cooldown">{cooldownLabel}</span>
+        ) : null}
         {party.map(function renderPartyCard(creature): React.ReactElement {
+          const isActive = creature.id === activeCreatureId;
+          const health = healthForCreature(creature, hunt);
           return (
             <HuntPartyCard
-              canRemove={creature.id !== activeCreatureId}
               canSwitch={
-                creature.id !== activeCreatureId &&
+                !isActive &&
+                health.health > 0 &&
                 (!hunt ||
                   (now >= hunt.activeCreatureSwitchCooldownEndsAt &&
                     hunt.activeCreatureSwitchCompletesAt === undefined))
               }
               creature={creature}
-              isActive={creature.id === activeCreatureId}
+              health={health.health}
+              hunt={hunt}
+              isActive={isActive}
               key={creature.id}
+              maximumHealth={health.maximumHealth}
               onCommand={onCommand}
             />
           );
         })}
-      </HStack>
-      {hunt ? <ActiveCreatureCard creature={activeCreature} hunt={hunt} /> : null}
+      </div>
       <section className="hunt-status__money" aria-label="Dinheiro atual">
         <span aria-hidden="true">¤</span>
         <strong>{displayedGoldLabel}</strong>
@@ -84,13 +99,19 @@ export function HuntStatusPanels(props: HuntStatusPanelsProps): React.ReactEleme
   );
 }
 
-function HuntPartyCard(props: HuntPartyCardProps): React.ReactElement {
-  const { canRemove, canSwitch, creature, isActive, onCommand } = props;
-  const icon = `/assets/creatures/icons/${creature.species.id}.png`;
-
-  function removeFromParty(): void {
-    onCommand({ creatureId: creature.id, type: 'move_creature_to_storage', version: 1 });
+function switchCooldownSeconds(hunt: HuntState | null, now: number): number | null {
+  if (!hunt || hunt.activeCreatureSwitchCooldownEndsAt <= now) {
+    return null;
   }
+  return Math.ceil((hunt.activeCreatureSwitchCooldownEndsAt - now) / 1_000);
+}
+
+function HuntPartyCard(props: HuntPartyCardProps): React.ReactElement {
+  const { canSwitch, creature, health, hunt, isActive, maximumHealth, onCommand } = props;
+  const icon = creatureIconUrl(creature, hunt, isActive);
+  const status = statusForCreature(creature, hunt, isActive);
+  const elements = status.elements.map(renderElement);
+  const healthPercentage = percentage(health, maximumHealth);
 
   function switchActiveCreature(): void {
     onCommand({ creatureId: creature.id, type: 'switch_active_creature', version: 1 });
@@ -112,25 +133,14 @@ function HuntPartyCard(props: HuntPartyCardProps): React.ReactElement {
       >
         <img alt="" className="hunt-status__creature-image" src={icon} />
         <div className="hunt-status__creature-details">
-          <strong>{creature.species.name}</strong>
-          <span>Nível {creature.level}</span>
+          <strong>{status.name}</strong>
+          <span>Nível {status.level}</span>
+          <span className="hunt-status__rarity">{rarityLabel(creature.rarity)}</span>
+          <HuntStatusBar label="HP" value={healthPercentage} />
+          <HuntStatusBar label="EXP" value={status.experiencePercentage} />
+          <div className="hunt-status__elements">{elements}</div>
         </div>
       </button>
-      {canRemove ? (
-        <Button
-          aria-label={`Remover ${creature.species.name} do time`}
-          minW="0"
-          onClick={removeFromParty}
-          position="absolute"
-          right="0"
-          size="2xs"
-          top="0"
-          variant="ghost"
-          zIndex="1"
-        >
-          ×
-        </Button>
-      ) : null}
     </section>
   );
 }
@@ -148,35 +158,6 @@ function useCurrentTime(): number {
   }
   React.useEffect(refresh, []);
   return now;
-}
-
-type ActiveCreatureCardProps = {
-  creature: CollectionCreature | undefined;
-  hunt: HuntState;
-};
-
-function ActiveCreatureCard(props: ActiveCreatureCardProps): React.ReactElement {
-  const { creature, hunt } = props;
-  const creatureImageUrl = `/assets/creatures/icons/${hunt.activeCreatureSpeciesId}.png`;
-  const healthPercentage = percentage(hunt.activeCreatureHealth, hunt.activeCreatureMaximumHealth);
-  const experiencePercentage = experiencePercentageFor(hunt);
-  const elements = hunt.activeCreatureElements.map(renderElement);
-  const rarity = creature ? (
-    <span className="hunt-status__rarity">{rarityLabel(rarityForCreature(creature))}</span>
-  ) : null;
-  return (
-    <section className="hunt-status__panel hunt-status__creature" aria-label="Criatura atual">
-      <img alt="" className="hunt-status__creature-image" src={creatureImageUrl} />
-      <div className="hunt-status__creature-details">
-        <strong>{hunt.activeCreatureName}</strong>
-        <span>Nível {hunt.activeCreatureLevel}</span>
-        {rarity}
-        <HuntStatusBar label="EXP" value={experiencePercentage} />
-        <HuntStatusBar label="HP" value={healthPercentage} />
-        <div className="hunt-status__elements">{elements}</div>
-      </div>
-    </section>
-  );
 }
 
 function renderElement(element: string): React.ReactElement {
@@ -221,10 +202,14 @@ function percentage(current: number, maximum: number): number {
   return Math.max(0, Math.min(100, (current / Math.max(1, maximum)) * 100));
 }
 
-function experiencePercentageFor(hunt: HuntState): number {
-  const current = BigInt(hunt.activeCreatureExperience);
-  const start = BigInt(hunt.activeCreatureExperienceLevelStart);
-  const next = BigInt(hunt.activeCreatureExperienceNextLevel);
+function experiencePercentage(currentExperience: string, level: number): number {
+  const current = BigInt(currentExperience);
+  const start = experienceForLevel(level);
+  const next = experienceForLevel(level + 1);
+  return experiencePercentageForInterval(current, start, next);
+}
+
+function experiencePercentageForInterval(current: bigint, start: bigint, next: bigint): number {
   const interval = next - start;
   if (interval <= 0n) {
     return 100;
@@ -233,33 +218,76 @@ function experiencePercentageFor(hunt: HuntState): number {
   return Math.max(0, Math.min(100, percentageValue));
 }
 
-function collectionCreatureFor(
-  creatureId: string,
-  collection: CollectionStateEvent['collection'] | null,
-): CollectionCreature | undefined {
-  return collection?.party.find(function findCreature(creature): boolean {
-    return creature.id === creatureId;
-  });
+function experienceForLevel(level: number): bigint {
+  const value = BigInt(level);
+  return (50n * value * value * value - 150n * value * value + 400n * value) / 3n;
 }
 
-function rarityForCreature(creature: CollectionCreature): string {
-  const total =
-    creature.ivHealth +
-    creature.ivAttack +
-    creature.ivDefense +
-    creature.ivSpecialAttack +
-    creature.ivSpecialDefense +
-    creature.ivSpeed;
-  if (total <= 37) {
-    return 'common';
+function partyForDisplay(party: Party, activeCreatureId: string | null | undefined): Party {
+  const activeCreature = party.find(function findActiveCreature(creature): boolean {
+    return creature.id === activeCreatureId;
+  });
+  if (!activeCreature) {
+    return party;
   }
-  if (total <= 74) {
-    return 'uncommon';
+  const remainingParty = party.filter(function withoutActiveCreature(creature): boolean {
+    return creature.id !== activeCreature.id;
+  });
+  const reorderedParty = [activeCreature];
+  return reorderedParty.concat(remainingParty);
+}
+
+function healthForCreature(creature: CollectionCreature, hunt: HuntState | null): CreatureHealth {
+  const health = hunt?.partyHealth.find(function findCreatureHealth(candidate): boolean {
+    return candidate.creatureId === creature.id;
+  });
+  if (health) {
+    return health;
   }
-  if (total <= 111) {
-    return 'rare';
+  const maximumHealth = maximumHealthForCreature(creature);
+  return { health: maximumHealth, maximumHealth };
+}
+
+function maximumHealthForCreature(creature: CollectionCreature): number {
+  const base = creature.species.base_hp;
+  return Math.floor(((base * 2 + creature.ivHealth) * creature.level) / 100) + creature.level + 10;
+}
+
+function creatureIconUrl(
+  creature: CollectionCreature,
+  hunt: HuntState | null,
+  isActive: boolean,
+): string {
+  const speciesId = hunt && isActive ? hunt.activeCreatureSpeciesId : creature.species.id;
+  return `/assets/creatures/icons/${speciesId ?? creature.species.id}.png`;
+}
+
+function statusForCreature(
+  creature: CollectionCreature,
+  hunt: HuntState | null,
+  isActive: boolean,
+): CreatureStatus {
+  if (hunt && isActive) {
+    return {
+      elements: hunt.activeCreatureElements,
+      experiencePercentage: experiencePercentageForHunt(hunt),
+      level: hunt.activeCreatureLevel,
+      name: hunt.activeCreatureName,
+    };
   }
-  return total <= 148 ? 'epic' : 'legendary';
+  return {
+    elements: creature.elements,
+    experiencePercentage: experiencePercentage(creature.experience, creature.level),
+    level: creature.level,
+    name: creature.species.name,
+  };
+}
+
+function experiencePercentageForHunt(hunt: HuntState): number {
+  const current = BigInt(hunt.activeCreatureExperience);
+  const start = BigInt(hunt.activeCreatureExperienceLevelStart);
+  const next = BigInt(hunt.activeCreatureExperienceNextLevel);
+  return experiencePercentageForInterval(current, start, next);
 }
 
 function rarityLabel(rarity: string): string {

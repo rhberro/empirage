@@ -189,6 +189,12 @@ type Runtime = {
   status: RuntimeStatus;
 };
 type RuntimeSnapshotInput = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
+type AllyHealth = Record<string, number>;
+export type PartyCreatureHealth = {
+  creatureId: string;
+  health: number;
+  maximumHealth: number;
+};
 
 export type HuntState = {
   activeCreatureAvailableAt: number;
@@ -207,6 +213,7 @@ export type HuntState = {
   activeCreatureSwitchCompletesAt?: number;
   activeCreatureSwitchCooldownEndsAt: number;
   allyPosition: Position;
+  partyHealth: Array<PartyCreatureHealth>;
   combatEvents: Array<HuntCombatEvent>;
   characterAvatarUrl: string | null;
   characterLevel: number;
@@ -382,6 +389,13 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
           },
         )
       : [];
+  const partyHealth = engine.allies.map(function publicPartyHealth(ally): PartyCreatureHealth {
+    return {
+      creatureId: ally.id,
+      health: ally.health,
+      maximumHealth: ally.maximumHealth,
+    };
+  });
   return {
     activeCreatureAvailableAt: engine.activeCreatureAvailableAt,
     activeCreatureElements: activeSpecies ? activeSpecies.typeSlugs : [],
@@ -399,6 +413,7 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
     activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
     activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
     allyPosition: ALLY_POSITION,
+    partyHealth,
     combatEvents,
     characterAvatarUrl: engine.resources.character.avatarUrl,
     characterLevel: engine.resources.character.level,
@@ -427,6 +442,17 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
   };
 }
 
+function fullAllyHealth(resources: HuntResources): AllyHealth {
+  const health: AllyHealth = {};
+  for (const creature of resources.creatures) {
+    const species = resources.species[String(creature.speciesId)];
+    if (species) {
+      health[creature.id] = maximumHealthForCreature(species, creature);
+    }
+  }
+  return health;
+}
+
 export async function switchHuntActiveCreature(
   characterId: string,
   userId: string,
@@ -438,14 +464,6 @@ export async function switchHuntActiveCreature(
   }
   if (!switchActiveCreature(runtime.engine, creatureId, epochNow())) {
     return publicState(runtime, []);
-  }
-  const activeCreatureParams = {
-    target_character_id: characterId,
-    target_creature_id: creatureId,
-  };
-  const { error } = await serverClient.rpc('select_active_creature', activeCreatureParams);
-  if (error) {
-    throw error;
   }
   launchCheckpoint(runtime, false);
   const state = publicState(runtime, []);
@@ -1537,6 +1555,7 @@ async function startHuntExclusive(
   const checkpoint: HuntEngineCheckpoint = {
     activeCreatureHealth: maximumHealthForCreature(species, active),
     activeCreatureId: active.id,
+    allyHealth: fullAllyHealth(resources),
     capturedAt: now,
     enemies: [],
     huntId,

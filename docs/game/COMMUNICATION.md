@@ -402,7 +402,32 @@ Exige página inteira maior ou igual a um e responde com `collection_state`.
 }
 ```
 
-Validam identificador, posse, capacidade da equipe e consistência no banco. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o banco seleciona a próxima criatura da equipe. A resposta é sempre um `collection_state` completo.
+Validam identificador, posse, capacidade da equipe e consistência no banco. São aceitas somente na cidade: durante uma caça a equipe não pode receber ou perder integrantes. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o banco seleciona a próxima criatura da equipe. A resposta é sempre um `collection_state` completo.
+
+### `reorder_party_creature`
+
+```json
+{
+  "type": "reorder_party_creature",
+  "version": 1,
+  "creatureId": "creature-uuid",
+  "targetPartySlot": 3
+}
+```
+
+Move uma criatura da equipe para a posição de 1 a 6 solicitada; se a posição estiver ocupada, as duas criaturas trocam de posição. Pode ser enviada tanto na cidade quanto na caça. Não altera `activeCreatureId`; portanto uma criatura ativa permanece ativa mesmo ao mudar de posição. Responde com `collection_state` completo.
+
+### `release_creature`
+
+```json
+{
+  "type": "release_creature",
+  "version": 1,
+  "creatureId": "creature-uuid"
+}
+```
+
+Remove permanentemente a criatura indicada e seus registros associados. Só é aceita na cidade. O servidor rejeita a criatura ativa e a última criatura pertencente ao personagem. A resposta bem-sucedida é um `collection_state` completo.
 
 ## WebSocket: servidor para cliente
 
@@ -493,6 +518,13 @@ Confirma que a conexão está autorizada a operar o personagem.
     "activeCreatureId": "creature-uuid",
     "activeCreatureHealth": 42,
     "activeCreatureMaximumHealth": 80,
+    "partyHealth": [
+      {
+        "creatureId": "creature-uuid",
+        "health": 42,
+        "maximumHealth": 80
+      }
+    ],
     "playerPosition": { "x": 2, "y": 3 },
     "enemies": [],
     "combatEvents": [],
@@ -501,7 +533,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. `collection_state` é atualizado somente após a persistência de uma captura bem-sucedida. Quando a caça termina, `hunt` é `null`.
+É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
 
 ### `collection_state`
 
@@ -520,7 +552,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento e captura concluída. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
 
 ### `error`, fechamento e heartbeat
 
@@ -544,7 +576,7 @@ O heartbeat real usa frames WebSocket nativos `ping` e `pong` a cada 15 segundos
 | mover criatura | pedido de equipe/armazenamento | propriedade e limite de equipe |
 | atualização de posição | a cada 30 s, desconexão e substituição de sessão | filtra por personagem e conta |
 
-O checkpoint recebe o estado mínimo necessário para recuperar a caça, por exemplo. O `runtime_snapshot` persistido também inclui `allyHealth`, um mapa de HP atual por identificador de criatura da equipe; a recuperação valida os identificadores e limites de HP antes de restaurá-los. Snapshots legados sem esse campo mantêm a reconstrução anterior somente por compatibilidade; todo checkpoint novo grava o mapa completo.
+O checkpoint recebe o estado mínimo necessário para recuperar a caça, por exemplo. O `runtime_snapshot` persistido também inclui `allyHealth`, um mapa de HP atual por identificador de criatura da equipe; a recuperação valida os identificadores e limites de HP antes de restaurá-los. Snapshots legados sem esse campo mantêm a reconstrução anterior somente por compatibilidade; todo checkpoint novo grava o mapa completo. Ao finalizar a caça, esse snapshot é removido junto com a execução; uma nova `start_hunt` constrói `allyHealth` com HP máximo para todos os integrantes da equipe, não apenas a criatura ativa.
 
 ```json
 {

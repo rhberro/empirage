@@ -237,7 +237,7 @@ export class HuntCreatures {
         feedback.damagedAt = now;
       }
       if (spec.health !== feedback.health) {
-        feedback.displayedHealth = feedback.health;
+        feedback.displayedHealth = interpolatedHealth(feedback, now);
         feedback.healthChangedAt = now;
       }
       if (spec.health === 0 && feedback.health > 0) {
@@ -403,6 +403,11 @@ export class HuntCreatures {
     this.scene.load.start();
     return false;
   }
+}
+
+function interpolatedHealth(feedback: CreatureFeedback, now: number): number {
+  const progress = Math.min(1, Math.max(0, (now - feedback.healthChangedAt) / DAMAGE_DURATION_MS));
+  return feedback.displayedHealth + (feedback.health - feedback.displayedHealth) * progress;
 }
 
 function switchDepartureProgress(switchesOutAt: number | undefined, now: number): number {

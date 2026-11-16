@@ -6,6 +6,7 @@ import { huntElementBackgroundColor } from '../lib/hunt-element-colors';
 type CombatVisual = { event: HuntCombatEvent; startedAt: number };
 type Damage = HuntCombatEvent['damages'][number];
 type FeedbackVisual = {
+  effectiveness: Damage['effectiveness'] | undefined;
   label: GameObjects.DOMElement;
   tile: Damage['tile'];
   type: 'ability' | 'damage';
@@ -182,7 +183,7 @@ export class HuntEffects {
   private createFeedback(event: HuntCombatEvent, startedAt: number): void {
     const labels: FeedbackList = [this.createAbilityLabel(event)];
     for (const damage of event.damages) {
-      labels.push(this.createDamageLabel(damage));
+      labels.push(this.createDamageLabel(damage, event.element));
     }
     this.feedback.set(event.id, { labels, startedAt });
   }
@@ -195,17 +196,19 @@ export class HuntEffects {
       .setDepth(10_002)
       .setOrigin(0.5, 1)
       .setScrollFactor(0);
-    return { label, tile: event.from, type: 'ability' };
+    return { effectiveness: undefined, label, tile: event.from, type: 'ability' };
   }
 
-  private createDamageLabel(damage: Damage): FeedbackVisual {
+  private createDamageLabel(damage: Damage, element: string): FeedbackVisual {
     const labelNode = HuntEffects.feedbackNode('damage', `-${damage.amount}`);
+    labelNode.classList.add(`hunt-feedback--${damage.effectiveness}`);
+    labelNode.style.setProperty('--feedback-color', huntElementBackgroundColor(element));
     const label = this.effects.scene.add
       .dom(0, 0, labelNode)
       .setDepth(10_002)
       .setOrigin(0, 0.5)
       .setScrollFactor(0);
-    return { label, tile: damage.tile, type: 'damage' };
+    return { effectiveness: damage.effectiveness, label, tile: damage.tile, type: 'damage' };
   }
 
   private updateFeedback(now: number): void {
@@ -222,14 +225,22 @@ export class HuntEffects {
         continue;
       }
       const progress = elapsed / FEEDBACK_DURATION_MS;
-      const alpha = progress <= 0.75 ? 1 : 1 - (progress - 0.75) / 0.25;
+      const fadeAlpha = progress <= 0.75 ? 1 : 1 - (progress - 0.75) / 0.25;
       for (const feedback of visual.labels) {
         const x = this.screenX(feedback.tile.x);
         const y =
           this.screenY(feedback.tile.y) - progress * (feedback.type === 'ability' ? 24 : 28);
         const offsetX = feedback.type === 'damage' ? this.tileSize * 0.45 : 0;
         const offsetY = feedback.type === 'ability' ? this.tileSize / 2 : 0;
-        feedback.label.setAlpha(alpha).setPosition(x + offsetX, y - offsetY);
+        const resisted = feedback.effectiveness === 'resisted';
+        const superEffective = feedback.effectiveness === 'super-effective';
+        const blink = resisted ? (Math.floor(elapsed / 100) % 2 === 0 ? 1 : 0.35) : 1;
+        const impactProgress = Math.min(1, progress / 0.35);
+        const scale = superEffective ? 1 + Math.sin(Math.PI * impactProgress) * 0.25 : 1;
+        feedback.label
+          .setAlpha(fadeAlpha * blink)
+          .setPosition(x + offsetX, y - offsetY)
+          .setScale(scale);
       }
     }
   }

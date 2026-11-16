@@ -59,6 +59,7 @@ export type ClientMessage = {
   sequence?: unknown;
   sentAt?: unknown;
   storagePage?: unknown;
+  targetPartySlot?: unknown;
   waveRangeMaximumSize?: unknown;
   waveRangeMinimumSize?: unknown;
   token?: unknown;

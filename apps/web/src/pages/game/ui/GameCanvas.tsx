@@ -21,12 +21,14 @@ type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
 type TransitionChangeHandler = (active: boolean, message: string) => void;
+type GameReadyHandler = () => void;
 type GameCanvasProps = {
   huntingLocations: Array<HuntingLocation>;
   onCharacterProfileChange: CharacterProfileChangeHandler;
   onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
   onCollectionChange: CollectionChangeHandler;
   onHuntStateChange: HuntStateChangeHandler;
+  onGameReady: GameReadyHandler;
   onTransitionChange: TransitionChangeHandler;
 };
 
@@ -37,6 +39,7 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     onCollectionChange,
     onHuntCommandSenderChange,
     onHuntStateChange,
+    onGameReady,
     onTransitionChange,
   } = props;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,6 +48,7 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
   const onCollectionChangeRef = useRef(onCollectionChange);
   const onCharacterProfileChangeRef = useRef(onCharacterProfileChange);
   const onTransitionChangeRef = useRef(onTransitionChange);
+  const onGameReadyRef = useRef(onGameReady);
   const sceneRef = useRef<CityScene | null>(null);
 
   function synchronizeHuntStateHandler(): void {
@@ -53,6 +57,7 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     onCollectionChangeRef.current = onCollectionChange;
     onHuntCommandSenderChangeRef.current = onHuntCommandSenderChange;
     onTransitionChangeRef.current = onTransitionChange;
+    onGameReadyRef.current = onGameReady;
   }
 
   function handleCharacterProfileChange(profile: CharacterProfile): void {
@@ -65,6 +70,14 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
 
   function handleCollectionChange(collection: CollectionStateEvent['collection']): void {
     onCollectionChangeRef.current(collection);
+  }
+
+  function handleGameReady(): void {
+    onGameReadyRef.current();
+  }
+
+  function handleTransitionChange(active: boolean, message: string): void {
+    onTransitionChangeRef.current(active, message);
   }
 
   function mountGame(): Cleanup | undefined {
@@ -80,7 +93,8 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
       handleCollectionChange,
       handleHuntStateChange,
       onHuntCommandSenderChangeRef.current,
-      onTransitionChangeRef.current,
+      handleTransitionChange,
+      handleGameReady,
     );
     sceneRef.current = scene;
     const config = {
@@ -115,6 +129,8 @@ export function GameCanvas(props: GameCanvasProps): ReactElement {
     onCollectionChange,
     onHuntCommandSenderChange,
     onHuntStateChange,
+    onGameReady,
+    onTransitionChange,
   ]);
   useEffect(mountGame, []);
   useEffect(

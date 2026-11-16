@@ -1,6 +1,7 @@
 import type { Tile } from './game-protocol';
 
-export type HuntDamage = { amount: number; tile: Tile };
+export type CombatEffectiveness = 'normal' | 'resisted' | 'super-effective';
+export type HuntDamage = { amount: number; effectiveness: CombatEffectiveness; tile: Tile };
 export type HuntCombatEvent = {
   abilityName: string;
   damages: Array<HuntDamage>;
@@ -44,7 +45,11 @@ function readDamages(value: unknown): HuntDamages {
     }
     const tile = readTile(damageValue.tile);
     if (tile) {
-      const damage = { amount: damageValue.amount, tile };
+      const effectiveness =
+        damageValue.effectiveness === 'resisted' || damageValue.effectiveness === 'super-effective'
+          ? damageValue.effectiveness
+          : 'normal';
+      const damage = { amount: damageValue.amount, effectiveness, tile };
       damages.push(damage);
     }
   }

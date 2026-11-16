@@ -15,6 +15,7 @@ export function GamePage(): React.ReactElement {
     null,
   );
   const [profile, setProfile] = React.useState<CharacterProfile | null>(null);
+  const [gameReady, setGameReady] = React.useState(false);
   const [transitionMessage, setTransitionMessage] = React.useState<string | null>('Conectando…');
   const commandSenderRef = React.useRef<HuntCommandSender | null>(null);
   const huntingLocations = useHuntingLocations();
@@ -33,7 +34,17 @@ export function GamePage(): React.ReactElement {
     }
   }
   function handleTransitionChange(active: boolean, message: string): void {
-    setTransitionMessage(active ? message : null);
+    if (active) {
+      setTransitionMessage(message);
+      return;
+    }
+    if (gameReady) {
+      setTransitionMessage(null);
+    }
+  }
+  function handleGameReady(): void {
+    setGameReady(true);
+    setTransitionMessage(null);
   }
   function sendHuntCommand(command: HuntCommand): boolean {
     const sender = commandSenderRef.current;
@@ -47,15 +58,18 @@ export function GamePage(): React.ReactElement {
         onCollectionChange={handleCollectionChange}
         onHuntCommandSenderChange={handleHuntCommandSenderChange}
         onHuntStateChange={handleHuntStateChange}
+        onGameReady={handleGameReady}
         onTransitionChange={handleTransitionChange}
       />
-      <HuntInterface
-        collection={collection}
-        hunt={hunt}
-        locations={huntingLocations.data ?? []}
-        profile={profile}
-        sendHuntCommand={sendHuntCommand}
-      />
+      {gameReady && !transitionMessage ? (
+        <HuntInterface
+          collection={collection}
+          hunt={hunt}
+          locations={huntingLocations.data ?? []}
+          profile={profile}
+          sendHuntCommand={sendHuntCommand}
+        />
+      ) : null}
       {transitionMessage ? <TransitionLoadingScreen message={transitionMessage} /> : null}
     </main>
   );

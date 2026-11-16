@@ -596,6 +596,9 @@ async function moveCreature(
     throw new TypeError('invalid_creature');
   }
   const creatureId = clientMessage.creatureId;
+  if (state.hunting) {
+    throw new TypeError('party_management_unavailable_during_hunt');
+  }
   if (clientMessage.type === 'move_creature_to_storage') {
     const moveToStorageParams = { target_creature_id: creatureId };
     const { error } = await state.supabase.rpc('move_creature_to_storage', moveToStorageParams);
@@ -607,6 +610,48 @@ async function moveCreature(
   }
   const moveToPartyParams = { target_creature_id: creatureId };
   const { error } = await state.supabase.rpc('move_creature_to_party', moveToPartyParams);
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
+}
+
+async function releaseCreature(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (state.hunting) {
+    throw new TypeError('party_management_unavailable_during_hunt');
+  }
+  if (typeof clientMessage.creatureId !== 'string') {
+    throw new TypeError('invalid_creature');
+  }
+  const parameters = { target_creature_id: clientMessage.creatureId };
+  const { error } = await state.supabase.rpc('release_creature', parameters);
+  if (error) {
+    throw error;
+  }
+  await sendCreatureCollection(socket, state);
+}
+
+async function reorderPartyCreature(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  clientMessage: ClientMessage,
+): Promise<void> {
+  if (
+    typeof clientMessage.creatureId !== 'string' ||
+    typeof clientMessage.targetPartySlot !== 'number' ||
+    !Number.isSafeInteger(clientMessage.targetPartySlot)
+  ) {
+    throw new TypeError('invalid_party_reorder');
+  }
+  const parameters = {
+    target_creature_id: clientMessage.creatureId,
+    target_party_slot: clientMessage.targetPartySlot,
+  };
+  const { error } = await state.supabase.rpc('reorder_party_creature', parameters);
   if (error) {
     throw error;
   }
@@ -741,6 +786,14 @@ async function handleHuntCommand(
   }
   if (clientMessage.type === 'request_creature_storage') {
     await requestCreatureStorage(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'release_creature') {
+    await releaseCreature(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'reorder_party_creature') {
+    await reorderPartyCreature(socket, state, clientMessage);
     return true;
   }
   if (

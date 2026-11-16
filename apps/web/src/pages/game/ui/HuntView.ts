@@ -12,6 +12,7 @@ import { HuntEffects } from './hunt-effects';
 type CommandSender = (command: HuntCommand) => boolean;
 type CameraFocusHandler = (target: Tile | null) => void;
 type TransitionChangeHandler = (active: boolean, message: string) => void;
+type AssetsReadyHandler = () => void;
 
 const PLAYER_ATLAS_KEY = 'male-walking-running';
 const PLAYER_FRAME = 'idle/east/frame_1';
@@ -45,6 +46,7 @@ export class HuntView {
   private readonly send: CommandSender;
   private readonly focusCamera: CameraFocusHandler;
   private readonly onTransitionChange: TransitionChangeHandler;
+  private readonly onAssetsReady: AssetsReadyHandler;
   private readonly status: GameObjects.Text;
   private readonly creatures: HuntCreatures;
   private readonly effects: HuntEffects;
@@ -71,11 +73,13 @@ export class HuntView {
     send: CommandSender,
     focusCamera: CameraFocusHandler,
     onTransitionChange: TransitionChangeHandler,
+    onAssetsReady: AssetsReadyHandler,
   ) {
     this.scene = scene;
     this.send = send;
     this.focusCamera = focusCamera;
     this.onTransitionChange = onTransitionChange;
+    this.onAssetsReady = onAssetsReady;
     this.backdrop = scene.add.container(0, 0).setDepth(9_999).setScrollFactor(0);
     this.overlay = scene.add.container(0, 0).setDepth(10_000).setScrollFactor(0);
     this.effects = new HuntEffects(scene);
@@ -210,12 +214,17 @@ export class HuntView {
       this.onTransitionChange(false, '');
     }
     this.redraw();
+    this.onAssetsReady();
   }
 
   public authenticate(): void {
     this.connectionMessage = '';
     this.connected = true;
     this.pending = false;
+  }
+
+  public initialAssetsReady(): boolean {
+    return this.state === null || this.huntAssetsReady(this.state);
   }
 
   public synchronizeClock(sentAt: number, receivedAt: number, serverTime: number): void {
@@ -378,6 +387,7 @@ export class HuntView {
     this.pending = false;
     this.onTransitionChange(false, '');
     this.redraw();
+    this.onAssetsReady();
   }
 
   private redraw(): void {

@@ -61,6 +61,7 @@ export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
       <CreatureStorageDialog
         activeCreatureId={activeCreatureId}
         collection={collection}
+        isHunting={hunt !== null}
         onCommand={sendHuntCommand}
       />
       <HuntingLocationsDialog
@@ -78,6 +79,7 @@ function LeaveHuntButton(props: LeaveHuntButtonProps): React.ReactElement {
   const [countdown, setCountdown] = React.useState<number | null>(null);
   const [deadline, setDeadline] = React.useState<number | null>(null);
   const onCommandRef = React.useRef(onCommand);
+  const completedRef = React.useRef(false);
 
   React.useEffect(
     function synchronizeCommandSender(): void {
@@ -88,6 +90,7 @@ function LeaveHuntButton(props: LeaveHuntButtonProps): React.ReactElement {
 
   function beginLeave(): void {
     if (countdown === null) {
+      completedRef.current = false;
       setCountdown(5);
       setDeadline(Date.now() + 5_000);
     }
@@ -98,12 +101,11 @@ function LeaveHuntButton(props: LeaveHuntButtonProps): React.ReactElement {
       if (deadline === null) {
         return;
       }
-      let completed = false;
       function updateCountdown(): void {
         const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1_000));
         setCountdown(remaining);
-        if (remaining === 0 && !completed) {
-          completed = true;
+        if (remaining === 0 && !completedRef.current) {
+          completedRef.current = true;
           onCommandRef.current({ type: 'leave_hunt', version: 1 });
           setDeadline(null);
           setCountdown(null);

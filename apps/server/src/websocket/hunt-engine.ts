@@ -27,7 +27,7 @@ const ACTIVE_CREATURE_SWITCH_COOLDOWN_MS = 7_000;
 
 export type HuntCombatEvent = {
   abilityName: string;
-  damages: Array<{ amount: number; tile: Position }>;
+  damages: Array<{ amount: number; effectiveness: CombatEffectiveness; tile: Position }>;
   element: string;
   from: Position;
   id: string;
@@ -36,6 +36,7 @@ export type HuntCombatEvent = {
   tiles: Array<Position>;
   to: Position;
 };
+export type CombatEffectiveness = 'normal' | 'resisted' | 'super-effective';
 type StatIvs = Pick<
   HuntCreatureResource,
   'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
@@ -123,6 +124,7 @@ type AttackPolicy = {
   typeId: number;
   range: number;
 };
+type DamageResult = { amount: number; effectiveness: CombatEffectiveness };
 type ActingEnemy = { enemy: HuntEngineEnemy; policy: AttackPolicy };
 type PathNode = { firstStep?: Position; position: Position };
 
@@ -603,18 +605,28 @@ function attackKind(policy: AttackPolicy): HuntCombatEvent['kind'] {
   return policy.areaRadius > 0 ? 'area' : policy.range === 1 ? 'melee' : 'ranged';
 }
 
-function typeMultiplier(
+function effectivenessMultiplier(
   engine: HuntEngine,
   attacker: HuntSpeciesResource,
   defender: HuntSpeciesResource,
   move: AttackPolicy,
 ): number {
-  let multiplier = attacker.typeIds.includes(move.typeId) ? 1.5 : 1;
+  let multiplier = 1;
   for (const defenderTypeId of defender.typeIds) {
     multiplier *=
       engine.resources.typeEffectiveness[String(move.typeId) + ':' + defenderTypeId] ?? 1;
   }
   return multiplier;
+}
+
+function combatEffectiveness(multiplier: number): CombatEffectiveness {
+  if (multiplier > 1) {
+    return 'super-effective';
+  }
+  if (multiplier < 1) {
+    return 'resisted';
+  }
+  return 'normal';
 }
 
 function damageForAttack(
@@ -625,14 +637,16 @@ function damageForAttack(
   defender: HuntSpeciesResource,
   defenderStats: BattleStats,
   policy: AttackPolicy,
-): number {
+): DamageResult {
   const physical = policy.category === 'physical';
   const offense = physical ? attackerStats.attack : attackerStats.specialAttack;
   const defense = physical ? defenderStats.defense : defenderStats.specialDefense;
-  const effectiveness = typeMultiplier(engine, attacker, defender, policy);
-  if (effectiveness === 0) {
-    return 0;
+  const effectivenessMultiplierValue = effectivenessMultiplier(engine, attacker, defender, policy);
+  const effectiveness = combatEffectiveness(effectivenessMultiplierValue);
+  if (effectivenessMultiplierValue === 0) {
+    return { amount: 0, effectiveness };
   }
+  const sameTypeBonus = attacker.typeIds.includes(policy.typeId) ? 1.5 : 1;
   const base =
     Math.floor(
       Math.floor(
@@ -640,7 +654,11 @@ function damageForAttack(
       ) / 50,
     ) + 2;
   const random = 217 + Math.floor(Math.random() * 39);
-  return Math.max(1, Math.floor((Math.floor(base * effectiveness) * random) / 255));
+  const amount = Math.max(
+    1,
+    Math.floor((Math.floor(base * sameTypeBonus * effectivenessMultiplierValue) * random) / 255),
+  );
+  return { amount, effectiveness };
 }
 
 function enemyAttack(
@@ -651,7 +669,7 @@ function enemyAttack(
 ): void {
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
-  const damage = damageForAttack(
+  const result = damageForAttack(
     engine,
     acting.enemy,
     acting.enemy.level,
@@ -660,12 +678,12 @@ function enemyAttack(
     battleStats(allySpecies, ally.level, ally),
     acting.policy,
   );
-  ally.health = Math.max(0, ally.health - damage);
+  ally.health = Math.max(0, ally.health - result.amount);
   startCooldown(engine, acting.enemy.combatId, acting.policy, nowEpoch);
   acting.enemy.nextAttackAt = nowEpoch + ENEMY_SPACING_MS;
   events.push({
     abilityName: acting.policy.abilityName,
-    damages: [{ amount: damage, tile: ALLY_POSITION }],
+    damages: [{ amount: result.amount, effectiveness: result.effectiveness, tile: ALLY_POSITION }],
     element: acting.policy.element,
     from: acting.enemy.position,
     id: randomUUID(),
@@ -685,11 +703,11 @@ function allyAttack(
   events: Array<HuntCombatEvent>,
 ): void {
   const species = engine.resources.species[String(ally.speciesId)];
-  const damages: Array<{ amount: number; tile: Position }> = [];
+  const damages: Array<{ amount: number; effectiveness: CombatEffectiveness; tile: Position }> = [];
   const tiles: Array<Position> = [];
   for (const enemy of engine.enemies) {
     if (areaDistance(enemy.position, target.position) <= policy.areaRadius) {
-      const damage = damageForAttack(
+      const result = damageForAttack(
         engine,
         species,
         ally.level,
@@ -698,8 +716,12 @@ function allyAttack(
         wildStats(enemy, enemy.level, enemy),
         policy,
       );
-      enemy.health = Math.max(0, enemy.health - damage);
-      damages.push({ amount: damage, tile: enemy.position });
+      enemy.health = Math.max(0, enemy.health - result.amount);
+      damages.push({
+        amount: result.amount,
+        effectiveness: result.effectiveness,
+        tile: enemy.position,
+      });
       if (policy.areaRadius > 0) {
         tiles.push(enemy.position);
       }

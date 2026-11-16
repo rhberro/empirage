@@ -11,7 +11,6 @@ import {
   Portal,
   Stack,
   Text,
-  Tooltip,
 } from '@chakra-ui/react';
 import * as React from 'react';
 
@@ -23,14 +22,18 @@ type CreatureCollection = CollectionStateEvent['collection'];
 type CreatureStorageDialogProps = {
   activeCreatureId: string | undefined;
   collection: CreatureCollection | null;
+  isHunting: boolean;
   onCommand: (command: HuntCommand) => boolean;
 };
 type CollectionSectionProps = React.PropsWithChildren<{ count: string; label: string }>;
 type CollectionCreatureCardProps = {
   active: boolean;
   creature: CollectionCreature;
+  creatureCount: number;
   isTeamFull: boolean;
+  isHunting: boolean;
   onCommand: (command: HuntCommand) => boolean;
+  onPartyReorder: (creatureId: string, targetPartySlot: number) => void;
   party: boolean;
 };
 type CreatureDetailsProps = { creature: CollectionCreature };
@@ -42,7 +45,7 @@ type StoragePaginationProps = {
 };
 
 export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.ReactElement {
-  const { activeCreatureId, collection, onCommand } = props;
+  const { activeCreatureId, collection, isHunting, onCommand } = props;
   const open = useModalStore(selectStorageModalState);
   const party = collection?.party ?? [];
   const storage = collection?.storage ?? [];
@@ -50,9 +53,13 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
   const storagePageCount = collection?.storagePageCount ?? 1;
   const storageTotal = collection?.storageTotal ?? 0;
   const isTeamFull = party.length >= 6;
+  const creatureCount = party.length + storageTotal;
 
   function requestStoragePage(page: number): void {
     onCommand({ storagePage: page, type: 'request_creature_storage', version: 1 });
+  }
+  function reorderParty(creatureId: string, targetPartySlot: number): void {
+    onCommand({ creatureId, targetPartySlot, type: 'reorder_party_creature', version: 1 });
   }
 
   return (
@@ -75,9 +82,12 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
                       <CollectionCreatureCard
                         active={creature.id === activeCreatureId}
                         creature={creature}
+                        creatureCount={creatureCount}
                         isTeamFull={isTeamFull}
+                        isHunting={isHunting}
                         key={creature.id}
                         onCommand={onCommand}
+                        onPartyReorder={reorderParty}
                         party
                       />
                     );
@@ -92,9 +102,12 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
                       <CollectionCreatureCard
                         active={false}
                         creature={creature}
+                        creatureCount={creatureCount}
                         isTeamFull={isTeamFull}
+                        isHunting={isHunting}
                         key={creature.id}
                         onCommand={onCommand}
+                        onPartyReorder={reorderParty}
                         party={false}
                       />
                     );
@@ -175,11 +188,22 @@ function StorageEmpty(): React.ReactElement {
 }
 
 function CollectionCreatureCard(props: CollectionCreatureCardProps): React.ReactElement {
-  const { active, creature, isTeamFull, onCommand, party } = props;
+  const {
+    active,
+    creature,
+    creatureCount,
+    isHunting,
+    isTeamFull,
+    onCommand,
+    onPartyReorder,
+    party,
+  } = props;
+  const [releaseConfirmationOpen, setReleaseConfirmationOpen] = React.useState(false);
   const image = creatureIconUrl(creature);
   const width = active ? '8rem' : party ? '6.5rem' : 'full';
   const action = party ? 'Remover do time' : 'Adicionar ao time';
-  const actionDisabled = !party && isTeamFull;
+  const actionDisabled = isHunting || (!party && isTeamFull);
+  const canRelease = !isHunting && !active && creatureCount > 1;
 
   function moveCreature(): void {
     const type = party ? 'move_creature_to_storage' : 'move_creature_to_party';
@@ -190,49 +214,83 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
     onCommand({ creatureId: creature.id, type: 'switch_active_creature', version: 1 });
   }
 
-  return (
+  function openReleaseConfirmation(): void {
+    setReleaseConfirmationOpen(true);
+  }
+
+  function closeReleaseConfirmation(): void {
+    setReleaseConfirmationOpen(false);
+  }
+
+  function releaseCreature(): void {
+    onCommand({ creatureId: creature.id, type: 'release_creature', version: 1 });
+    closeReleaseConfirmation();
+  }
+
+  function moveToFirstPosition(): void {
+    moveToPosition(1);
+  }
+
+  function moveToSecondPosition(): void {
+    moveToPosition(2);
+  }
+
+  function moveToThirdPosition(): void {
+    moveToPosition(3);
+  }
+
+  function moveToFourthPosition(): void {
+    moveToPosition(4);
+  }
+
+  function moveToFifthPosition(): void {
+    moveToPosition(5);
+  }
+
+  function moveToSixthPosition(): void {
+    moveToPosition(6);
+  }
+
+  function moveToPosition(targetPartySlot: number): void {
+    onPartyReorder(creature.id, targetPartySlot);
+  }
+
+  const menu = (
     <Menu.Root positioning={{ placement: 'bottom-start', strategy: 'fixed' }}>
-      <Tooltip.Root openDelay={350}>
-        <Tooltip.Trigger asChild>
-          <Menu.Trigger asChild>
-            <Button
-              aria-label={`Opções de ${creature.species.name}`}
-              bg="surface.panel"
-              borderColor={active ? 'brand.solid' : 'border.default'}
-              borderWidth="1px"
-              h="auto"
-              minW={width}
-              p="2"
-              variant="ghost"
-            >
-              <Stack align="center" gap="1" w="full">
-                <Image
-                  alt={creature.species.name}
-                  boxSize={active ? '14' : '11'}
-                  imageRendering="pixelated"
-                  src={image}
-                />
-                <Text fontSize="xs" lineClamp="1">
-                  {creature.species.name}
-                </Text>
-                <Text color="fg.muted" fontSize="2xs">
-                  Nv. {creature.level}
-                </Text>
-              </Stack>
-            </Button>
-          </Menu.Trigger>
-        </Tooltip.Trigger>
-        <Portal>
-          <Tooltip.Positioner>
-            <Tooltip.Content maxW="18rem">
-              <CreatureDetails creature={creature} />
-            </Tooltip.Content>
-          </Tooltip.Positioner>
-        </Portal>
-      </Tooltip.Root>
+      <Menu.Trigger asChild>
+        <Button
+          aria-label={`Opções de ${creature.species.name}`}
+          bg="surface.panel"
+          borderColor={active ? 'brand.solid' : 'border.default'}
+          borderWidth="1px"
+          h="auto"
+          minW={width}
+          p="2"
+          variant="ghost"
+        >
+          <Stack align="center" gap="1" w="full">
+            <Image
+              alt={creature.species.name}
+              boxSize={active ? '14' : '11'}
+              imageRendering="pixelated"
+              src={image}
+            />
+            <Text fontSize="xs" lineClamp="1">
+              {creature.species.name}
+            </Text>
+            <Text color="fg.muted" fontSize="2xs">
+              Nv. {creature.level}
+            </Text>
+          </Stack>
+        </Button>
+      </Menu.Trigger>
       <Portal>
         <Menu.Positioner>
           <Menu.Content>
+            <Box maxW="18rem" p="2">
+              <CreatureDetails creature={creature} />
+            </Box>
+            <Menu.Separator />
             {party ? (
               <Menu.Item
                 disabled={active}
@@ -245,10 +303,69 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
             <Menu.Item disabled={actionDisabled} onClick={moveCreature} value={creature.id}>
               {action}
             </Menu.Item>
+            {party ? (
+              <>
+                <Menu.Separator />
+                <Menu.Item onClick={moveToFirstPosition} value={`position-1-${creature.id}`}>
+                  Mover para posição 1
+                </Menu.Item>
+                <Menu.Item onClick={moveToSecondPosition} value={`position-2-${creature.id}`}>
+                  Mover para posição 2
+                </Menu.Item>
+                <Menu.Item onClick={moveToThirdPosition} value={`position-3-${creature.id}`}>
+                  Mover para posição 3
+                </Menu.Item>
+                <Menu.Item onClick={moveToFourthPosition} value={`position-4-${creature.id}`}>
+                  Mover para posição 4
+                </Menu.Item>
+                <Menu.Item onClick={moveToFifthPosition} value={`position-5-${creature.id}`}>
+                  Mover para posição 5
+                </Menu.Item>
+                <Menu.Item onClick={moveToSixthPosition} value={`position-6-${creature.id}`}>
+                  Mover para posição 6
+                </Menu.Item>
+              </>
+            ) : null}
+            <Menu.Item
+              disabled={!canRelease}
+              onClick={openReleaseConfirmation}
+              value={`release-${creature.id}`}
+            >
+              Soltar criatura
+            </Menu.Item>
           </Menu.Content>
         </Menu.Positioner>
       </Portal>
     </Menu.Root>
+  );
+  return (
+    <>
+      {menu}
+      <Dialog.Root onOpenChange={closeReleaseConfirmation} open={releaseConfirmationOpen}>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Soltar criatura?</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Text>
+                {creature.species.name} será removida permanentemente. Esta ação não pode ser
+                desfeita.
+              </Text>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button onClick={closeReleaseConfirmation} variant="outline">
+                Não
+              </Button>
+              <Button colorPalette="red" onClick={releaseCreature}>
+                Sim, soltar
+              </Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
+    </>
   );
 }
 

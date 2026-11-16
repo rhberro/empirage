@@ -68,6 +68,11 @@ export type CaptureAttempt = {
   succeeded: boolean;
 };
 export type HuntWaveRange = { maximumSize: number; minimumSize: number };
+export type PartyCreatureHealth = {
+  creatureId: string;
+  health: number;
+  maximumHealth: number;
+};
 type HuntAbilities = Array<HuntAbility>;
 type HuntStatus = Pick<
   HuntState,
@@ -99,6 +104,7 @@ export type HuntState = {
   activeCreatureSwitchCompletesAt: number | undefined;
   activeCreatureSwitchCooldownEndsAt: number;
   allyPosition: Tile;
+  partyHealth: Array<PartyCreatureHealth>;
   combatEvents: CombatEvents;
   characterAvatarUrl: string | null;
   characterLevel: number;
@@ -152,6 +158,13 @@ export type HuntCommand =
   | {
       creatureId: string;
       type: 'move_creature_to_party' | 'move_creature_to_storage' | 'switch_active_creature';
+      version: 1;
+    }
+  | { creatureId: string; type: 'release_creature'; version: 1 }
+  | {
+      creatureId: string;
+      targetPartySlot: number;
+      type: 'reorder_party_creature';
       version: 1;
     }
   | { storagePage: number; type: 'request_creature_storage'; version: 1 }
@@ -600,6 +613,30 @@ function hasHuntStatus(value: UnknownRecord): boolean {
   );
 }
 
+function readPartyHealth(value: unknown): Array<PartyCreatureHealth> | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const partyHealth: Array<PartyCreatureHealth> = [];
+  for (const item of value) {
+    if (
+      !isRecord(item) ||
+      typeof item.creatureId !== 'string' ||
+      !isCount(item.health) ||
+      !isCount(item.maximumHealth) ||
+      item.health > item.maximumHealth
+    ) {
+      return null;
+    }
+    partyHealth.push({
+      creatureId: item.creatureId,
+      health: item.health,
+      maximumHealth: item.maximumHealth,
+    });
+  }
+  return partyHealth;
+}
+
 function readHuntStatus(value: UnknownRecord): HuntStatus {
   return {
     activeCreatureElements: value.activeCreatureElements as Array<string>,
@@ -641,6 +678,7 @@ function isHuntRecord(value: unknown): value is UnknownRecord {
     hasOptionalRuntimeState(value) &&
     isCount(value.wave) &&
     isWaveRange(value.waveRange) &&
+    Array.isArray(value.partyHealth) &&
     Array.isArray(value.enemies)
   );
 }
@@ -649,6 +687,7 @@ function readHunt(value: UnknownRecord): HuntState | null {
   const grid = readGrid(value.grid);
   const allyPosition = isRecord(value.allyPosition) ? readTile(value.allyPosition) : null;
   const playerPosition = isRecord(value.playerPosition) ? readTile(value.playerPosition) : null;
+  const partyHealth = readPartyHealth(value.partyHealth);
   const enemies = readEnemies(value.enemies);
   const activeCreatureAbilities = readAbilities(value.activeCreatureAbilities);
   const activeCreatureAvailableAbilities = readAvailableAbilities(
@@ -661,6 +700,7 @@ function readHunt(value: UnknownRecord): HuntState | null {
     !grid ||
     !allyPosition ||
     !playerPosition ||
+    !partyHealth ||
     !enemies ||
     !activeCreatureAbilities ||
     !activeCreatureAvailableAbilities ||
@@ -699,6 +739,7 @@ function readHunt(value: UnknownRecord): HuntState | null {
     huntId: value.huntId as string,
     huntingLocationId: value.huntingLocationId as number,
     nextEventAt: value.nextEventAt as string,
+    partyHealth,
     playerPosition,
     revision: value.revision as number,
     wave: value.wave as number,

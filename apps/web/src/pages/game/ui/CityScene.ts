@@ -34,6 +34,7 @@ type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
 type TransitionChangeHandler = (active: boolean, message: string) => void;
+type GameReadyHandler = () => void;
 
 export class CityScene extends Scene {
   private readonly characterId: string;
@@ -43,6 +44,7 @@ export class CityScene extends Scene {
   private readonly onCharacterProfileChange: CharacterProfileChangeHandler;
   private readonly onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
   private readonly onTransitionChange: TransitionChangeHandler;
+  private readonly onGameReady: GameReadyHandler;
   private readonly playerInput: PlayerInput;
   private readonly session: GameSession;
   private readonly visibilityHandler: EventHandler;
@@ -51,6 +53,11 @@ export class CityScene extends Scene {
   private huntView: HuntView | null = null;
   private collection: CollectionStateEvent['collection'] | null = null;
   private huntingLocations: Array<HuntingLocation> = [];
+  private hasAuthenticated = false;
+  private hasCollectionState = false;
+  private hasHuntState = false;
+  private hasSnapshot = false;
+  private gameReady = false;
 
   public constructor(
     characterId: string,
@@ -59,6 +66,7 @@ export class CityScene extends Scene {
     onHuntStateChange: HuntStateChangeHandler,
     onHuntCommandSenderChange: HuntCommandSenderChangeHandler,
     onTransitionChange: TransitionChangeHandler,
+    onGameReady: GameReadyHandler,
   ) {
     super('CityScene');
     this.characterId = characterId;
@@ -68,6 +76,7 @@ export class CityScene extends Scene {
     this.onHuntStateChange = onHuntStateChange;
     this.onHuntCommandSenderChange = onHuntCommandSenderChange;
     this.onTransitionChange = onTransitionChange;
+    this.onGameReady = onGameReady;
     this.visibilityHandler = this.handleVisibilityChange.bind(this);
     const options = {
       characterId,
@@ -93,6 +102,7 @@ export class CityScene extends Scene {
       this.session.send.bind(this.session),
       this.focusHuntCamera.bind(this),
       this.onTransitionChange,
+      this.synchronizeGameReady.bind(this),
     );
     showAtlasError(this);
     this.playerInput.enabled = false;
@@ -162,6 +172,8 @@ export class CityScene extends Scene {
       if (huntView) {
         huntView.apply(event.hunt, event.huntId);
       }
+      this.hasHuntState = true;
+      this.synchronizeGameReady();
       this.playerInput.enabled = !event.hunt && Boolean(huntView && huntView.connected);
       return;
     }
@@ -172,6 +184,8 @@ export class CityScene extends Scene {
         return creature.species.id;
       });
       this.huntView?.setPartySpeciesIds(partySpeciesIds);
+      this.hasCollectionState = true;
+      this.synchronizeGameReady();
       return;
     }
     if (event.type === 'hunt_clock') {
@@ -194,8 +208,10 @@ export class CityScene extends Scene {
       }
       this.playerInput.enabled = true;
       this.world.applyAuthenticated(event);
+      this.hasAuthenticated = true;
     } else if (event.type === 'snapshot') {
       this.world.applySnapshot(event);
+      this.hasSnapshot = true;
     } else if (event.type === 'movement_started') {
       this.world.applyMovement(event);
     } else if (event.type === 'player_idle' || event.type === 'player_joined') {
@@ -206,6 +222,22 @@ export class CityScene extends Scene {
       return;
     }
     this.synchronizeVisuals(event.type === 'authenticated');
+    this.synchronizeGameReady();
+  }
+
+  private synchronizeGameReady(): void {
+    if (
+      this.gameReady ||
+      !this.hasAuthenticated ||
+      !this.hasCollectionState ||
+      !this.hasHuntState ||
+      !this.hasSnapshot ||
+      !this.huntView?.initialAssetsReady()
+    ) {
+      return;
+    }
+    this.gameReady = true;
+    this.onGameReady();
   }
 
   private handleInputRejected(reason: string): void {

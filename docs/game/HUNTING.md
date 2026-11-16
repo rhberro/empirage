@@ -30,6 +30,8 @@ O percentual é apenas uma representação de design do total máximo de 186 IVs
 
 O checkpoint da caça persiste a vida de cada criatura da equipe. Ao trocar ou recuperar uma caça, cada criatura mantém exatamente o HP que possuía antes da transição. Uma criatura que desmaiar durante a caçada permanece indisponível para troca enquanto aquela execução estiver ativa.
 
+Ao encerrar a caça e retornar à cidade, a execução é finalizada e não há HP de combate persistente fora dela. Portanto, toda nova caça inicia cada integrante da equipe com HP máximo, independentemente de qual criatura estava ativa ou desmaiou na caça anterior.
+
 ## Captura automática
 
 Quando uma criatura é derrotada, o sistema de captura automática usa a Pokébola selecionada, caso a raridade esteja configurada como alvo e haja ouro suficiente. Cada tentativa consome uma bola, com sucesso ou falha.
