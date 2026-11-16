@@ -198,6 +198,14 @@ export class CityScene extends Scene {
       if (huntView) {
         huntView.fail();
       }
+      if (!huntView?.active && this.collection) {
+        const command = {
+          storagePage: this.collection.storagePage,
+          type: 'request_creature_storage' as const,
+          version: 1 as const,
+        };
+        this.session.send(command);
+      }
       this.playerInput.enabled = Boolean(huntView && !huntView.active && huntView.connected);
       return;
     }

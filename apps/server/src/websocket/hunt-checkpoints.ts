@@ -20,6 +20,17 @@ type ExperienceDelta = { amount: number; creatureId: string };
 type ExperienceDeltas = Array<ExperienceDelta>;
 type ExperienceEntry = [string, number];
 type AbilityCooldowns = Record<string, Record<string, number>>;
+type EffortValues = Record<
+  string,
+  {
+    evAttack: number;
+    evDefense: number;
+    evHealth: number;
+    evSpecialAttack: number;
+    evSpecialDefense: number;
+    evSpeed: number;
+  }
+>;
 type CheckpointRow = {
   applied?: unknown;
   finished?: unknown;
@@ -67,6 +78,10 @@ function runtimeSnapshot(snapshot: HuntEngineSnapshot): RuntimeSnapshot {
   return JSON.parse(serializedSnapshot) as RuntimeSnapshot;
 }
 
+function effortValues(snapshot: HuntEngineSnapshot): EffortValues {
+  return snapshot.allyEffortValues ?? {};
+}
+
 function checkpointResult(data: unknown): HuntCheckpointResult {
   if (!Array.isArray(data) || data.length !== 1) {
     throw new Error('Invalid checkpoint response');
@@ -92,6 +107,7 @@ export async function writeHuntCheckpoint(
   const combatEvents: Array<never> = [];
   const params = {
     checkpoint_id: checkpointId,
+    effort_values: effortValues(snapshot),
     expected_hunt_id: snapshot.huntId,
     expected_revision: expectedRevision,
     experience_deltas: experienceDeltas(snapshot),
@@ -106,7 +122,7 @@ export async function writeHuntCheckpoint(
     next_runtime_snapshot: runtimeSnapshot(snapshot),
     next_wave: snapshot.wave,
   };
-  const { data, error } = await client.rpc('checkpoint_character_hunt', params);
+  const { data, error } = await client.rpc('checkpoint_character_hunt_v2', params);
   if (error) {
     throw error;
   }

@@ -5,9 +5,12 @@ import type { CaptureRarity } from './capture-items.ts';
 import type { Movement, Position } from './game-types.ts';
 import type {
   HuntAbilityResource,
+  HuntBattleStat,
   HuntCreatureResource,
+  HuntNatureResource,
   HuntResources,
   HuntSpeciesResource,
+  HuntStatEffectResource,
 } from './hunt-resources.ts';
 
 const ALLY_POSITION: Position = { x: 6, y: 3 };
@@ -33,6 +36,7 @@ export type HuntCombatEvent = {
   id: string;
   kind: 'area' | 'melee' | 'ranged';
   occurredAt: number;
+  feedback: Array<{ text: string; tile: Position }>;
   tiles: Array<Position>;
   to: Position;
 };
@@ -41,6 +45,11 @@ type StatIvs = Pick<
   HuntCreatureResource,
   'ivAttack' | 'ivDefense' | 'ivHealth' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
 >;
+type StatEvs = Pick<
+  HuntCreatureResource,
+  'evAttack' | 'evDefense' | 'evHealth' | 'evSpecialAttack' | 'evSpecialDefense' | 'evSpeed'
+>;
+export type HuntStatStages = Record<HuntBattleStat, number>;
 export type HuntEngineEnemy = HuntSpeciesResource & {
   combatId: string;
   health: number;
@@ -51,10 +60,12 @@ export type HuntEngineEnemy = HuntSpeciesResource & {
   nextMovementAt?: number;
   position: Position;
   rarity: CaptureRarity;
+  statStages?: HuntStatStages;
 } & StatIvs;
 export type HuntEngineAlly = HuntCreatureResource & {
   health: number;
   maximumHealth: number;
+  statStages: HuntStatStages;
 };
 export type HuntEngineCheckpoint = {
   activeCreatureAvailableAt?: number;
@@ -62,6 +73,8 @@ export type HuntEngineCheckpoint = {
   activeCreatureSwitchCooldownEndsAt?: number;
   activeCreatureSwitchTargetId?: string;
   allyHealth?: Record<string, number>;
+  allyEffortValues?: Record<string, StatEvs>;
+  allyStatStages?: Record<string, HuntStatStages>;
   abilityCooldowns?: Record<string, Record<string, number>>;
   activeCreatureId: string;
   activeCreatureHealth: number;
@@ -114,13 +127,16 @@ export type HuntAdvanceResult = {
 export type HuntEngineSnapshot = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
 
 type AttackPolicy = {
+  accuracy: number | null;
   abilityId: number;
   abilityName: string;
   category: HuntAbilityResource['category'];
   areaRadius: number;
   cooldownMs: number;
   element: string;
+  effects: Array<HuntStatEffectResource>;
   power: number;
+  target: HuntAbilityResource['target'];
   typeId: number;
   range: number;
 };
@@ -144,20 +160,107 @@ type BattleStats = {
   specialDefense: number;
   speed: number;
 };
-function calculatedStat(base: number, iv: number, level: number, health: boolean): number {
-  const scaled = Math.floor(((base * 2 + iv) * level) / 100);
-  // Nature will multiply non-HP stats here when creature natures are introduced.
-  return health ? scaled + level + 10 : scaled + 5;
+const EMPTY_EVS: StatEvs = {
+  evAttack: 0,
+  evDefense: 0,
+  evHealth: 0,
+  evSpecialAttack: 0,
+  evSpecialDefense: 0,
+  evSpeed: 0,
+};
+const NEUTRAL_NATURE: HuntNatureResource = {
+  decreasedStat: null,
+  increasedStat: null,
+  slug: 'hardy',
+};
+const STAGE_MULTIPLIERS = [0.25, 0.28, 0.33, 0.4, 0.5, 0.66, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+
+function emptyStatStages(): HuntStatStages {
+  return {
+    accuracy: 0,
+    attack: 0,
+    defense: 0,
+    evasion: 0,
+    specialAttack: 0,
+    specialDefense: 0,
+    speed: 0,
+  };
 }
 
-function battleStats(species: HuntSpeciesResource, level: number, ivs: StatIvs): BattleStats {
+function natureMultiplier(
+  nature: HuntNatureResource,
+  stat: HuntNatureResource['increasedStat'],
+): number {
+  if (nature.increasedStat === stat) {
+    return 1.1;
+  }
+  return nature.decreasedStat === stat ? 0.9 : 1;
+}
+
+function calculatedStat(
+  base: number,
+  iv: number,
+  ev: number,
+  level: number,
+  stat: HuntNatureResource['increasedStat'] | 'health',
+  nature: HuntNatureResource,
+): number {
+  const scaled = Math.floor(((base * 2 + iv + Math.floor(ev / 4)) * level) / 100);
+  if (stat === 'health') {
+    return scaled + level + 10;
+  }
+  return Math.floor((scaled + 5) * natureMultiplier(nature, stat));
+}
+
+function battleStats(
+  species: HuntSpeciesResource,
+  level: number,
+  values: StatIvs & Partial<StatEvs> & Partial<Pick<HuntCreatureResource, 'nature'>>,
+): BattleStats {
+  const evs = { ...EMPTY_EVS, ...values };
+  const nature = values.nature ?? NEUTRAL_NATURE;
   return {
-    attack: calculatedStat(species.baseAttack, ivs.ivAttack, level, false),
-    defense: calculatedStat(species.baseDefense, ivs.ivDefense, level, false),
-    health: calculatedStat(species.baseHealth, ivs.ivHealth, level, true),
-    specialAttack: calculatedStat(species.baseSpecialAttack, ivs.ivSpecialAttack, level, false),
-    specialDefense: calculatedStat(species.baseSpecialDefense, ivs.ivSpecialDefense, level, false),
-    speed: calculatedStat(species.baseSpeed, ivs.ivSpeed, level, false),
+    attack: calculatedStat(
+      species.baseAttack,
+      values.ivAttack,
+      evs.evAttack,
+      level,
+      'attack',
+      nature,
+    ),
+    defense: calculatedStat(
+      species.baseDefense,
+      values.ivDefense,
+      evs.evDefense,
+      level,
+      'defense',
+      nature,
+    ),
+    health: calculatedStat(
+      species.baseHealth,
+      values.ivHealth,
+      evs.evHealth,
+      level,
+      'health',
+      nature,
+    ),
+    specialAttack: calculatedStat(
+      species.baseSpecialAttack,
+      values.ivSpecialAttack,
+      evs.evSpecialAttack,
+      level,
+      'specialAttack',
+      nature,
+    ),
+    specialDefense: calculatedStat(
+      species.baseSpecialDefense,
+      values.ivSpecialDefense,
+      evs.evSpecialDefense,
+      level,
+      'specialDefense',
+      nature,
+    ),
+    speed: calculatedStat(species.baseSpeed, values.ivSpeed, evs.evSpeed, level, 'speed', nature),
   };
 }
 
@@ -237,6 +340,10 @@ function buildAllies(
     }
     const maximumHealth = maximumHealthForCreature(species, creature);
     const persistedHealth = checkpoint.allyHealth ? checkpoint.allyHealth[creature.id] : undefined;
+    const persistedStages = checkpoint.allyStatStages;
+    const statStages = persistedStages
+      ? (persistedStages[creature.id] ?? emptyStatStages())
+      : emptyStatStages();
     const legacyHealth = creature.teamPosition < activeCreature.teamPosition ? 0 : maximumHealth;
     allies.push({
       ...creature,
@@ -245,6 +352,7 @@ function buildAllies(
           ? checkpoint.activeCreatureHealth
           : (persistedHealth ?? legacyHealth),
       maximumHealth,
+      statStages,
     });
   }
   return allies;
@@ -258,6 +366,7 @@ export function createEngine(
   const shift = Math.max(0, nowEpoch - checkpoint.capturedAt);
   const enemies = globalThis.structuredClone(checkpoint.enemies);
   for (const enemy of enemies) {
+    enemy.statStages ??= emptyStatStages();
     enemy.nextAttackAt = shifted(enemy.nextAttackAt, shift);
     if (enemy.nextMovementAt !== undefined) {
       enemy.nextMovementAt = shifted(enemy.nextMovementAt, shift);
@@ -333,6 +442,8 @@ export function switchActiveCreature(
     return false;
   }
   const next = engine.allies[nextIndex];
+  engine.allies[engine.activeAllyIndex].statStages = emptyStatStages();
+  next.statStages = emptyStatStages();
   const cooldownsForNext = cooldowns(engine, next.id);
   for (const ability of next.abilities) {
     cooldownsForNext[String(ability.id)] = nowEpoch + ability.cooldownMs;
@@ -552,19 +663,22 @@ function policyFor(
     const range = ability.rangeTiles;
     if (
       ability.requiredLevel <= level &&
-      ability.power !== null &&
+      (ability.power !== null || ability.effects.length > 0) &&
       (actorCooldowns[String(ability.id)] ?? 0) <= nowEpoch &&
-      targetDistance <= range
+      (ability.target === 'self' || targetDistance <= range)
     ) {
       available.push({
         abilityId: ability.id,
         abilityName: ability.name,
+        accuracy: ability.accuracy,
         areaRadius: ability.areaRadius,
         category: ability.category,
         cooldownMs: ability.cooldownMs,
+        effects: ability.effects,
         element: ability.typeSlug,
-        power: ability.power,
+        power: ability.power ?? 0,
         range,
+        target: ability.target,
         typeId: ability.typeId,
       });
     }
@@ -629,18 +743,102 @@ function combatEffectiveness(multiplier: number): CombatEffectiveness {
   return 'normal';
 }
 
+function stageMultiplier(stage: number): number {
+  return STAGE_MULTIPLIERS[Math.max(-6, Math.min(6, stage)) + 6] ?? 1;
+}
+
+function modifiedStat(value: number, stage: number): number {
+  return Math.max(1, Math.floor(value * stageMultiplier(stage)));
+}
+
+function moveHits(
+  policy: AttackPolicy,
+  attackerStages: HuntStatStages,
+  defenderStages: HuntStatStages,
+): boolean {
+  if (policy.accuracy === null) {
+    return true;
+  }
+  const chance = Math.min(
+    1,
+    Math.max(
+      0,
+      (policy.accuracy / 100) *
+        stageMultiplier(attackerStages.accuracy) *
+        stageMultiplier(-defenderStages.evasion),
+    ),
+  );
+  return Math.random() < chance;
+}
+
+function changedStageText(stat: HuntBattleStat, stage: number): string {
+  const name =
+    stat === 'specialAttack'
+      ? 'Sp. Atk.'
+      : stat === 'specialDefense'
+        ? 'Sp. Def.'
+        : stat === 'accuracy'
+          ? 'Acc.'
+          : stat === 'evasion'
+            ? 'Eva.'
+            : stat[0].toUpperCase() + stat.slice(1);
+  return `${name} ${stage > 0 ? 'Rose' : 'Fell'}`;
+}
+
+function applyEffects(
+  effects: Array<HuntStatEffectResource>,
+  userStages: HuntStatStages,
+  targetStages: HuntStatStages,
+  targetTile: Position,
+  feedback: Array<{ text: string; tile: Position }>,
+): void {
+  const chances = new Set<number>();
+  for (const effect of effects) {
+    chances.add(effect.chance);
+  }
+  const successfulChances = new Set<number>();
+  for (const chance of chances) {
+    if (Math.random() * 100 < chance) {
+      successfulChances.add(chance);
+    }
+  }
+  for (const effect of effects) {
+    if (!successfulChances.has(effect.chance)) {
+      continue;
+    }
+    const stages = effect.target === 'user' ? userStages : targetStages;
+    const previous = stages[effect.stat];
+    const next = Math.max(-6, Math.min(6, previous + effect.stage));
+    stages[effect.stat] = next;
+    if (next !== previous) {
+      feedback.push({ text: changedStageText(effect.stat, effect.stage), tile: targetTile });
+    }
+  }
+}
+
 function damageForAttack(
   engine: HuntEngine,
   attacker: HuntSpeciesResource,
   attackerLevel: number,
   attackerStats: BattleStats,
+  attackerStages: HuntStatStages,
   defender: HuntSpeciesResource,
   defenderStats: BattleStats,
+  defenderStages: HuntStatStages,
   policy: AttackPolicy,
 ): DamageResult {
+  if (policy.power === 0) {
+    return { amount: 0, effectiveness: 'normal' };
+  }
   const physical = policy.category === 'physical';
-  const offense = physical ? attackerStats.attack : attackerStats.specialAttack;
-  const defense = physical ? defenderStats.defense : defenderStats.specialDefense;
+  const offense = modifiedStat(
+    physical ? attackerStats.attack : attackerStats.specialAttack,
+    physical ? attackerStages.attack : attackerStages.specialAttack,
+  );
+  const defense = modifiedStat(
+    physical ? defenderStats.defense : defenderStats.specialDefense,
+    physical ? defenderStages.defense : defenderStages.specialDefense,
+  );
   const effectivenessMultiplierValue = effectivenessMultiplier(engine, attacker, defender, policy);
   const effectiveness = combatEffectiveness(effectivenessMultiplierValue);
   if (effectivenessMultiplierValue === 0) {
@@ -669,22 +867,65 @@ function enemyAttack(
 ): void {
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
+  if (acting.policy.target === 'self') {
+    const feedback: Array<{ text: string; tile: Position }> = [];
+    const stages = acting.enemy.statStages ?? emptyStatStages();
+    acting.enemy.statStages = stages;
+    applyEffects(acting.policy.effects, stages, stages, acting.enemy.position, feedback);
+    startCooldown(engine, acting.enemy.combatId, acting.policy, nowEpoch);
+    acting.enemy.nextAttackAt = nowEpoch + ENEMY_SPACING_MS;
+    events.push({
+      abilityName: acting.policy.abilityName,
+      damages: [],
+      element: acting.policy.element,
+      feedback,
+      from: acting.enemy.position,
+      id: randomUUID(),
+      kind: attackKind(acting.policy),
+      occurredAt: nowEpoch,
+      tiles: [],
+      to: acting.enemy.position,
+    });
+    return;
+  }
   const result = damageForAttack(
     engine,
     acting.enemy,
     acting.enemy.level,
     wildStats(acting.enemy, acting.enemy.level, acting.enemy),
+    acting.enemy.statStages ?? emptyStatStages(),
     allySpecies,
     battleStats(allySpecies, ally.level, ally),
+    ally.statStages,
     acting.policy,
   );
-  ally.health = Math.max(0, ally.health - result.amount);
+  const feedback: Array<{ text: string; tile: Position }> = [];
+  const hit = moveHits(
+    acting.policy,
+    acting.enemy.statStages ?? emptyStatStages(),
+    ally.statStages,
+  );
+  if (hit) {
+    ally.health = Math.max(0, ally.health - result.amount);
+    applyEffects(
+      acting.policy.effects,
+      acting.enemy.statStages ?? emptyStatStages(),
+      ally.statStages,
+      ALLY_POSITION,
+      feedback,
+    );
+  } else {
+    feedback.push({ text: 'Miss', tile: ALLY_POSITION });
+  }
   startCooldown(engine, acting.enemy.combatId, acting.policy, nowEpoch);
   acting.enemy.nextAttackAt = nowEpoch + ENEMY_SPACING_MS;
   events.push({
     abilityName: acting.policy.abilityName,
-    damages: [{ amount: result.amount, effectiveness: result.effectiveness, tile: ALLY_POSITION }],
+    damages: hit
+      ? [{ amount: result.amount, effectiveness: result.effectiveness, tile: ALLY_POSITION }]
+      : [],
     element: acting.policy.element,
+    feedback,
     from: acting.enemy.position,
     id: randomUUID(),
     kind: attackKind(acting.policy),
@@ -704,7 +945,25 @@ function allyAttack(
 ): void {
   const species = engine.resources.species[String(ally.speciesId)];
   const damages: Array<{ amount: number; effectiveness: CombatEffectiveness; tile: Position }> = [];
+  const feedback: Array<{ text: string; tile: Position }> = [];
   const tiles: Array<Position> = [];
+  if (policy.target === 'self') {
+    applyEffects(policy.effects, ally.statStages, ally.statStages, ALLY_POSITION, feedback);
+    startCooldown(engine, ally.id, policy, nowEpoch);
+    events.push({
+      abilityName: policy.abilityName,
+      damages,
+      element: policy.element,
+      feedback,
+      from: ALLY_POSITION,
+      id: randomUUID(),
+      kind: attackKind(policy),
+      occurredAt: nowEpoch,
+      tiles,
+      to: ALLY_POSITION,
+    });
+    return;
+  }
   for (const enemy of engine.enemies) {
     if (areaDistance(enemy.position, target.position) <= policy.areaRadius) {
       const result = damageForAttack(
@@ -712,16 +971,29 @@ function allyAttack(
         species,
         ally.level,
         battleStats(species, ally.level, ally),
+        ally.statStages,
         enemy,
         wildStats(enemy, enemy.level, enemy),
+        enemy.statStages ?? emptyStatStages(),
         policy,
       );
-      enemy.health = Math.max(0, enemy.health - result.amount);
-      damages.push({
-        amount: result.amount,
-        effectiveness: result.effectiveness,
-        tile: enemy.position,
-      });
+      if (moveHits(policy, ally.statStages, enemy.statStages ?? emptyStatStages())) {
+        enemy.health = Math.max(0, enemy.health - result.amount);
+        damages.push({
+          amount: result.amount,
+          effectiveness: result.effectiveness,
+          tile: enemy.position,
+        });
+        applyEffects(
+          policy.effects,
+          ally.statStages,
+          enemy.statStages ?? emptyStatStages(),
+          enemy.position,
+          feedback,
+        );
+      } else {
+        feedback.push({ text: 'Miss', tile: enemy.position });
+      }
       if (policy.areaRadius > 0) {
         tiles.push(enemy.position);
       }
@@ -732,6 +1004,7 @@ function allyAttack(
     abilityName: policy.abilityName,
     damages,
     element: policy.element,
+    feedback,
     from: ALLY_POSITION,
     id: randomUUID(),
     kind: attackKind(policy),
@@ -988,6 +1261,7 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): Array<HuntEngineE
     }
     defeated.push(enemy);
     const ally = engine.allies[engine.activeAllyIndex];
+    grantEffortValues(ally, enemy);
     const gain = enemy.level * 10;
     const pendingExperience = (engine.xpPending[ally.id] ?? 0) + gain;
     if (!Number.isSafeInteger(pendingExperience)) {
@@ -1001,7 +1275,12 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): Array<HuntEngineE
   engine.enemies = surviving;
   const ally = engine.allies[engine.activeAllyIndex];
   if (ally.health === 0) {
+    ally.statStages = emptyStatStages();
     engine.activeAllyIndex += 1;
+    const nextAlly = engine.allies[engine.activeAllyIndex];
+    if (nextAlly) {
+      nextAlly.statStages = emptyStatStages();
+    }
     if (engine.activeAllyIndex >= engine.allies.length) {
       engine.finished = true;
     }
@@ -1011,6 +1290,33 @@ function resolveDefeats(engine: HuntEngine, nowEpoch: number): Array<HuntEngineE
     engine.nextEventAt = nowEpoch + engine.waveDelayMs;
   }
   return defeated;
+}
+
+function grantEffortValues(ally: HuntEngineAlly, enemy: HuntEngineEnemy): void {
+  const grants: Array<[keyof StatEvs, number]> = [
+    ['evHealth', enemy.evYieldHealth],
+    ['evAttack', enemy.evYieldAttack],
+    ['evDefense', enemy.evYieldDefense],
+    ['evSpecialAttack', enemy.evYieldSpecialAttack],
+    ['evSpecialDefense', enemy.evYieldSpecialDefense],
+    ['evSpeed', enemy.evYieldSpeed],
+  ];
+  let remaining =
+    510 -
+    ally.evHealth -
+    ally.evAttack -
+    ally.evDefense -
+    ally.evSpecialAttack -
+    ally.evSpecialDefense -
+    ally.evSpeed;
+  for (const [stat, yieldValue] of grants) {
+    if (remaining <= 0) {
+      return;
+    }
+    const gained = Math.min(yieldValue, 252 - ally[stat], remaining);
+    ally[stat] += gained;
+    remaining -= gained;
+  }
 }
 
 function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
@@ -1144,8 +1450,19 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
     active && Number.isSafeInteger(active.health) && active.health >= 0 ? active.health : 0;
   const activeId = active ? active.id : '';
   const allyHealth: Record<string, number> = {};
+  const allyEffortValues: Record<string, StatEvs> = {};
+  const allyStatStages: Record<string, HuntStatStages> = {};
   for (const ally of engine.allies) {
     allyHealth[ally.id] = Math.max(0, Math.min(ally.maximumHealth, ally.health));
+    allyEffortValues[ally.id] = {
+      evAttack: ally.evAttack,
+      evDefense: ally.evDefense,
+      evHealth: ally.evHealth,
+      evSpecialAttack: ally.evSpecialAttack,
+      evSpecialDefense: ally.evSpecialDefense,
+      evSpeed: ally.evSpeed,
+    };
+    allyStatStages[ally.id] = ally.statStages;
   }
   const snapshot: HuntEngineSnapshot = globalThis.structuredClone({
     abilityCooldowns: engine.abilityCooldowns,
@@ -1155,7 +1472,9 @@ export function snapshotEngine(engine: HuntEngine, nowEpoch: number): HuntEngine
     activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
     activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
     activeCreatureSwitchTargetId: engine.activeCreatureSwitchTargetId,
+    allyEffortValues,
     allyHealth,
+    allyStatStages,
     capturedAt: nowEpoch,
     enemies: engine.enemies,
     enemyActionNotBefore: engine.enemyActionNotBefore,

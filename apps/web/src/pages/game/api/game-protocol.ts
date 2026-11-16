@@ -92,6 +92,8 @@ export type CollectionCreature = {
   capturedAt: string;
   elements: Array<string>;
   experience: string;
+  experienceLevelStart: string;
+  experienceNextLevel: string;
   gender: string;
   id: string;
   ivAttack: number;
@@ -307,6 +309,13 @@ function readCollectionCreature(value: unknown): CollectionCreature | null {
     return null;
   }
   const species = value.species;
+  if (!hasCollectionCreatureSpeciesFields(species) || !hasCollectionCreatureFields(value)) {
+    return null;
+  }
+  return value as CollectionCreature;
+}
+
+function hasCollectionCreatureSpeciesFields(species: UnknownRecord): boolean {
   const numericKeys = [
     'base_attack',
     'base_defense',
@@ -316,14 +325,14 @@ function readCollectionCreature(value: unknown): CollectionCreature | null {
     'base_speed',
     'id',
   ];
-  for (const key of numericKeys) {
-    if (typeof species[key] !== 'number' || !Number.isFinite(species[key] as number)) {
-      return null;
-    }
-  }
-  if (typeof species.description !== 'string' || typeof species.name !== 'string') {
-    return null;
-  }
+  return (
+    numericKeys.every(isFiniteNumberField.bind(null, species)) &&
+    typeof species.description === 'string' &&
+    typeof species.name === 'string'
+  );
+}
+
+function hasCollectionCreatureFields(value: UnknownRecord): boolean {
   const numberKeys = [
     'ivAttack',
     'ivDefense',
@@ -333,23 +342,24 @@ function readCollectionCreature(value: unknown): CollectionCreature | null {
     'ivSpeed',
     'level',
   ];
-  for (const key of numberKeys) {
-    if (typeof value[key] !== 'number' || !Number.isFinite(value[key] as number)) {
-      return null;
-    }
-  }
-  if (
-    typeof value.capturedAt !== 'string' ||
-    typeof value.experience !== 'string' ||
-    typeof value.gender !== 'string' ||
-    typeof value.id !== 'string' ||
-    typeof value.rarity !== 'string' ||
-    (value.partySlot !== null && typeof value.partySlot !== 'number') ||
-    !value.elements.every(isString)
-  ) {
-    return null;
-  }
-  return value as CollectionCreature;
+  return (
+    numberKeys.every(isFiniteNumberField.bind(null, value)) &&
+    typeof value.capturedAt === 'string' &&
+    typeof value.experience === 'string' &&
+    typeof value.experienceLevelStart === 'string' &&
+    typeof value.experienceNextLevel === 'string' &&
+    typeof value.gender === 'string' &&
+    typeof value.id === 'string' &&
+    typeof value.rarity === 'string' &&
+    (value.partySlot === null || typeof value.partySlot === 'number') &&
+    Array.isArray(value.elements) &&
+    value.elements.every(isString)
+  );
+}
+
+function isFiniteNumberField(record: UnknownRecord, key: string): boolean {
+  const value = record[key];
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 function readCollectionState(value: UnknownRecord): CollectionStateEvent | null {

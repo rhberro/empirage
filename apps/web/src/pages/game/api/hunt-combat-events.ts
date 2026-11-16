@@ -2,10 +2,12 @@ import type { Tile } from './game-protocol';
 
 export type CombatEffectiveness = 'normal' | 'resisted' | 'super-effective';
 export type HuntDamage = { amount: number; effectiveness: CombatEffectiveness; tile: Tile };
+export type HuntCombatFeedback = { text: string; tile: Tile };
 export type HuntCombatEvent = {
   abilityName: string;
   damages: Array<HuntDamage>;
   element: string;
+  feedback: Array<HuntCombatFeedback>;
   from: Tile;
   id: string;
   kind: 'melee' | 'ranged' | 'area';
@@ -16,6 +18,7 @@ export type HuntCombatEvent = {
 
 type CombatEvents = Array<HuntCombatEvent>;
 type HuntDamages = Array<HuntDamage>;
+type HuntCombatFeedbacks = Array<HuntCombatFeedback>;
 type Tiles = Array<Tile>;
 type UnknownRecord = Record<string, unknown>;
 
@@ -56,6 +59,24 @@ function readDamages(value: unknown): HuntDamages {
   return damages;
 }
 
+function readFeedback(value: unknown): HuntCombatFeedbacks {
+  const feedback: HuntCombatFeedbacks = [];
+  if (!Array.isArray(value)) {
+    return feedback;
+  }
+  for (const entry of value) {
+    if (!isRecord(entry) || typeof entry.text !== 'string' || entry.text.length === 0) {
+      continue;
+    }
+    const tile = readTile(entry.tile);
+    if (tile) {
+      const item = { text: entry.text, tile };
+      feedback.push(item);
+    }
+  }
+  return feedback;
+}
+
 export function readCombatEvents(value: unknown): CombatEvents {
   const events: CombatEvents = [];
   if (!Array.isArray(value)) {
@@ -91,6 +112,7 @@ export function readCombatEvents(value: unknown): CombatEvents {
       abilityName: item.abilityName,
       damages: readDamages(item.damages),
       element: typeof item.element === 'string' ? item.element : 'normal',
+      feedback: readFeedback(item.feedback),
       from,
       id: item.id,
       kind: item.kind,

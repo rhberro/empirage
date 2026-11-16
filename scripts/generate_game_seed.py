@@ -9,6 +9,7 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
+GENERATION_ONE_DATA = ROOT / 'gen1.json'
 API = 'https://pokeapi.co/api/v2/'
 ITEMS_CSV = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/items.csv'
 TYPE_NAMES = [
@@ -47,6 +48,36 @@ TYPE_MULTIPLIERS = {
 }
 AREA_MOVES = {'blizzard', 'earthquake', 'explosion', 'self-destruct', 'surf', 'swift', 'rock-slide', 'smokescreen', 'poison-gas', 'string-shot', 'growl', 'screech', 'tail-whip'}
 SELF_MOVES = {'acid-armor', 'agility', 'amnesia', 'barrier', 'defense-curl', 'double-team', 'focus-energy', 'growth', 'harden', 'meditate', 'minimize', 'recover', 'rest', 'sharpen', 'soft-boiled', 'splash', 'substitute', 'swords-dance', 'transform', 'withdraw'}
+NATURE_ROWS = [
+    ('hardy', 'Hardy', None, None), ('lonely', 'Lonely', 'attack', 'defense'),
+    ('brave', 'Brave', 'attack', 'speed'), ('adamant', 'Adamant', 'attack', 'special_attack'),
+    ('naughty', 'Naughty', 'attack', 'special_defense'), ('bold', 'Bold', 'defense', 'attack'),
+    ('docile', 'Docile', None, None), ('relaxed', 'Relaxed', 'defense', 'speed'),
+    ('impish', 'Impish', 'defense', 'special_attack'), ('lax', 'Lax', 'defense', 'special_defense'),
+    ('timid', 'Timid', 'speed', 'attack'), ('hasty', 'Hasty', 'speed', 'defense'),
+    ('serious', 'Serious', None, None), ('jolly', 'Jolly', 'speed', 'special_attack'),
+    ('naive', 'Naive', 'speed', 'special_defense'), ('modest', 'Modest', 'special_attack', 'attack'),
+    ('mild', 'Mild', 'special_attack', 'defense'), ('quiet', 'Quiet', 'special_attack', 'speed'),
+    ('bashful', 'Bashful', None, None), ('rash', 'Rash', 'special_attack', 'special_defense'),
+    ('calm', 'Calm', 'special_defense', 'attack'), ('gentle', 'Gentle', 'special_defense', 'defense'),
+    ('sassy', 'Sassy', 'special_defense', 'speed'), ('careful', 'Careful', 'special_defense', 'special_attack'),
+    ('quirky', 'Quirky', None, None),
+]
+MOVE_STAT_EFFECT_ROWS = [
+    (28, 'accuracy', -1, 100, 'target'), (39, 'defense', -1, 100, 'target'),
+    (43, 'defense', -1, 100, 'target'), (45, 'attack', -1, 100, 'target'),
+    (51, 'defense', -1, 33, 'target'), (61, 'speed', -1, 33, 'target'),
+    (62, 'attack', -1, 10, 'target'), (81, 'speed', -1, 100, 'target'),
+    (94, 'special_attack', -1, 33, 'target'), (94, 'special_defense', -1, 33, 'target'),
+    (96, 'attack', 1, 100, 'user'), (97, 'speed', 2, 100, 'user'),
+    (103, 'defense', -2, 100, 'target'), (104, 'evasion', 1, 100, 'user'),
+    (106, 'defense', 1, 100, 'user'), (107, 'evasion', 1, 100, 'user'),
+    (108, 'accuracy', -1, 100, 'target'), (110, 'defense', 1, 100, 'user'),
+    (111, 'defense', 1, 100, 'user'), (112, 'defense', 2, 100, 'user'),
+    (132, 'speed', -1, 10, 'target'), (133, 'special_attack', 2, 100, 'user'),
+    (133, 'special_defense', 2, 100, 'user'), (134, 'accuracy', -1, 100, 'target'),
+    (145, 'speed', -1, 33, 'target'), (159, 'attack', 1, 100, 'user'),
+]
 
 
 def get(path):
@@ -154,6 +185,9 @@ def item_healing(item):
 
 
 def main():
+    with GENERATION_ONE_DATA.open() as source:
+        generation_one = json.load(source)
+    ev_yields = {entry['id']: entry['ev_yield'] for entry in generation_one}
     item_costs = get_item_costs()
     with ThreadPoolExecutor(max_workers=12) as pool:
         moves = list(pool.map(lambda value: get(f'move/{value}'), range(1, 166)))
@@ -184,7 +218,8 @@ def main():
         identifier = species['id']
         pokemon = pokemon_by_id[identifier]
         stats = {entry['stat']['name']: entry['base_stat'] for entry in pokemon['stats']}
-        species_rows.append((identifier, species['name'], species['name'].replace('-', ' ').title(), pokemon['height'], pokemon['weight'], english_flavor(species) or species['name'].replace('-', ' ').title(), species['gender_rate'], stats['hp'], stats['attack'], stats['defense'], stats['special-attack'], stats['special-defense'], stats['speed']))
+        ev_yield = ev_yields[identifier]
+        species_rows.append((identifier, species['name'], species['name'].replace('-', ' ').title(), pokemon['height'], pokemon['weight'], english_flavor(species) or species['name'].replace('-', ' ').title(), species['gender_rate'], stats['hp'], stats['attack'], stats['defense'], stats['special-attack'], stats['special-defense'], stats['speed'], ev_yield['hp'], ev_yield['attack'], ev_yield['defense'], ev_yield['special-attack'], ev_yield['special-defense'], ev_yield['speed']))
         for slot, entry in enumerate(generation_one_types(pokemon), 1):
             species_type_rows.append((identifier, TYPE_NAMES.index(entry['type']['name']) + 1, slot))
         for entry in pokemon['moves']:
@@ -264,18 +299,25 @@ def main():
         (5, 'storm-grove', 'Storm Grove', 'A woodland clearing charged by frequent storms.', 33, 39, 3),
     ]
     location_species_rows = [(1, 16, 1, 2, 4, 70), (1, 19, 2, 2, 3, 30), (2, 41, 1, 5, 7, 60), (2, 74, 2, 6, 8, 40), (3, 4, 1, 8, 10, 65), (4, 54, 1, 4, 6, 55), (4, 60, 2, 3, 6, 45), (5, 25, 1, 9, 12, 60), (5, 43, 2, 8, 11, 40)]
+    location_wave_range_rows = [
+        (1, 1, 2), (1, 2, 4), (2, 1, 2), (2, 2, 4), (3, 1, 2),
+        (3, 2, 4), (4, 1, 2), (4, 2, 4), (5, 1, 2), (5, 2, 4),
+    ]
     queries = [
         '-- Generated by scripts/generate_game_seed.py. Sources: Pokémon Database validation and PokéAPI canonical records.\n',
         'insert into public.types (id, slug, name, is_legacy) values\n' + values(type_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, is_legacy = excluded.is_legacy;\n',
         'insert into public.type_effectiveness (attacker_type_id, defender_type_id, multiplier) values\n' + values(effectiveness_rows) + '\non conflict (attacker_type_id, defender_type_id) do update set multiplier = excluded.multiplier;\n',
         'insert into public.items (id, slug, name, category, buy_price, sell_price, effect_description, healing_amount, restores_full_health, restores_pp, revives, capture_rate_multiplier) values\n' + values(item_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, category = excluded.category, buy_price = excluded.buy_price, sell_price = excluded.sell_price, effect_description = excluded.effect_description, healing_amount = excluded.healing_amount, restores_full_health = excluded.restores_full_health, restores_pp = excluded.restores_pp, revives = excluded.revives, capture_rate_multiplier = excluded.capture_rate_multiplier;\n',
-        'insert into public.species (id, slug, name, height_decimeters, weight_hectograms, description, gender_rate, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed) values\n' + values(species_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, height_decimeters = excluded.height_decimeters, weight_hectograms = excluded.weight_hectograms, description = excluded.description, gender_rate = excluded.gender_rate, base_hp = excluded.base_hp, base_attack = excluded.base_attack, base_defense = excluded.base_defense, base_special_attack = excluded.base_special_attack, base_special_defense = excluded.base_special_defense, base_speed = excluded.base_speed;\n',
+        'insert into public.natures (slug, name, increased_stat, decreased_stat) values\n' + values(NATURE_ROWS) + '\non conflict (slug) do update set name = excluded.name, increased_stat = excluded.increased_stat, decreased_stat = excluded.decreased_stat;\n',
+        'insert into public.species (id, slug, name, height_decimeters, weight_hectograms, description, gender_rate, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, ev_yield_hp, ev_yield_attack, ev_yield_defense, ev_yield_special_attack, ev_yield_special_defense, ev_yield_speed) values\n' + values(species_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, height_decimeters = excluded.height_decimeters, weight_hectograms = excluded.weight_hectograms, description = excluded.description, gender_rate = excluded.gender_rate, base_hp = excluded.base_hp, base_attack = excluded.base_attack, base_defense = excluded.base_defense, base_special_attack = excluded.base_special_attack, base_special_defense = excluded.base_special_defense, base_speed = excluded.base_speed, ev_yield_hp = excluded.ev_yield_hp, ev_yield_attack = excluded.ev_yield_attack, ev_yield_defense = excluded.ev_yield_defense, ev_yield_special_attack = excluded.ev_yield_special_attack, ev_yield_special_defense = excluded.ev_yield_special_defense, ev_yield_speed = excluded.ev_yield_speed;\n',
         'insert into public.species_types (species_id, type_id, slot) values\n' + values(species_type_rows) + '\non conflict (species_id, type_id) do update set slot = excluded.slot;\n',
         'insert into public.moves (id, slug, name, type_id, category, power, accuracy, base_pp, priority, effect_description, cooldown_ms, delivery, target, area_shape, range_tiles, area_radius, area_length, area_width) values\n' + values(move_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, type_id = excluded.type_id, category = excluded.category, power = excluded.power, accuracy = excluded.accuracy, base_pp = excluded.base_pp, priority = excluded.priority, effect_description = excluded.effect_description, cooldown_ms = excluded.cooldown_ms, delivery = excluded.delivery, target = excluded.target, area_shape = excluded.area_shape, range_tiles = excluded.range_tiles, area_radius = excluded.area_radius, area_length = excluded.area_length, area_width = excluded.area_width;\n',
+        'insert into public.move_stat_effects (move_id, stat, stage, chance, target) values\n' + values(MOVE_STAT_EFFECT_ROWS) + '\non conflict (move_id, stat, target) do update set stage = excluded.stage, chance = excluded.chance;\n',
         'insert into public.species_move_learnsets (species_id, move_id, learn_method, required_level, machine_code) values\n' + values(learnset_rows) + '\non conflict (species_id, move_id, learn_method) do update set required_level = excluded.required_level, machine_code = excluded.machine_code;\n',
         'insert into public.evolutions (from_species_id, to_species_id, trigger, required_level, required_item_id) values\n' + values(evolution_rows) + '\non conflict (from_species_id, to_species_id, trigger) do update set required_level = excluded.required_level, required_item_id = excluded.required_item_id;\n',
         'insert into public.hunting_locations (id, slug, name, description, position_x, position_y, wave_delay_seconds) values\n' + values(location_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, position_x = excluded.position_x, position_y = excluded.position_y, wave_delay_seconds = excluded.wave_delay_seconds;\n',
         'insert into public.hunting_location_species (hunting_location_id, species_id, slot, minimum_level, maximum_level, encounter_weight) values\n' + values(location_species_rows) + '\non conflict (hunting_location_id, species_id) do update set slot = excluded.slot, minimum_level = excluded.minimum_level, maximum_level = excluded.maximum_level, encounter_weight = excluded.encounter_weight;\n',
+        'insert into public.hunting_location_wave_ranges (hunting_location_id, minimum_size, maximum_size) values\n' + values(location_wave_range_rows) + '\non conflict (hunting_location_id, minimum_size, maximum_size) do nothing;\n',
     ]
     (ROOT / 'supabase' / 'seed.sql').write_text('\n'.join(queries))
 

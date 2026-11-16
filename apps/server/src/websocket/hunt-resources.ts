@@ -23,17 +23,39 @@ export type HuntAbilityResource = {
   cooldownMs: number;
   id: number;
   isFire: boolean;
+  effects: Array<HuntStatEffectResource>;
   name: string;
   power: number | null;
   rangeTiles: number;
   requiredLevel: number;
   slot: number;
+  target: 'self' | 'tile' | 'unit';
   typeSlug: string;
   typeId: number;
+};
+export type HuntBattleStat =
+  | 'attack'
+  | 'defense'
+  | 'specialAttack'
+  | 'specialDefense'
+  | 'speed'
+  | 'accuracy'
+  | 'evasion';
+export type HuntStatEffectResource = {
+  chance: number;
+  stage: number;
+  stat: HuntBattleStat;
+  target: 'target' | 'user';
 };
 export type HuntCreatureResource = {
   abilities: Array<HuntAbilityResource>;
   experience: string;
+  evAttack: number;
+  evDefense: number;
+  evHealth: number;
+  evSpecialAttack: number;
+  evSpecialDefense: number;
+  evSpeed: number;
   id: string;
   ivAttack: number;
   ivDefense: number;
@@ -42,8 +64,14 @@ export type HuntCreatureResource = {
   ivSpecialDefense: number;
   ivSpeed: number;
   level: number;
+  nature: HuntNatureResource;
   speciesId: number;
   teamPosition: number;
+};
+export type HuntNatureResource = {
+  decreasedStat: Exclude<HuntBattleStat, 'accuracy' | 'evasion'> | null;
+  increasedStat: Exclude<HuntBattleStat, 'accuracy' | 'evasion'> | null;
+  slug: string;
 };
 export type HuntCharacterResource = {
   avatarUrl: string | null;
@@ -63,6 +91,12 @@ export type HuntSpeciesResource = {
   baseSpecialAttack: number;
   baseSpecialDefense: number;
   baseSpeed: number;
+  evYieldAttack: number;
+  evYieldDefense: number;
+  evYieldHealth: number;
+  evYieldSpecialAttack: number;
+  evYieldSpecialDefense: number;
+  evYieldSpeed: number;
   id: number;
   name: string;
   typeIds: Array<number>;
@@ -91,6 +125,12 @@ export type HuntResources = {
 };
 
 type CreatureRow = {
+  ev_attack: number;
+  ev_defense: number;
+  ev_hp: number;
+  ev_special_attack: number;
+  ev_special_defense: number;
+  ev_speed: number;
   experience: number | string;
   id: string;
   iv_attack: number;
@@ -100,8 +140,14 @@ type CreatureRow = {
   iv_special_defense: number;
   iv_speed: number;
   level: number;
+  nature_slug: string;
   species_id: number;
   party_slot: number;
+};
+type NatureRow = {
+  decreased_stat: string | null;
+  increased_stat: string | null;
+  slug: string;
 };
 type CharacterRow = {
   active_creature_id: string | null;
@@ -127,8 +173,21 @@ type SpeciesRow = {
   base_special_attack: number;
   base_special_defense: number;
   base_speed: number;
+  ev_yield_attack: number;
+  ev_yield_defense: number;
+  ev_yield_hp: number;
+  ev_yield_special_attack: number;
+  ev_yield_special_defense: number;
+  ev_yield_speed: number;
   id: number;
   name: string;
+};
+type MoveStatEffectRow = {
+  chance: number;
+  move_id: number;
+  stage: number;
+  stat: string;
+  target: 'target' | 'user';
 };
 type EquippedAbilityRow = {
   move_id: number;
@@ -153,6 +212,7 @@ type AbilityRow = {
   area_shape: string;
   area_width: number;
   range_tiles: number;
+  target: 'self' | 'tile' | 'unit';
   type_id: number;
 };
 type TypeRow = { id: number; slug: string };
@@ -167,6 +227,27 @@ type ResourceQueries = [
   PromiseLike<{ data: unknown; error: unknown }>,
 ];
 
+function databaseStat(value: string | null): HuntBattleStat | null {
+  switch (value) {
+    case 'attack':
+      return 'attack';
+    case 'defense':
+      return 'defense';
+    case 'special_attack':
+      return 'specialAttack';
+    case 'special_defense':
+      return 'specialDefense';
+    case 'speed':
+      return 'speed';
+    case 'accuracy':
+      return 'accuracy';
+    case 'evasion':
+      return 'evasion';
+    default:
+      return null;
+  }
+}
+
 export async function loadHuntResources(
   client: SupabaseClient,
   characterId: string,
@@ -176,7 +257,7 @@ export async function loadHuntResources(
     client
       .from('creatures')
       .select(
-        'id, species_id, party_slot, experience, level, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed',
+        'id, species_id, party_slot, experience, level, nature_slug, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed, ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed',
       )
       .eq('character_id', characterId)
       .not('party_slot', 'is', null)
@@ -205,7 +286,7 @@ export async function loadHuntResources(
     loadCharacterHealingResources(client, characterId),
     loadCharacterCaptureResources(client, characterId),
   ]);
-  const [characterResult, evolutionResult] = await Promise.all([
+  const [characterResult, evolutionResult, natureResult] = await Promise.all([
     client
       .from('characters')
       .select('name, level, avatar_url, active_creature_id')
@@ -215,14 +296,29 @@ export async function loadHuntResources(
       .from('evolutions')
       .select('from_species_id, to_species_id, required_level')
       .eq('trigger', 'level'),
+    client.from('natures').select('slug, increased_stat, decreased_stat'),
   ]);
-  if (characterResult.error) {
-    throw characterResult.error;
+  if (characterResult.error || natureResult.error) {
+    throw characterResult.error ?? natureResult.error;
   }
   if (evolutionResult.error) {
     throw evolutionResult.error;
   }
   const character = characterResult.data as CharacterRow;
+  const natures = new Map<string, HuntNatureResource>();
+  for (const row of natureResult.data as Array<NatureRow>) {
+    const increasedStat = databaseStat(row.increased_stat);
+    const decreasedStat = databaseStat(row.decreased_stat);
+    if (
+      increasedStat === 'accuracy' ||
+      increasedStat === 'evasion' ||
+      decreasedStat === 'accuracy' ||
+      decreasedStat === 'evasion'
+    ) {
+      continue;
+    }
+    natures.set(row.slug, { decreasedStat, increasedStat, slug: row.slug });
+  }
   const evolutionRows = evolutionResult.data as Array<EvolutionRow>;
   const evolutions = evolutionRows.map(function evolution(
     row: EvolutionRow,
@@ -251,7 +347,7 @@ export async function loadHuntResources(
     client
       .from('species')
       .select(
-        'id, name, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed',
+        'id, name, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, ev_yield_hp, ev_yield_attack, ev_yield_defense, ev_yield_special_attack, ev_yield_special_defense, ev_yield_speed',
       )
       .in('id', speciesIds),
     client
@@ -289,17 +385,33 @@ export async function loadHuntResources(
     }),
   );
   let abilityRows: Array<AbilityRow> = [];
+  const effectsByMove = new Map<number, Array<HuntStatEffectResource>>();
   if (abilityIds.length > 0) {
-    const abilityResult = await client
-      .from('moves')
-      .select(
-        'id, name, category, type_id, power, accuracy, cooldown_ms, range_tiles, area_radius, area_length, area_width, area_shape',
-      )
-      .in('id', abilityIds);
-    if (abilityResult.error) {
-      throw abilityResult.error;
+    const [abilityResult, effectResult] = await Promise.all([
+      client
+        .from('moves')
+        .select(
+          'id, name, category, type_id, power, accuracy, cooldown_ms, range_tiles, area_radius, area_length, area_width, area_shape, target',
+        )
+        .in('id', abilityIds),
+      client
+        .from('move_stat_effects')
+        .select('move_id, stat, stage, chance, target')
+        .in('move_id', abilityIds),
+    ]);
+    if (abilityResult.error || effectResult.error) {
+      throw abilityResult.error ?? effectResult.error;
     }
     abilityRows = abilityResult.data as Array<AbilityRow>;
+    for (const row of effectResult.data as Array<MoveStatEffectRow>) {
+      const stat = databaseStat(row.stat);
+      if (!stat) {
+        continue;
+      }
+      const effects = effectsByMove.get(row.move_id) ?? [];
+      effects.push({ chance: row.chance, stage: row.stage, stat, target: row.target });
+      effectsByMove.set(row.move_id, effects);
+    }
   }
   const speciesTypes = speciesTypesResult.data as Array<SpeciesTypeRow>;
   const typeIds = uniqueNumbers([
@@ -347,6 +459,7 @@ export async function loadHuntResources(
         areaRadius: Math.max(ability.area_radius, ability.area_length, ability.area_width),
         category: ability.category,
         cooldownMs: ability.cooldown_ms,
+        effects: effectsByMove.get(ability.id) ?? [],
         id: ability.id,
         isFire: typeSlugs.get(ability.type_id) === 'fire',
         name: ability.name,
@@ -354,6 +467,7 @@ export async function loadHuntResources(
         rangeTiles: ability.range_tiles,
         requiredLevel: assignment.requiredLevel,
         slot: assignment.slot,
+        target: ability.target,
         typeId: ability.type_id,
         typeSlug: typeSlugs.get(ability.type_id) ?? 'normal',
       });
@@ -382,8 +496,18 @@ export async function loadHuntResources(
         ? []
         : [{ abilityId: assignment.move_id, requiredLevel, slot: assignment.slot }];
     });
+    const nature = natures.get(row.nature_slug);
+    if (!nature) {
+      throw new TypeError('creature_nature_missing');
+    }
     creatures.push({
       abilities: resolveAssignments(assignments),
+      evAttack: row.ev_attack,
+      evDefense: row.ev_defense,
+      evHealth: row.ev_hp,
+      evSpecialAttack: row.ev_special_attack,
+      evSpecialDefense: row.ev_special_defense,
+      evSpeed: row.ev_speed,
       experience: safeExperience(row.experience),
       id: row.id,
       ivAttack: row.iv_attack,
@@ -393,6 +517,7 @@ export async function loadHuntResources(
       ivSpecialDefense: row.iv_special_defense,
       ivSpeed: row.iv_speed,
       level: row.level,
+      nature,
       speciesId: row.species_id,
       teamPosition: row.party_slot,
     });
@@ -421,6 +546,12 @@ export async function loadHuntResources(
       baseSpecialAttack: row.base_special_attack,
       baseSpecialDefense: row.base_special_defense,
       baseSpeed: row.base_speed,
+      evYieldAttack: row.ev_yield_attack,
+      evYieldDefense: row.ev_yield_defense,
+      evYieldHealth: row.ev_yield_hp,
+      evYieldSpecialAttack: row.ev_yield_special_attack,
+      evYieldSpecialDefense: row.ev_yield_special_defense,
+      evYieldSpeed: row.ev_yield_speed,
       id: row.id,
       name: row.name,
       typeIds: speciesTypes

@@ -70,6 +70,8 @@ Na parte inferior ficam dois botões, "Criar" e "Voltar", sendo que "Voltar" est
 
 Ao clicar em criar, o personagem é criado no primeiro slot livre da conta, a consulta da lista é invalidada e o usuário é redirecionado para a [tela de lista de personagens](#tela-de-lista-de-personagens).
 
+O personagem recebe uma criatura inicial aleatória entre as três espécies iniciais, no nível 5, já posicionada no primeiro slot da equipe e definida como criatura ativa.
+
 Cada conta pode ter no máximo 5 personagens. O limite é imposto pela função do banco, que serializa criações concorrentes da mesma conta e retorna um erro quando não há slot livre. Nesse caso, a tela exibe "Você atingiu o limite de 5 personagens.". O redirecionamento preventivo ao acessar a tela ainda não está implementado.
 
 Ao clicar em voltar, o usuário é redirecionado de volta para a [tela de lista de personagens](#tela-de-lista-de-personagens).

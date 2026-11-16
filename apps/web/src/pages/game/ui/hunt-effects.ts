@@ -5,11 +5,12 @@ import { huntElementBackgroundColor } from '../lib/hunt-element-colors';
 
 type CombatVisual = { event: HuntCombatEvent; startedAt: number };
 type Damage = HuntCombatEvent['damages'][number];
+type CombatFeedback = HuntCombatEvent['feedback'][number];
 type FeedbackVisual = {
   effectiveness: Damage['effectiveness'] | undefined;
   label: GameObjects.DOMElement;
   tile: Damage['tile'];
-  type: 'ability' | 'damage';
+  type: 'ability' | 'damage' | 'status';
 };
 type FeedbackList = Array<FeedbackVisual>;
 type Feedbacks = { labels: FeedbackList; startedAt: number };
@@ -185,6 +186,9 @@ export class HuntEffects {
     for (const damage of event.damages) {
       labels.push(this.createDamageLabel(damage, event.element));
     }
+    for (const feedback of event.feedback) {
+      labels.push(this.createStatusLabel(feedback));
+    }
     this.feedback.set(event.id, { labels, startedAt });
   }
 
@@ -209,6 +213,17 @@ export class HuntEffects {
       .setOrigin(0, 0.5)
       .setScrollFactor(0);
     return { effectiveness: damage.effectiveness, label, tile: damage.tile, type: 'damage' };
+  }
+
+  private createStatusLabel(feedback: CombatFeedback): FeedbackVisual {
+    const labelNode = HuntEffects.feedbackNode('status', feedback.text.toUpperCase());
+    labelNode.style.setProperty('--feedback-color', '#fdd835');
+    const label = this.effects.scene.add
+      .dom(0, 0, labelNode)
+      .setDepth(10_002)
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0);
+    return { effectiveness: undefined, label, tile: feedback.tile, type: 'status' };
   }
 
   private updateFeedback(now: number): void {

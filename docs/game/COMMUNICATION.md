@@ -331,7 +331,7 @@ O servidor exige versão e timestamp finito e responde com `hunt_clock`. Não gr
 }
 ```
 
-Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, posse da caça e disponibilidade do item. A configuração é persistida e a resposta é `hunt_state`.
+Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, posse da caça e disponibilidade do item. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; a persistência e o estado devolvido pelo servidor continuam autoritativos. Em caso de rejeição na cidade, o cliente pede um `collection_state` novo para reverter a projeção local. A resposta é `hunt_state` durante a caça e `collection_state` na cidade.
 
 ### `configure_capture`
 
@@ -344,7 +344,7 @@ Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, p
 }
 ```
 
-Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. A seleção de raridades é comparada à raridade calculada pelos seis IVs sorteados quando o encontro surge; os mesmos IVs são persistidos caso a captura tenha sucesso. As faixas de raridade estão em `docs/game/HUNTING.md`. Responde com `hunt_state`.
+Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; o estado autoritativo do servidor confirma ou corrige essa projeção. A seleção de raridades é comparada à raridade calculada pelos seis IVs sorteados quando o encontro surge; os mesmos IVs são persistidos caso a captura tenha sucesso. As faixas de raridade estão em `docs/game/HUNTING.md`. Responde com `hunt_state` durante a caça e `collection_state` na cidade.
 
 ### `configure_wave_range`
 
@@ -357,7 +357,7 @@ Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permiti
 }
 ```
 
-Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do local de caça atual. Atualiza a faixa selecionada no checkpoint da caça e responde com `hunt_state`. A troca nunca muda os inimigos da onda em curso: passa a ser usada somente no sorteio da próxima onda.
+Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do local de caça atual. O cliente atualiza a faixa otimisticamente após enviar o comando, e o `hunt_state` autoritativo confirma ou corrige a projeção. Atualiza a faixa selecionada no checkpoint da caça e responde com `hunt_state`. A troca nunca muda os inimigos da onda em curso: passa a ser usada somente no sorteio da próxima onda.
 
 ### `configure_ability`
 
@@ -370,7 +370,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_state` atualizado.
+`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. O cliente atualiza o slot otimisticamente após enviar o comando; o `hunt_state` ou `collection_state` autoritativo confirma ou corrige a projeção. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_state` atualizado.
 
 ### `switch_active_creature`
 
@@ -527,13 +527,19 @@ Confirma que a conexão está autorizada a operar o personagem.
     ],
     "playerPosition": { "x": 2, "y": 3 },
     "enemies": [],
-    "combatEvents": [],
+    "combatEvents": [
+      {
+        "id": "event-uuid",
+        "abilityName": "Sand Attack",
+        "feedback": [{ "text": "Acc. Fell", "tile": { "x": 8, "y": 3 } }]
+      }
+    ],
     "captureAttempts": []
   }
 }
 ```
 
-É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
+É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. `combatEvents[].feedback` é uma lista aditiva de mensagens visuais calculadas pelo servidor; cada entrada contém `text` e a `tile` onde deve ser renderizada. Ela comunica acertos falhos (`Miss`) e alterações de estágio, como `Acc. Fell` e `Attack Rose`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
 
 ### `collection_state`
 
@@ -552,7 +558,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. Cada criatura inclui `experience`, `experienceLevelStart` e `experienceNextLevel`, os limites autoritativos da sua faixa de nível usados para renderizar a barra de XP. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
 
 ### `error`, fechamento e heartbeat
 

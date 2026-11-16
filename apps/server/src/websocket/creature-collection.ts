@@ -39,6 +39,8 @@ type CreatureCollectionItem = {
   capturedAt: string;
   elements: Array<string>;
   experience: string;
+  experienceLevelStart: string;
+  experienceNextLevel: string;
   gender: string;
   id: string;
   ivAttack: number;
@@ -79,10 +81,14 @@ function collectionItem(
   species: SpeciesRow,
   elementsBySpecies: Map<number, Array<string>>,
 ): CreatureCollectionItem {
+  const experienceLevelStart = experienceForLevel(row.level).toString();
+  const experienceNextLevel = experienceForLevel(row.level + 1).toString();
   return {
     capturedAt: row.captured_at,
     elements: elementsBySpecies.get(row.species_id) ?? [],
     experience: String(row.experience),
+    experienceLevelStart,
+    experienceNextLevel,
     gender: row.gender,
     id: row.id,
     ivAttack: row.iv_attack,
@@ -96,6 +102,11 @@ function collectionItem(
     rarity: row.rarity,
     species,
   };
+}
+
+function experienceForLevel(level: number): bigint {
+  const value = BigInt(level);
+  return (50n * value * value * value - 150n * value * value + 400n * value) / 3n;
 }
 
 function compareParty(first: CreatureCollectionItem, second: CreatureCollectionItem): number {

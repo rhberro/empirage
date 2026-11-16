@@ -12,6 +12,14 @@ Para cada onda, o servidor sorteia uma quantidade inteira inclusiva entre o mín
 
 Quando um encontro surge, o servidor sorteia independentemente os seis IVs — HP, Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade — com valores inteiros entre 0 e 31. O total possível fica entre 0 e 186. Os mesmos valores permanecem no encontro durante a batalha e são persistidos se a captura for bem-sucedida.
 
+## Atributos de combate
+
+Cada criatura mantém seis IVs de 0 a 31, seis EVs de 0 a 252 (com máximo total de 510) e uma Nature aleatória. Nature nunca altera HP; para cada outro atributo ela aumenta um em 10% e reduz outro em 10%, após o cálculo base. Os EVs usam o rendimento da espécie derrotada registrado no `gen1.json`; somente a criatura ativa que recebe experiência recebe EVs, respeitando os limites individual e total.
+
+Os atributos usam `floor(((2 × base + IV + floor(EV / 4)) × nível) / 100) + nível + 10` para HP e `floor((floor(((2 × base + IV + floor(EV / 4)) × nível) / 100) + 5) × Nature)` para Attack, Defense, Special Attack, Special Defense e Speed. Em batalha, estágios de −6 a +6 modificam os atributos e também Accuracy/Evasion; eles são zerados ao trocar a criatura ativa.
+
+Moves com accuracy nula acertam sempre. Os demais aplicam sua accuracy base, o estágio de Accuracy do usuário e o estágio de Evasion do alvo; 100% acerta sempre quando os estágios são neutros. O cliente recebe feedback de erro e de alteração de estágio pelo `hunt_state`.
+
 ## Raridade
 
 A raridade é derivada exclusivamente da soma dos seis IVs. Esta tabela é a fonte de verdade para a classificação exibida, o filtro de captura e a coluna gerada `creatures.rarity`:

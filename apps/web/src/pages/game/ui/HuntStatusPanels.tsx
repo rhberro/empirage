@@ -202,10 +202,14 @@ function percentage(current: number, maximum: number): number {
   return Math.max(0, Math.min(100, (current / Math.max(1, maximum)) * 100));
 }
 
-function experiencePercentage(currentExperience: string, level: number): number {
+function experiencePercentage(
+  currentExperience: string,
+  experienceLevelStart: string,
+  experienceNextLevel: string,
+): number {
   const current = BigInt(currentExperience);
-  const start = experienceForLevel(level);
-  const next = experienceForLevel(level + 1);
+  const start = BigInt(experienceLevelStart);
+  const next = BigInt(experienceNextLevel);
   return experiencePercentageForInterval(current, start, next);
 }
 
@@ -216,11 +220,6 @@ function experiencePercentageForInterval(current: bigint, start: bigint, next: b
   }
   const percentageValue = Number(((current - start) * 10_000n) / interval) / 100;
   return Math.max(0, Math.min(100, percentageValue));
-}
-
-function experienceForLevel(level: number): bigint {
-  const value = BigInt(level);
-  return (50n * value * value * value - 150n * value * value + 400n * value) / 3n;
 }
 
 function partyForDisplay(party: Party, activeCreatureId: string | null | undefined): Party {
@@ -277,7 +276,11 @@ function statusForCreature(
   }
   return {
     elements: creature.elements,
-    experiencePercentage: experiencePercentage(creature.experience, creature.level),
+    experiencePercentage: experiencePercentage(
+      creature.experience,
+      creature.experienceLevelStart,
+      creature.experienceNextLevel,
+    ),
     level: creature.level,
     name: creature.species.name,
   };
