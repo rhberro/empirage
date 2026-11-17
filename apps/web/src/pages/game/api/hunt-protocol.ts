@@ -140,7 +140,8 @@ export type BattleConfiguration = Pick<
   | 'healingItems'
 >;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
-export type HuntCommand =
+type CommandIdentity = { commandId?: string };
+type HuntCommandPayload =
   | { huntingLocationId: number; type: 'start_hunt'; version: 1 }
   | { type: 'leave_hunt'; version: 1 }
   | {
@@ -175,6 +176,7 @@ export type HuntCommand =
       waveRangeMaximumSize: number;
       waveRangeMinimumSize: number;
     };
+export type HuntCommand = CommandIdentity & HuntCommandPayload;
 type UnknownRecord = Record<string, unknown>;
 type Tiles = Array<Tile>;
 type HuntEnemies = Array<HuntEnemy>;

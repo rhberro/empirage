@@ -1,7 +1,7 @@
 /* eslint-disable import/max-dependencies, max-lines, oxc/no-optional-chaining, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import { Scene } from 'phaser';
 
-import type { CharacterProfile, GameEvent, Tile } from '../api/game-protocol';
+import type { CharacterProfile, CollectionPatchEvent, GameEvent, Tile } from '../api/game-protocol';
 import type { CollectionStateEvent } from '../api/game-protocol';
 import { GameSession } from '../api/game-socket';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
@@ -188,6 +188,10 @@ export class CityScene extends Scene {
       this.synchronizeGameReady();
       return;
     }
+    if (event.type === 'collection_patch') {
+      this.applyCollectionPatch(event);
+      return;
+    }
     if (event.type === 'hunt_clock') {
       if (huntView) {
         huntView.synchronizeClock(event.sentAt, event.receivedAt, event.serverTime);
@@ -358,6 +362,96 @@ export class CityScene extends Scene {
     }
     return this.session.send(command);
   }
+
+  private applyCollectionPatch(event: CollectionPatchEvent): void {
+    const collection = this.collection;
+    if (!collection || event.revision !== collection.revision + 1) {
+      const command = {
+        storagePage: collection?.storagePage ?? 1,
+        type: 'request_creature_storage' as const,
+        version: 1 as const,
+      };
+      this.session.send(command);
+      return;
+    }
+    const currentConfiguration = collection.configuration;
+    if (!currentConfiguration) {
+      this.requestCollection(collection.storagePage);
+      return;
+    }
+    const party = CityScene.applyCreatureProgress(collection.party, event.creatures);
+    const storage = CityScene.applyCreatureProgress(collection.storage, event.creatures);
+    if (!party || !storage) {
+      this.requestCollection(collection.storagePage);
+      return;
+    }
+    const configuration = {
+      ...currentConfiguration,
+      ...event.configuration,
+      captureConfiguration:
+        event.configuration.captureConfiguration === null
+          ? undefined
+          : (event.configuration.captureConfiguration ?? currentConfiguration.captureConfiguration),
+      healingConfiguration:
+        event.configuration.healingConfiguration === null
+          ? undefined
+          : (event.configuration.healingConfiguration ?? currentConfiguration.healingConfiguration),
+    };
+    const nextCollection = {
+      ...collection,
+      configuration,
+      party,
+      revision: event.revision,
+      storage,
+    };
+    this.collection = nextCollection;
+    this.onCollectionChange(nextCollection);
+  }
+
+  private static applyCreatureProgress(
+    creatures: CollectionStateEvent['collection']['party'],
+    progress: CollectionPatchEvent['creatures'],
+  ): CollectionStateEvent['collection']['party'] | null {
+    if (!progress) {
+      return creatures;
+    }
+    const progressById = new Map(
+      progress.map(function progressEntry(entry) {
+        return [entry.id, entry];
+      }),
+    );
+    const nextCreatures = creatures.map(function applyProgress(creature) {
+      const next = progressById.get(creature.id);
+      if (!next) {
+        return creature;
+      }
+      if (next.speciesId !== creature.species.id) {
+        return null;
+      }
+      return {
+        ...creature,
+        experience: next.experience,
+        experienceLevelStart: next.experienceLevelStart,
+        experienceNextLevel: next.experienceNextLevel,
+        level: next.level,
+      };
+    });
+    return nextCreatures.some(function isMissing(creature) {
+      return creature === null;
+    })
+      ? null
+      : (nextCreatures as CollectionStateEvent['collection']['party']);
+  }
+
+  private requestCollection(storagePage: number): void {
+    const command = {
+      storagePage,
+      type: 'request_creature_storage' as const,
+      version: 1 as const,
+    };
+    this.session.send(command);
+  }
+
   private handleVisibilityChange(): void {
     if (globalThis.document.hidden) {
       this.playerInput.neutralize();

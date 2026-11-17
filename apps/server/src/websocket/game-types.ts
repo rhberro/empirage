@@ -48,6 +48,7 @@ export type ClientMessage = {
   abilityId?: unknown;
   abilitySlot?: unknown;
   characterId?: unknown;
+  commandId?: unknown;
   creatureId?: unknown;
   captureItemId?: unknown;
   captureRarities?: unknown;

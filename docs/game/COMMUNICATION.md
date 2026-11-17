@@ -318,7 +318,7 @@ O servidor exige versão e timestamp finito e responde com `hunt_clock`. Não gr
 { "type": "leave_hunt", "version": 1 }
 ```
 
-`start_hunt` exige um identificador inteiro de local existente, personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. O servidor usa exclusivamente o local solicitado; não há seleção aleatória. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`.
+`start_hunt` exige um identificador inteiro de local existente, personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. O servidor usa exclusivamente o local solicitado; não há seleção aleatória. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`; ao retornar à cidade, `leave_hunt` também emite um `collection_patch` incremental com a experiência e o nível persistidos da equipe.
 
 ### `configure_healing_item`
 
@@ -331,7 +331,7 @@ O servidor exige versão e timestamp finito e responde com `hunt_clock`. Não gr
 }
 ```
 
-Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, posse da caça e disponibilidade do item. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; a persistência e o estado devolvido pelo servidor continuam autoritativos. Em caso de rejeição na cidade, o cliente pede um `collection_state` novo para reverter a projeção local. A resposta é `hunt_state` durante a caça e `collection_state` na cidade.
+Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, posse da caça e disponibilidade do item. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; a persistência e o estado devolvido pelo servidor continuam autoritativos. Em caso de rejeição na cidade, o cliente pede um `collection_state` novo para reverter a projeção local. A resposta é `hunt_state` durante a caça e `collection_patch` na cidade.
 
 ### `configure_capture`
 
@@ -344,7 +344,7 @@ Para desativar: `healingItemId: 0`. Valida inteiros, percentual entre 1 e 100, p
 }
 ```
 
-Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; o estado autoritativo do servidor confirma ou corrige essa projeção. A seleção de raridades é comparada à raridade calculada pelos seis IVs sorteados quando o encontro surge; os mesmos IVs são persistidos caso a captura tenha sucesso. As faixas de raridade estão em `docs/game/HUNTING.md`. Responde com `hunt_state` durante a caça e `collection_state` na cidade.
+Para desativar: `captureItemId: 0` e lista vazia. Valida item, raridades permitidas, lista não vazia quando ativa e propriedade da caça. O cliente reflete otimisticamente uma configuração enviada por uma conexão autenticada; o estado autoritativo do servidor confirma ou corrige essa projeção. A seleção de raridades é comparada à raridade calculada pelos seis IVs sorteados quando o encontro surge; os mesmos IVs são persistidos caso a captura tenha sucesso. As faixas de raridade estão em `docs/game/HUNTING.md`. Responde com `hunt_state` durante a caça e `collection_patch` na cidade.
 
 ### `configure_wave_range`
 
@@ -370,7 +370,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. O cliente atualiza o slot otimisticamente após enviar o comando; o `hunt_state` ou `collection_state` autoritativo confirma ou corrige a projeção. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_state` atualizado.
+`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. O cliente atualiza o slot otimisticamente após enviar o comando; o `hunt_state` ou `collection_patch` autoritativo confirma ou corrige a projeção. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_patch` atualizado.
 
 ### `switch_active_creature`
 
@@ -516,6 +516,7 @@ Confirma que a conexão está autorizada a operar o personagem.
     "waveRange": { "minimumSize": 2, "maximumSize": 4 },
     "gold": 180,
     "activeCreatureId": "creature-uuid",
+    "revision": 42,
     "activeCreatureHealth": 42,
     "activeCreatureMaximumHealth": 80,
     "partyHealth": [
@@ -558,7 +559,25 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. Cada criatura inclui `experience`, `experienceLevelStart` e `experienceNextLevel`, os limites autoritativos da sua faixa de nível usados para renderizar a barra de XP. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. Cada criatura inclui `experience`, `experienceLevelStart` e `experienceNextLevel`, os limites autoritativos da sua faixa de nível usados para renderizar a barra de XP. `revision` identifica a versão local da coleção. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+
+### `collection_patch`
+
+```json
+{
+  "type": "collection_patch",
+  "version": 1,
+  "commandId": "command-uuid",
+  "revision": 43,
+  "configuration": {
+    "healingConfiguration": { "itemId": 4, "thresholdPercentage": 30 }
+  }
+}
+```
+
+Confirma uma alteração incremental da coleção na cidade. O cliente aplica o patch somente quando a revisão é imediatamente posterior à sua coleção local; em qualquer lacuna, pede um `collection_state` completo. `commandId` correlaciona a confirmação com a projeção otimista. Alterações de cura e captura carregam a configuração canônica; alterações de move podem ter uma configuração vazia porque o cliente já possui os metadados estáticos da habilidade escolhida.
+
+Após o checkpoint final de `leave_hunt`, o mesmo evento contém `creatures`, uma lista limitada à equipe com `id`, `speciesId`, `level`, `experience`, `experienceLevelStart` e `experienceNextLevel`. Assim, a cidade atualiza os cards com os valores efetivamente persistidos sem recarregar armazenamento, espécies, IVs ou configurações. Se uma espécie mudou por evolução durante a caça, o cliente detecta a divergência de `speciesId` e pede o `collection_state` completo para atualizar também seus metadados visuais.
 
 ### `error`, fechamento e heartbeat
 

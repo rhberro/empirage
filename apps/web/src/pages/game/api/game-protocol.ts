@@ -1,6 +1,6 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { readHuntState } from './hunt-protocol';
-import type { BattleConfiguration } from './hunt-protocol';
+import type { BattleConfiguration, CaptureRarity } from './hunt-protocol';
 /* eslint-disable max-lines */
 import type { HuntStateEvent } from './hunt-protocol';
 
@@ -123,6 +123,7 @@ export type CollectionStateEvent = {
     activeCreatureId: string | null;
     configuration?: BattleConfiguration;
     party: Array<CollectionCreature>;
+    revision: number;
     storage: Array<CollectionCreature>;
     storagePage: number;
     storagePageCount: number;
@@ -130,11 +131,31 @@ export type CollectionStateEvent = {
   };
   type: 'collection_state';
 };
+export type CollectionConfigurationPatch = {
+  captureConfiguration?: BattleConfiguration['captureConfiguration'] | null;
+  healingConfiguration?: BattleConfiguration['healingConfiguration'] | null;
+};
+export type CollectionCreatureProgress = {
+  experience: string;
+  experienceLevelStart: string;
+  experienceNextLevel: string;
+  id: string;
+  level: number;
+  speciesId: number;
+};
+export type CollectionPatchEvent = {
+  commandId: string | undefined;
+  configuration: CollectionConfigurationPatch;
+  creatures: Array<CollectionCreatureProgress> | undefined;
+  revision: number;
+  type: 'collection_patch';
+};
 export type ErrorEvent = { code: string; type: 'error' };
 export type InputRejectedEvent = { code: string; reason: string; type: 'input_rejected' };
 export type ConnectionStatusEvent = { message: string; type: 'connection_status' };
 export type GameEvent =
   | AuthenticatedEvent
+  | CollectionPatchEvent
   | CollectionStateEvent
   | ConnectionStatusEvent
   | ErrorEvent
@@ -369,6 +390,7 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
       typeof value.collection.activeCreatureId !== 'string') ||
     !Array.isArray(value.collection.party) ||
     !Array.isArray(value.collection.storage) ||
+    !isTick(value.collection.revision) ||
     !isPositiveInteger(value.collection.storagePage) ||
     !isPositiveInteger(value.collection.storagePageCount) ||
     !isCount(value.collection.storageTotal)
@@ -385,6 +407,7 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
       activeCreatureId: value.collection.activeCreatureId,
       configuration: value.collection.configuration as BattleConfiguration | undefined,
       party: party as Array<CollectionCreature>,
+      revision: value.collection.revision,
       storage: storage as Array<CollectionCreature>,
       storagePage: value.collection.storagePage,
       storagePageCount: value.collection.storagePageCount,
@@ -392,6 +415,120 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
     },
     type: 'collection_state',
   };
+}
+
+function readCollectionPatch(value: UnknownRecord): CollectionPatchEvent | null {
+  if (
+    !isTick(value.revision) ||
+    !isRecord(value.configuration) ||
+    (value.commandId !== undefined && typeof value.commandId !== 'string')
+  ) {
+    return null;
+  }
+  const healingConfiguration = readPatchedHealingConfiguration(value.configuration);
+  const captureConfiguration = readPatchedCaptureConfiguration(value.configuration);
+  const creatures = readCollectionCreatureProgress(value.creatures);
+  if (healingConfiguration === null || captureConfiguration === null || creatures === null) {
+    return null;
+  }
+  const configuration: CollectionConfigurationPatch = {};
+  if (healingConfiguration !== undefined) {
+    configuration.healingConfiguration = healingConfiguration;
+  }
+  if (captureConfiguration !== undefined) {
+    configuration.captureConfiguration = captureConfiguration;
+  }
+  return {
+    commandId: typeof value.commandId === 'string' ? value.commandId : undefined,
+    configuration,
+    creatures,
+    revision: value.revision,
+    type: 'collection_patch',
+  };
+}
+
+function readCollectionCreatureProgress(
+  value: unknown,
+): Array<CollectionCreatureProgress> | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const creatures: Array<CollectionCreatureProgress> = [];
+  for (const candidate of value) {
+    if (
+      !isRecord(candidate) ||
+      typeof candidate.experience !== 'string' ||
+      typeof candidate.experienceLevelStart !== 'string' ||
+      typeof candidate.experienceNextLevel !== 'string' ||
+      typeof candidate.id !== 'string' ||
+      !isFiniteNumberField(candidate, 'level') ||
+      !isFiniteNumberField(candidate, 'speciesId')
+    ) {
+      return null;
+    }
+    const creature = {
+      experience: candidate.experience,
+      experienceLevelStart: candidate.experienceLevelStart,
+      experienceNextLevel: candidate.experienceNextLevel,
+      id: candidate.id,
+      level: candidate.level,
+      speciesId: candidate.speciesId,
+    };
+    creatures.push(creature);
+  }
+  return creatures;
+}
+
+function readPatchedHealingConfiguration(
+  value: UnknownRecord,
+): CollectionConfigurationPatch['healingConfiguration'] | null | undefined {
+  if (value.healingConfiguration === undefined || value.healingConfiguration === null) {
+    return value.healingConfiguration;
+  }
+  if (
+    !isRecord(value.healingConfiguration) ||
+    !isCount(value.healingConfiguration.itemId) ||
+    !isCount(value.healingConfiguration.thresholdPercentage)
+  ) {
+    return null;
+  }
+  return {
+    itemId: value.healingConfiguration.itemId,
+    thresholdPercentage: value.healingConfiguration.thresholdPercentage,
+  };
+}
+
+function readPatchedCaptureConfiguration(
+  value: UnknownRecord,
+): CollectionConfigurationPatch['captureConfiguration'] | null | undefined {
+  if (value.captureConfiguration === undefined || value.captureConfiguration === null) {
+    return value.captureConfiguration;
+  }
+  if (
+    !isRecord(value.captureConfiguration) ||
+    !isCount(value.captureConfiguration.itemId) ||
+    !Array.isArray(value.captureConfiguration.rarities)
+  ) {
+    return null;
+  }
+  const rarities = value.captureConfiguration.rarities;
+  if (!rarities.every(isCaptureRarity)) {
+    return null;
+  }
+  return { itemId: value.captureConfiguration.itemId, rarities };
+}
+
+function isCaptureRarity(value: unknown): value is CaptureRarity {
+  return (
+    value === 'common' ||
+    value === 'uncommon' ||
+    value === 'rare' ||
+    value === 'epic' ||
+    value === 'legendary'
+  );
 }
 
 function isPositiveInteger(value: unknown): value is number {
@@ -474,6 +611,9 @@ export function parseGameEvent(value: unknown): GameEvent | null {
   }
   if (value.type === 'collection_state') {
     return readCollectionState(value);
+  }
+  if (value.type === 'collection_patch') {
+    return readCollectionPatch(value);
   }
   if (value.type === 'hunt_clock') {
     return readHuntClock(value);

@@ -1,6 +1,7 @@
 /* eslint-disable complexity, max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { experienceForLevel } from './hunt-engine.ts';
 type CreatureRow = {
   captured_at: string;
   experience: number | string;
@@ -34,7 +35,7 @@ type SpeciesTypeRow = { species_id: number; type_id: number };
 type SpeciesTypeRows = Array<SpeciesTypeRow>;
 type TypeRow = { id: number; name: string };
 type TypeRows = Array<TypeRow>;
-type ActiveCreatureRow = { active_creature_id: string | null };
+type ActiveCreatureRow = { active_creature_id: string | null; collection_revision: number };
 type CreatureCollectionItem = {
   capturedAt: string;
   elements: Array<string>;
@@ -55,9 +56,27 @@ type CreatureCollectionItem = {
   species: SpeciesRow;
 };
 type CreatureCollectionItems = Array<CreatureCollectionItem>;
+type CreatureProgressRow = {
+  experience: number | string;
+  id: string;
+  level: number;
+  species_id: number;
+};
+type CreatureProgressRows = Array<CreatureProgressRow>;
+
+export type CreatureCollectionProgress = {
+  experience: string;
+  experienceLevelStart: string;
+  experienceNextLevel: string;
+  id: string;
+  level: number;
+  speciesId: number;
+};
+export type CreatureCollectionProgresses = Array<CreatureCollectionProgress>;
 
 export type CreatureCollection = {
   activeCreatureId: string | null;
+  revision: number;
   configuration?: unknown;
   party: CreatureCollectionItems;
   storage: CreatureCollectionItems;
@@ -104,13 +123,35 @@ function collectionItem(
   };
 }
 
-function experienceForLevel(level: number): bigint {
-  const value = BigInt(level);
-  return (50n * value * value * value - 150n * value * value + 400n * value) / 3n;
-}
-
 function compareParty(first: CreatureCollectionItem, second: CreatureCollectionItem): number {
   return (first.partySlot ?? 0) - (second.partySlot ?? 0);
+}
+
+export async function loadCreatureCollectionProgress(
+  client: SupabaseClient,
+  characterId: string,
+): Promise<CreatureCollectionProgresses> {
+  const fields = 'id, species_id, experience, level';
+  const result = await client
+    .from('creatures')
+    .select(fields)
+    .eq('character_id', characterId)
+    .not('party_slot', 'is', null)
+    .order('party_slot', { ascending: true });
+  if (result.error) {
+    throw result.error;
+  }
+  const rows = (result.data ?? []) as CreatureProgressRows;
+  return rows.map(function toProgress(row): CreatureCollectionProgress {
+    return {
+      experience: String(row.experience),
+      experienceLevelStart: experienceForLevel(row.level).toString(),
+      experienceNextLevel: experienceForLevel(row.level + 1).toString(),
+      id: row.id,
+      level: row.level,
+      speciesId: row.species_id,
+    };
+  });
 }
 
 export async function loadCreatureCollection(
@@ -124,7 +165,11 @@ export async function loadCreatureCollection(
   const fields =
     'id, species_id, party_slot, gender, experience, level, rarity, captured_at, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed';
   const [activeCreatureResult, partyResult, storageResult] = await Promise.all([
-    client.from('characters').select('active_creature_id').eq('id', characterId).single(),
+    client
+      .from('characters')
+      .select('active_creature_id, collection_revision')
+      .eq('id', characterId)
+      .single(),
     client
       .from('creatures')
       .select(fields)
@@ -173,6 +218,7 @@ export async function loadCreatureCollection(
     return {
       activeCreatureId: null,
       party: [],
+      revision: activeCreatureResult.data.collection_revision,
       storage: [],
       storagePage: 1,
       storagePageCount,
@@ -241,6 +287,7 @@ export async function loadCreatureCollection(
   return {
     activeCreatureId: activeCreature.active_creature_id,
     party,
+    revision: activeCreature.collection_revision,
     storage,
     storagePage,
     storagePageCount,

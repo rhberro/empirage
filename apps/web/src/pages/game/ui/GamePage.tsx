@@ -52,11 +52,12 @@ export function GamePage(): React.ReactElement {
   }
   function sendHuntCommand(command: HuntCommand): boolean {
     const sender = commandSenderRef.current;
-    if (!sender || !sender(command)) {
+    const identifiedCommand = commandWithId(command);
+    if (!sender || !sender(identifiedCommand)) {
       return false;
     }
-    const updateCollection = collectionUpdater(command);
-    const updateHunt = huntUpdater(command);
+    const updateCollection = collectionUpdater(identifiedCommand);
+    const updateHunt = huntUpdater(identifiedCommand);
     setCollection(updateCollection);
     setHunt(updateHunt);
     return true;
@@ -102,4 +103,20 @@ function huntUpdater(command: HuntCommand): HuntUpdater {
   return function updateHunt(current: Hunt): Hunt {
     return current ? optimisticHuntConfiguration(current, command) : current;
   };
+}
+
+function commandWithId(command: HuntCommand): HuntCommand {
+  if (!isConfigurationCommand(command) || command.commandId) {
+    return command;
+  }
+  return { ...command, commandId: globalThis.crypto.randomUUID() };
+}
+
+function isConfigurationCommand(command: HuntCommand): boolean {
+  return (
+    command.type === 'configure_ability' ||
+    command.type === 'configure_capture' ||
+    command.type === 'configure_healing_item' ||
+    command.type === 'configure_wave_range'
+  );
 }

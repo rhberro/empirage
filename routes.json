@@ -1,0 +1,9386 @@
+[
+  {
+    "name": "Route 1",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 7
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 4
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 2",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 7
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Caterpie",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 5
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Weedle",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 5
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 4,
+          "max": 6
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 4,
+          "max": 6
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 3",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 6,
+          "max": 8
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 5,
+          "max": 12
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Jigglypuff",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 7
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 12
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 10
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 9
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 4",
+    "creatures": [
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 12
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 12
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 6,
+          "max": 12
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 6,
+          "max": 12
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 9
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 5",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Meowth",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Jigglypuff",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 7
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 7
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 6",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Meowth",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 16
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Jigglypuff",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 7
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 7
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Golduck",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 7",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Meowth",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Jigglypuff",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 8",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Meowth",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kadabra",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 27
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 19
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 19
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 18
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 18
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Jigglypuff",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 19
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 9",
+    "creatures": [
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 18
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 11,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 11,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 18
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 18
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Fearow",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 19
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 18
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 18
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 10",
+    "creatures": [
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 11,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 11,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Voltorb",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magnemite",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 18
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 18
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwhirl",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 11",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 18
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Drowzee",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 19
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 12",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Farfetch'd",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 31
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 20,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Snorlax",
+        "method": "static",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Route 13",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Farfetch'd",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 31
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "surf",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "super-rod",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 14",
+    "creatures": [
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 15",
+    "creatures": [
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 28
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 16",
+    "creatures": [
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Doduo",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 26
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Fearow",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Snorlax",
+        "method": "static",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Route 17",
+    "creatures": [
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 29
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Doduo",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Fearow",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 29
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Dodrio",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 29
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Ponyta",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 18",
+    "creatures": [
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Doduo",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 29
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Fearow",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 29
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 20,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 19",
+    "creatures": [
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 5,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacruel",
+        "method": "super-rod",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 20",
+    "creatures": [
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 5,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 20,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacruel",
+        "method": "super-rod",
+        "level": {
+          "min": 20,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 21",
+    "creatures": [
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 11,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tangela",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 5,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacruel",
+        "method": "super-rod",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 22",
+    "creatures": [
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 4
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 4
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 4
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 2,
+          "max": 6
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 5
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwhirl",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 23",
+    "creatures": [
+      {
+        "name": "Fearow",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 45
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ekans",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 43
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 44
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 44
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Arbok",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 41
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Sandslash",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 41
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Primeape",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 46
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Spearow",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Mankey",
+        "method": "walk",
+        "level": {
+          "min": 36,
+          "max": 41
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seaking",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwhirl",
+        "method": "super-rod",
+        "level": {
+          "min": 30,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 24",
+    "creatures": [
+      {
+        "name": "Caterpie",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 7
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Weedle",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 7
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 14
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 14
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Metapod",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 8
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kakuna",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 8
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 12
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seaking",
+        "method": "super-rod",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Route 25",
+    "creatures": [
+      {
+        "name": "Caterpie",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 8
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Weedle",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 8
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Oddish",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 14
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Bellsprout",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 14
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Metapod",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 9
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kakuna",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 9
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 17,
+          "max": 17
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Abra",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 12
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 16
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Viridian Forest",
+    "creatures": [
+      {
+        "name": "Caterpie",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 6
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Metapod",
+        "method": "walk",
+        "level": {
+          "min": 4,
+          "max": 6
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Weedle",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kakuna",
+        "method": "walk",
+        "level": {
+          "min": 4,
+          "max": 6
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Pikachu",
+        "method": "walk",
+        "level": {
+          "min": 3,
+          "max": 5
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pidgeotto",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 9
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pidgey",
+        "method": "walk",
+        "level": {
+          "min": 4,
+          "max": 8
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Mt. Moon 1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 6,
+          "max": 11
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Clefairy",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 11
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Sandshrew",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 12
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 8,
+          "max": 8
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Mt. Moon B1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 11
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 11
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Clefairy",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 12
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 11
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Mt. Moon B2F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 13
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 11
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Clefairy",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 13
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 10,
+          "max": 13
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Rock Tunnel 1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 21
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Onix",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 15
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 21
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Rock Tunnel B1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 21
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 17
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Onix",
+        "method": "walk",
+        "level": {
+          "min": 13,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Tower 3F",
+    "creatures": [
+      {
+        "name": "Gastly",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Haunter",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Tower 4F",
+    "creatures": [
+      {
+        "name": "Gastly",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Haunter",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Tower 5F",
+    "creatures": [
+      {
+        "name": "Gastly",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Haunter",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 27
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Tower 6F",
+    "creatures": [
+      {
+        "name": "Gastly",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Haunter",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 28
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Tower 7F",
+    "creatures": [
+      {
+        "name": "Gastly",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 29
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Haunter",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Mansion 1F",
+    "creatures": [
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 34,
+          "max": 37
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 34,
+          "max": 37
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 38
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Grimer",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ponyta",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 34
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Koffing",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Muk",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weezing",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 34,
+          "max": 34
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Mansion 2F",
+    "creatures": [
+      {
+        "name": "Grimer",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Koffing",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 34
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ponyta",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Muk",
+        "method": "walk",
+        "level": {
+          "min": 35,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weezing",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Mansion 3F",
+    "creatures": [
+      {
+        "name": "Grimer",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 38
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Koffing",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rattata",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 43
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 43
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Ponyta",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Muk",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 42
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Weezing",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 42
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Magmar",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 38
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pokémon Mansion B1F",
+    "creatures": [
+      {
+        "name": "Grimer",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 38
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Koffing",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raticate",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 46
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Vulpix",
+        "method": "walk",
+        "level": {
+          "min": 35,
+          "max": 35
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Growlithe",
+        "method": "walk",
+        "level": {
+          "min": 35,
+          "max": 35
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ponyta",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 34
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Weezing",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 42
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Muk",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 42
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 12,
+          "max": 24
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Magmar",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 38
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Power Plant",
+    "creatures": [
+      {
+        "name": "Pikachu",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magnemite",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 35
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Voltorb",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 37
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Raichu",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 36
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Electabuzz",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 36
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Muk",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Magneton",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 38
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Grimer",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 37
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Zapdos",
+        "method": "static",
+        "level": {
+          "min": 50,
+          "max": 50
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Seafoam Islands 1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 9,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seel",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 36
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Golduck",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 38
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 38
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Seafoam Islands B1F",
+    "creatures": [
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 18,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Seel",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 27
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Dewgong",
+        "method": "walk",
+        "level": {
+          "min": 38,
+          "max": 38
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 20,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "surf",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 35,
+          "max": 35
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Seafoam Islands B2F",
+    "creatures": [
+      {
+        "name": "Seel",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 32
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 36
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golduck",
+        "method": "walk",
+        "level": {
+          "min": 37,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Seafoam Islands B3F",
+    "creatures": [
+      {
+        "name": "Psyduck",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seel",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 27
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 39
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Dewgong",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 37
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "walk",
+        "level": {
+          "min": 39,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 20,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "surf",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 35,
+          "max": 35
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Seafoam Islands B4F",
+    "creatures": [
+      {
+        "name": "Krabby",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 33
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 36,
+          "max": 45
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Seel",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Dewgong",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 34
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Golduck",
+        "method": "walk",
+        "level": {
+          "min": 39,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "walk",
+        "level": {
+          "min": 39,
+          "max": 39
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "surf",
+        "level": {
+          "min": 20,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "surf",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 40
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 35,
+          "max": 35
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Articuno",
+        "method": "static",
+        "level": {
+          "min": 50,
+          "max": 50
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Victory Road 1F",
+    "creatures": [
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 41
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Onix",
+        "method": "walk",
+        "level": {
+          "min": 36,
+          "max": 45
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 44
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 41
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 47
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Machoke",
+        "method": "walk",
+        "level": {
+          "min": 42,
+          "max": 42
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 43,
+          "max": 43
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Victory Road 2F",
+    "creatures": [
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 41
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Onix",
+        "method": "walk",
+        "level": {
+          "min": 36,
+          "max": 47
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 44
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 39,
+          "max": 40
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 43,
+          "max": 44
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Machoke",
+        "method": "walk",
+        "level": {
+          "min": 39,
+          "max": 42
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 40
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Moltres",
+        "method": "static",
+        "level": {
+          "min": 50,
+          "max": 50
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Victory Road 3F",
+    "creatures": [
+      {
+        "name": "Geodude",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 46
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Machop",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Onix",
+        "method": "walk",
+        "level": {
+          "min": 42,
+          "max": 49
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Zubat",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 44
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 41,
+          "max": 47
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 40,
+          "max": 40
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Machoke",
+        "method": "walk",
+        "level": {
+          "min": 42,
+          "max": 45
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "Cerulean Cave 1F",
+    "creatures": [
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 46,
+          "max": 55
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magneton",
+        "method": "walk",
+        "level": {
+          "min": 46,
+          "max": 46
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Hypno",
+        "method": "walk",
+        "level": {
+          "min": 46,
+          "max": 46
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 45,
+          "max": 45
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Arbok",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 52
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Sandslash",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 52
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 49,
+          "max": 54
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Dodrio",
+        "method": "walk",
+        "level": {
+          "min": 49,
+          "max": 49
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 55
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 55
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Parasect",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 54
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Kadabra",
+        "method": "walk",
+        "level": {
+          "min": 49,
+          "max": 49
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 53,
+          "max": 60
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Raichu",
+        "method": "walk",
+        "level": {
+          "min": 53,
+          "max": 53
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Seaking",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 55
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Cerulean Cave 2F",
+    "creatures": [
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 57
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dodrio",
+        "method": "walk",
+        "level": {
+          "min": 51,
+          "max": 51
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 51,
+          "max": 51
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kadabra",
+        "method": "walk",
+        "level": {
+          "min": 51,
+          "max": 51
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 50,
+          "max": 50
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Electrode",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 52
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 52
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rhydon",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 60
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Sandslash",
+        "method": "walk",
+        "level": {
+          "min": 56,
+          "max": 56
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rhyhorn",
+        "method": "walk",
+        "level": {
+          "min": 50,
+          "max": 50
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 60
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Wigglytuff",
+        "method": "walk",
+        "level": {
+          "min": 54,
+          "max": 54
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Chansey",
+        "method": "walk",
+        "level": {
+          "min": 56,
+          "max": 56
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Gloom",
+        "method": "walk",
+        "level": {
+          "min": 58,
+          "max": 58
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Weepinbell",
+        "method": "walk",
+        "level": {
+          "min": 58,
+          "max": 58
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Cerulean Cave B1F",
+    "creatures": [
+      {
+        "name": "Golbat",
+        "method": "walk",
+        "level": {
+          "min": 54,
+          "max": 59
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Rhydon",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 62
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Electrode",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 55
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 55
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Graveler",
+        "method": "walk",
+        "level": {
+          "min": 55,
+          "max": 55
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Ditto",
+        "method": "walk",
+        "level": {
+          "min": 60,
+          "max": 67
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Raichu",
+        "method": "walk",
+        "level": {
+          "min": 64,
+          "max": 64
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Parasect",
+        "method": "walk",
+        "level": {
+          "min": 64,
+          "max": 64
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Chansey",
+        "method": "walk",
+        "level": {
+          "min": 56,
+          "max": 64
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rhyhorn",
+        "method": "walk",
+        "level": {
+          "min": 52,
+          "max": 52
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Arbok",
+        "method": "walk",
+        "level": {
+          "min": 57,
+          "max": 57
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Sandslash",
+        "method": "walk",
+        "level": {
+          "min": 57,
+          "max": 57
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Lickitung",
+        "method": "walk",
+        "level": {
+          "min": 50,
+          "max": 55
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Seaking",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 60
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowbro",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Kingler",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seadra",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Mewtwo",
+        "method": "static",
+        "level": {
+          "min": 70,
+          "max": 70
+        },
+        "rarity": "limited",
+        "spawnChance": null
+      }
+    ]
+  },
+  {
+    "name": "Diglett's Cave",
+    "creatures": [
+      {
+        "name": "Diglett",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dugtrio",
+        "method": "walk",
+        "level": {
+          "min": 29,
+          "max": 31
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Safari Zone (Center)",
+    "creatures": [
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Exeggcute",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 25
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rhyhorn",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 25
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Parasect",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 32
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 31
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 27
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Scyther",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pinsir",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tangela",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 22
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Chansey",
+        "method": "walk",
+        "level": {
+          "min": 7,
+          "max": 23
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dratini",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dragonair",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Safari Zone (East)",
+    "creatures": [
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 29
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 24
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Exeggcute",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 22
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Doduo",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 19
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tauros",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 21
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Parasect",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Kangaskhan",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Chansey",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 21
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Scyther",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 28
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pinsir",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dratini",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Safari Zone (North)",
+    "creatures": [
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 14,
+          "max": 22
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 36
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Exeggcute",
+        "method": "walk",
+        "level": {
+          "min": 20,
+          "max": 27
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Paras",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Rhyhorn",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Kangaskhan",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 30,
+          "max": 30
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 32
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 16,
+          "max": 16
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Chansey",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Scyther",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tauros",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pinsir",
+        "method": "walk",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dratini",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Safari Zone (West)",
+    "creatures": [
+      {
+        "name": "Nidoran♀",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 25
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Nidoran♂",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 29
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Exeggcute",
+        "method": "walk",
+        "level": {
+          "min": 22,
+          "max": 26
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Venonat",
+        "method": "walk",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Doduo",
+        "method": "walk",
+        "level": {
+          "min": 26,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorina",
+        "method": "walk",
+        "level": {
+          "min": 33,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Nidorino",
+        "method": "walk",
+        "level": {
+          "min": 32,
+          "max": 33
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Cubone",
+        "method": "walk",
+        "level": {
+          "min": 19,
+          "max": 19
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Tauros",
+        "method": "walk",
+        "level": {
+          "min": 21,
+          "max": 26
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Venomoth",
+        "method": "walk",
+        "level": {
+          "min": 31,
+          "max": 31
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Marowak",
+        "method": "walk",
+        "level": {
+          "min": 24,
+          "max": 24
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Pinsir",
+        "method": "walk",
+        "level": {
+          "min": 25,
+          "max": 25
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Kangaskhan",
+        "method": "walk",
+        "level": {
+          "min": 28,
+          "max": 28
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Tangela",
+        "method": "walk",
+        "level": {
+          "min": 27,
+          "max": 27
+        },
+        "rarity": "rare",
+        "spawnChance": {
+          "min": 1,
+          "max": 5
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Psyduck",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Dratini",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pallet Town",
+    "creatures": [
+      {
+        "name": "Poliwag",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Viridian City",
+    "creatures": [
+      {
+        "name": "Poliwag",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Vermilion City",
+    "creatures": [
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Horsea",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Vermilion Harbor",
+    "creatures": [
+      {
+        "name": "Tentacool",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Shellder",
+        "method": "super-rod",
+        "level": {
+          "min": 10,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Staryu",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Fuchsia City",
+    "creatures": [
+      {
+        "name": "Magikarp",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Krabby",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Seaking",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Gyarados",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "uncommon",
+        "spawnChance": {
+          "min": 6,
+          "max": 20
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "Celadon City",
+    "creatures": [
+      {
+        "name": "Poliwhirl",
+        "method": "super-rod",
+        "level": {
+          "min": 23,
+          "max": 23
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Slowpoke",
+        "method": "super-rod",
+        "level": {
+          "min": 15,
+          "max": 15
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "super-rod",
+        "level": {
+          "min": 5,
+          "max": 20
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Poliwag",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Goldeen",
+        "method": "good-rod",
+        "level": {
+          "min": 10,
+          "max": 10
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      },
+      {
+        "name": "Magikarp",
+        "method": "old-rod",
+        "level": {
+          "min": 5,
+          "max": 5
+        },
+        "rarity": "common",
+        "spawnChance": {
+          "min": 21,
+          "max": 100
+        }
+      }
+    ]
+  }
+]

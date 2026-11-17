@@ -7,9 +7,11 @@ from urllib.request import Request, urlopen
 import csv
 import json
 import re
+import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATION_ONE_DATA = ROOT / 'gen1.json'
+ROUTES_DATA = ROOT / 'routes.json'
 API = 'https://pokeapi.co/api/v2/'
 ITEMS_CSV = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/items.csv'
 TYPE_NAMES = [
@@ -107,6 +109,79 @@ def text(value):
     return re.sub(r'\s+', ' ', value.replace('\f', ' ').replace('\n', ' ')).strip()
 
 
+def normalized_name(value):
+    gendered = value.replace('♀', 'f').replace('♂', 'm')
+    decomposed = unicodedata.normalize('NFKD', gendered)
+    return ''.join(character for character in decomposed.lower() if character.isalnum())
+
+
+def slug(value):
+    decomposed = unicodedata.normalize('NFKD', value)
+    ascii_value = decomposed.encode('ascii', 'ignore').decode('ascii').lower()
+    return re.sub(r'-+', '-', re.sub(r'[^a-z0-9]+', '-', ascii_value)).strip('-')
+
+
+def route_location_rows(routes, generation_one):
+    species_ids = {}
+    for species in generation_one:
+        species_ids[normalized_name(species['name'])] = species['id']
+        species_ids[normalized_name(species['names']['en'])] = species['id']
+    routes_by_slug = set()
+    location_rows = []
+    location_species_rows = []
+    for index, route in enumerate(routes, 1):
+        if not isinstance(route, dict) or not isinstance(route.get('name'), str):
+            raise ValueError('invalid_route')
+        route_slug = slug(route['name'])
+        if not route_slug or route_slug in routes_by_slug:
+            raise ValueError(f'invalid_or_duplicate_route_slug:{route["name"]}')
+        routes_by_slug.add(route_slug)
+        creatures = route.get('creatures')
+        if not isinstance(creatures, list):
+            raise ValueError(f'invalid_route_creatures:{route["name"]}')
+        encounters_by_species = {}
+        for creature in creatures:
+            if not isinstance(creature, dict) or not isinstance(creature.get('name'), str):
+                raise ValueError(f'invalid_route_creature:{route["name"]}')
+            chance = creature.get('spawnChance')
+            if chance is None:
+                continue
+            level = creature.get('level')
+            if (
+                not isinstance(chance, dict)
+                or not isinstance(chance.get('min'), int)
+                or not isinstance(chance.get('max'), int)
+                or chance['min'] < 1
+                or chance['max'] < chance['min']
+                or not isinstance(level, dict)
+                or not isinstance(level.get('min'), int)
+                or not isinstance(level.get('max'), int)
+                or level['min'] < 1
+                or level['max'] < level['min']
+            ):
+                raise ValueError(f'invalid_route_encounter:{route["name"]}:{creature["name"]}')
+            species_id = species_ids.get(normalized_name(creature['name']))
+            if species_id is None:
+                raise ValueError(f'unknown_route_species:{route["name"]}:{creature["name"]}')
+            weight = chance['max'] - chance['min'] + 1
+            current = encounters_by_species.get(species_id)
+            if current is None:
+                encounters_by_species[species_id] = [level['min'], level['max'], weight]
+            else:
+                current[0] = min(current[0], level['min'])
+                current[1] = max(current[1], level['max'])
+                current[2] += weight
+        if not encounters_by_species:
+            raise ValueError(f'route_has_no_respawning_creatures:{route["name"]}')
+        column = (index - 1) % 9
+        row = (index - 1) // 9
+        location_rows.append((index, route_slug, route['name'], f'Wild encounters inspired by {route["name"]}.', 8 + column * 11, 8 + row * 11, 3))
+        for slot, (species_id, encounter) in enumerate(encounters_by_species.items(), 1):
+            minimum_level, maximum_level, encounter_weight = encounter
+            location_species_rows.append((index, species_id, slot, minimum_level, maximum_level, encounter_weight))
+    return location_rows, location_species_rows
+
+
 def values(rows):
     return ',\n'.join('  (' + ', '.join(quote(cell) for cell in row) + ')' for row in rows)
 
@@ -187,6 +262,10 @@ def item_healing(item):
 def main():
     with GENERATION_ONE_DATA.open() as source:
         generation_one = json.load(source)
+    with ROUTES_DATA.open() as source:
+        routes = json.load(source)
+    if not isinstance(routes, list):
+        raise ValueError('invalid_routes_data')
     ev_yields = {entry['id']: entry['ev_yield'] for entry in generation_one}
     item_costs = get_item_costs()
     with ThreadPoolExecutor(max_workers=12) as pool:
@@ -291,18 +370,10 @@ def main():
     for attacker_index, attacker in enumerate(TYPE_NAMES, 1):
         for defender_index, defender in enumerate(TYPE_NAMES, 1):
             effectiveness_rows.append((attacker_index, defender_index, TYPE_MULTIPLIERS.get(attacker, {}).get(defender, 1)))
-    location_rows = [
-        (1, 'verdant-trail', 'Verdant Trail', 'A calm trail through dense grasslands.', 12, 18, 3),
-        (2, 'echoing-cavern', 'Echoing Cavern', 'A rocky cavern crossed by narrow tunnels.', 28, 9, 3),
-        (3, 'ember-ridge', 'Ember Ridge', 'A dry ridge warmed by volcanic vents.', 41, 22, 3),
-        (4, 'misty-shore', 'Misty Shore', 'A quiet shoreline covered by persistent mist.', 7, 35, 3),
-        (5, 'storm-grove', 'Storm Grove', 'A woodland clearing charged by frequent storms.', 33, 39, 3),
-    ]
-    location_species_rows = [(1, 16, 1, 2, 4, 70), (1, 19, 2, 2, 3, 30), (2, 41, 1, 5, 7, 60), (2, 74, 2, 6, 8, 40), (3, 4, 1, 8, 10, 65), (4, 54, 1, 4, 6, 55), (4, 60, 2, 3, 6, 45), (5, 25, 1, 9, 12, 60), (5, 43, 2, 8, 11, 40)]
-    location_wave_range_rows = [
-        (1, 1, 2), (1, 2, 4), (2, 1, 2), (2, 2, 4), (3, 1, 2),
-        (3, 2, 4), (4, 1, 2), (4, 2, 4), (5, 1, 2), (5, 2, 4),
-    ]
+    location_rows, location_species_rows = route_location_rows(routes, generation_one)
+    location_wave_range_rows = []
+    for location_id, *_ in location_rows:
+        location_wave_range_rows.extend([(location_id, 1, 2), (location_id, 2, 4)])
     queries = [
         '-- Generated by scripts/generate_game_seed.py. Sources: Pokémon Database validation and PokéAPI canonical records.\n',
         'insert into public.types (id, slug, name, is_legacy) values\n' + values(type_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, is_legacy = excluded.is_legacy;\n',

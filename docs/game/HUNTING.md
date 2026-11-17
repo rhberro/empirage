@@ -4,6 +4,8 @@
 
 Cada entrada de `hunting_location_species` define uma espécie que pode aparecer em um local de caça. `encounter_weight` define exclusivamente a probabilidade relativa de a espécie ser sorteada entre as espécies do mesmo local; ele não influencia IVs, raridade, atributos ou captura.
 
+O seed gera os locais a partir de `routes.json`. O nome exibido de cada criatura é normalizado e validado contra os 151 registros de `gen1.json` antes de ser convertido no `species_id` do banco. O intervalo de `spawnChance` vira peso relativo pelo tamanho inclusivo da faixa; entradas repetidas da mesma espécie na rota, provenientes de métodos diferentes, são consolidadas somando os pesos e unindo os limites de nível. Encontros estáticos sem `spawnChance` não entram nas ondas repetíveis.
+
 ## Ondas
 
 Cada local de caça possui faixas pré-definidas de quantidade de criaturas por onda em `hunting_location_wave_ranges`. Ao iniciar uma caça, a menor faixa disponível é selecionada. O jogador pode selecionar apenas uma das faixas daquele local durante a caça; a escolha pode ser alterada quantas vezes quiser e só é sorteada quando a próxima onda nasce. Criaturas já presentes permanecem inalteradas.
