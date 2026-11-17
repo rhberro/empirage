@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { loadCatalog } from '../game/catalog-cache.ts';
+
 export const CAPTURE_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 const AUTO_CAPTURE_ITEM_SLUG_VALUES = ['poke-ball', 'great-ball', 'ultra-ball'];
 const AUTO_CAPTURE_ITEM_SLUGS = new Set(AUTO_CAPTURE_ITEM_SLUG_VALUES);
@@ -29,8 +31,29 @@ type CaptureItemRow = {
   slug: string;
 };
 type CaptureItemRows = Array<CaptureItemRow>;
+type CaptureItemQueryResult = { data: CaptureItemRows; error: null };
 type ResourceQuery = PromiseLike<{ data: unknown; error: unknown }>;
 type CaptureQueries = [ResourceQuery, ResourceQuery];
+
+function loadCaptureItemRows(client: SupabaseClient): Promise<CaptureItemRows> {
+  async function load(): Promise<CaptureItemRows> {
+    const result = await client
+      .from('items')
+      .select('id, slug, name, buy_price, capture_rate_multiplier')
+      .eq('category', 'poke_ball')
+      .gt('buy_price', 0)
+      .order('buy_price');
+    if (result.error) {
+      throw result.error;
+    }
+    return result.data as CaptureItemRows;
+  }
+  return loadCatalog('capture-items', load);
+}
+
+function captureItemQueryResult(data: CaptureItemRows): CaptureItemQueryResult {
+  return { data, error: null };
+}
 
 function isCaptureRarity(value: string): value is CaptureRarity {
   return CAPTURE_RARITIES.includes(value as CaptureRarity);
@@ -72,12 +95,7 @@ export async function loadCharacterCaptureResources(
       .from('character_capture_configuration')
       .select('item_id, rarities')
       .eq('character_id', characterId),
-    client
-      .from('items')
-      .select('id, slug, name, buy_price, capture_rate_multiplier')
-      .eq('category', 'poke_ball')
-      .gt('buy_price', 0)
-      .order('buy_price'),
+    loadCaptureItemRows(client).then(captureItemQueryResult),
   ];
   const [configurationResult, itemResult] = await Promise.all(queries);
   if (configurationResult.error) {

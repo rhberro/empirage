@@ -5,6 +5,13 @@ import * as React from 'react';
 import type { CharacterProfile, CollectionStateEvent } from '../api/game-protocol';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
 import {
+  gameStore,
+  selectCollection,
+  selectHunt,
+  selectProfile,
+  useGameStore,
+} from '../model/game-store';
+import {
   optimisticCollectionConfiguration,
   optimisticHuntConfiguration,
 } from '../model/optimistic-configuration';
@@ -14,25 +21,26 @@ import { GameCanvas } from './GameCanvas';
 import { HuntInterface } from './HuntInterface';
 import { TransitionLoadingScreen } from './TransitionLoadingScreen';
 
+function handleHuntStateChange(_nextHunt: HuntState | null): void {
+  // GameSession applies authoritative events before Phaser receives them.
+}
+
+function handleCollectionChange(_nextCollection: CollectionStateEvent['collection']): void {
+  // GameSession applies authoritative events before Phaser receives them.
+}
+
+function handleCharacterProfileChange(_nextProfile: CharacterProfile): void {
+  // GameSession applies authoritative events before Phaser receives them.
+}
+
 export function GamePage(): React.ReactElement {
-  const [hunt, setHunt] = React.useState<HuntState | null>(null);
-  const [collection, setCollection] = React.useState<CollectionStateEvent['collection'] | null>(
-    null,
-  );
-  const [profile, setProfile] = React.useState<CharacterProfile | null>(null);
+  const collection = useGameStore(selectCollection);
+  const hunt = useGameStore(selectHunt);
+  const profile = useGameStore(selectProfile);
   const [gameReady, setGameReady] = React.useState(false);
   const [transitionMessage, setTransitionMessage] = React.useState<string | null>('Conectando…');
   const commandSenderRef = React.useRef<HuntCommandSender | null>(null);
   const huntingLocations = useHuntingLocations();
-  function handleHuntStateChange(nextHunt: HuntState | null): void {
-    setHunt(nextHunt);
-  }
-  function handleCollectionChange(nextCollection: CollectionStateEvent['collection']): void {
-    setCollection(nextCollection);
-  }
-  function handleCharacterProfileChange(nextProfile: CharacterProfile): void {
-    setProfile(nextProfile);
-  }
   function handleHuntCommandSenderChange(sender: HuntCommandSender | undefined): void {
     if (sender) {
       commandSenderRef.current = sender;
@@ -59,8 +67,9 @@ export function GamePage(): React.ReactElement {
     }
     const updateCollection = collectionUpdater(identifiedCommand);
     const updateHunt = huntUpdater(identifiedCommand);
-    setCollection(updateCollection);
-    setHunt(updateHunt);
+    const current = gameStore.getState();
+    current.setCollection(updateCollection(current.collection));
+    current.setHunt(updateHunt(current.hunt));
     return true;
   }
   return (

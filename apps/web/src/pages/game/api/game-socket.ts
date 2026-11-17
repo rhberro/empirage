@@ -1,5 +1,6 @@
 import { getAccessToken } from '~/shared/auth';
 
+import { gameStore } from '../model/game-store';
 import { connectionErrorMessage, createSocketUrl } from './connection-errors';
 import { GAME_PROTOCOL_VERSION, parseGameEvent } from './game-protocol';
 import type { GameEvent, HuntClockCommand, InputCommand } from './game-protocol';
@@ -172,6 +173,7 @@ export class GameSession {
       this.report(connectionErrorMessage(event.code));
       return;
     }
+    gameStore.getState().applyGameEvent(event);
     this.onEvent(event);
   }
 

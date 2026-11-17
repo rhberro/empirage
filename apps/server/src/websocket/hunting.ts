@@ -1,6 +1,7 @@
 /* eslint-disable complexity, func-style, max-lines, max-lines-per-function, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types, sort-keys */
 import { randomUUID } from 'node:crypto';
 
+import { loadCatalog } from '../game/catalog-cache.ts';
 import { logger } from '../logger.ts';
 import {
   CAPTURE_RARITIES,
@@ -1556,18 +1557,23 @@ function lowestWaveRange(ranges: Array<LocationWaveRangeRow>): HuntWaveRange {
   return locationWaveRange(first);
 }
 
-async function locationById(locationId: number): Promise<HuntingLocationRow> {
-  const { data, error } = await serverClient
-    .from('hunting_locations')
-    .select('id, wave_delay_seconds, hunting_location_wave_ranges(minimum_size, maximum_size)')
-    .eq('id', locationId)
-    .order('minimum_size', { referencedTable: 'hunting_location_wave_ranges' })
-    .order('maximum_size', { referencedTable: 'hunting_location_wave_ranges' })
-    .maybeSingle();
-  if (error || !data) {
-    throw error ?? new Error('hunting_location_not_found');
+function locationById(locationId: number): Promise<HuntingLocationRow> {
+  function load(): Promise<HuntingLocationRow> {
+    return serverClient
+      .from('hunting_locations')
+      .select('id, wave_delay_seconds, hunting_location_wave_ranges(minimum_size, maximum_size)')
+      .eq('id', locationId)
+      .order('minimum_size', { referencedTable: 'hunting_location_wave_ranges' })
+      .order('maximum_size', { referencedTable: 'hunting_location_wave_ranges' })
+      .maybeSingle()
+      .then(function resolve(result): HuntingLocationRow {
+        if (result.error || !result.data) {
+          throw result.error ?? new Error('hunting_location_not_found');
+        }
+        return result.data as HuntingLocationRow;
+      });
   }
-  return data as HuntingLocationRow;
+  return loadCatalog(`hunting-location:${locationId}`, load);
 }
 
 async function startHuntExclusive(

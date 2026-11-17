@@ -8,6 +8,7 @@ import type { HuntCommand, HuntState } from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
 import { configureCameraViewport } from '../lib/camera-viewport';
 import { PlayerInput } from '../lib/player-input';
+import { gameStore } from '../model/game-store';
 import { PlayerWorld } from '../model/player-world';
 import type { WorldPlayer } from '../model/player-world';
 import { bindCityInput } from './city-input';
@@ -51,7 +52,6 @@ export class CityScene extends Scene {
   private readonly visuals = new Map<string, VisualPlayer>();
   private readonly world = new PlayerWorld();
   private huntView: HuntView | null = null;
-  private collection: CollectionStateEvent['collection'] | null = null;
   private huntingLocations: Array<HuntingLocation> = [];
   private hasAuthenticated = false;
   private hasCollectionState = false;
@@ -178,7 +178,6 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'collection_state') {
-      this.collection = event.collection;
       this.onCollectionChange(event.collection);
       const partySpeciesIds = event.collection.party.map(function speciesId(creature): number {
         return creature.species.id;
@@ -202,9 +201,10 @@ export class CityScene extends Scene {
       if (huntView) {
         huntView.fail();
       }
-      if (!huntView?.active && this.collection) {
+      const collection = gameStore.getState().collection;
+      if (!huntView?.active && collection) {
         const command = {
-          storagePage: this.collection.storagePage,
+          storagePage: collection.storagePage,
           type: 'request_creature_storage' as const,
           version: 1 as const,
         };
@@ -351,7 +351,7 @@ export class CityScene extends Scene {
       const location = this.huntingLocations.find(function findLocation(candidate): boolean {
         return candidate.id === command.huntingLocationId;
       });
-      const party = this.collection?.party ?? [];
+      const party = gameStore.getState().collection?.party ?? [];
       const speciesIds = party.map(function speciesId(creature): number {
         return creature.species.id;
       });
@@ -363,9 +363,10 @@ export class CityScene extends Scene {
     return this.session.send(command);
   }
 
-  private applyCollectionPatch(event: CollectionPatchEvent): void {
-    const collection = this.collection;
-    if (!collection || event.revision !== collection.revision + 1) {
+  private applyCollectionPatch(_event: CollectionPatchEvent): void {
+    const state = gameStore.getState();
+    const collection = state.collection;
+    if (state.collectionSyncRequired) {
       const command = {
         storagePage: collection?.storagePage ?? 1,
         type: 'request_creature_storage' as const,
@@ -374,73 +375,10 @@ export class CityScene extends Scene {
       this.session.send(command);
       return;
     }
-    const currentConfiguration = collection.configuration;
-    if (!currentConfiguration) {
-      this.requestCollection(collection.storagePage);
-      return;
+    const nextCollection = collection;
+    if (nextCollection) {
+      this.onCollectionChange(nextCollection);
     }
-    const party = CityScene.applyCreatureProgress(collection.party, event.creatures);
-    const storage = CityScene.applyCreatureProgress(collection.storage, event.creatures);
-    if (!party || !storage) {
-      this.requestCollection(collection.storagePage);
-      return;
-    }
-    const configuration = {
-      ...currentConfiguration,
-      ...event.configuration,
-      captureConfiguration:
-        event.configuration.captureConfiguration === null
-          ? undefined
-          : (event.configuration.captureConfiguration ?? currentConfiguration.captureConfiguration),
-      healingConfiguration:
-        event.configuration.healingConfiguration === null
-          ? undefined
-          : (event.configuration.healingConfiguration ?? currentConfiguration.healingConfiguration),
-    };
-    const nextCollection = {
-      ...collection,
-      configuration,
-      party,
-      revision: event.revision,
-      storage,
-    };
-    this.collection = nextCollection;
-    this.onCollectionChange(nextCollection);
-  }
-
-  private static applyCreatureProgress(
-    creatures: CollectionStateEvent['collection']['party'],
-    progress: CollectionPatchEvent['creatures'],
-  ): CollectionStateEvent['collection']['party'] | null {
-    if (!progress) {
-      return creatures;
-    }
-    const progressById = new Map(
-      progress.map(function progressEntry(entry) {
-        return [entry.id, entry];
-      }),
-    );
-    const nextCreatures = creatures.map(function applyProgress(creature) {
-      const next = progressById.get(creature.id);
-      if (!next) {
-        return creature;
-      }
-      if (next.speciesId !== creature.species.id) {
-        return null;
-      }
-      return {
-        ...creature,
-        experience: next.experience,
-        experienceLevelStart: next.experienceLevelStart,
-        experienceNextLevel: next.experienceNextLevel,
-        level: next.level,
-      };
-    });
-    return nextCreatures.some(function isMissing(creature) {
-      return creature === null;
-    })
-      ? null
-      : (nextCreatures as CollectionStateEvent['collection']['party']);
   }
 
   private requestCollection(storagePage: number): void {

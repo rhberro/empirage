@@ -6,10 +6,10 @@ import { config } from '../config.ts';
 import { SerialCommandQueue } from '../game/serial-command-queue.ts';
 import { logger } from '../logger.ts';
 import { CAPTURE_RARITIES, type CaptureRarity } from './capture-items.ts';
+import { loadCityBattleConfigurations } from './city-battle-configuration.ts';
 import {
   loadCreatureCollection,
   loadCreatureCollectionProgress,
-  type CreatureCollection,
   type CreatureCollectionProgresses,
 } from './creature-collection.ts';
 import type {
@@ -25,13 +25,6 @@ import type {
   SocketData,
 } from './game-types.ts';
 import { isPositionWithin, positionAfterVector } from './grid-movement.ts';
-import {
-  loadHuntResources,
-  type HuntAbilityResource,
-  type HuntCreatureResource,
-  type HuntResources,
-  type HuntSpeciesResource,
-} from './hunt-resources.ts';
 import {
   configureHuntHealingItem,
   configureHuntWaveRange,
@@ -87,32 +80,10 @@ type CardinalDirections = Array<CardinalDirection>;
 type GameSocket = Bun.ServerWebSocket<SocketData>;
 type PlayerSnapshots = Array<PlayerSnapshot>;
 type Persistences = Array<Promise<void>>;
-type CityConfigurationQueries = [Promise<CreatureCollection>, Promise<HuntResources>];
-type ActiveCreatureRow = { active_creature_id: string | null };
 type CollectionRevision = number;
 type CollectionConfigurationPatch = {
   captureConfiguration?: { itemId: number; rarities: Array<CaptureRarity> } | null;
   healingConfiguration?: { itemId: number; thresholdPercentage: number } | null;
-};
-type CityEquippedAbility = {
-  accuracy: number | null;
-  areaRadius: number;
-  category: HuntAbilityResource['category'];
-  cooldownEndsAt: number;
-  cooldownMs: number;
-  element: string;
-  id: number;
-  name: string;
-  power: number | null;
-  range: number;
-  requiredLevel: number;
-  slot: number;
-};
-type CityAvailableAbility = Omit<CityEquippedAbility, 'cooldownEndsAt' | 'slot'>;
-type CityPartyConfiguration = {
-  activeCreatureAbilities: Array<CityEquippedAbility>;
-  activeCreatureAvailableAbilities: Array<CityAvailableAbility>;
-  activeCreatureLevel: number;
 };
 type MessagePayload = { type?: unknown };
 const CARDINAL_DIRECTIONS: CardinalDirections = ['down', 'left', 'right', 'up'];
@@ -359,82 +330,19 @@ async function authenticate(
   await sendCreatureCollection(socket, state);
 }
 
-function cityPartyConfiguration(
-  creature: HuntCreatureResource,
-  species: HuntSpeciesResource,
-): CityPartyConfiguration {
-  const activeCreatureAbilities = creature.abilities.map(function ability(abilityResource) {
-    return {
-      accuracy: abilityResource.accuracy,
-      areaRadius: abilityResource.areaRadius,
-      category: abilityResource.category,
-      cooldownEndsAt: 0,
-      cooldownMs: abilityResource.cooldownMs,
-      element: abilityResource.typeSlug,
-      id: abilityResource.id,
-      name: abilityResource.name,
-      power: abilityResource.power,
-      range: abilityResource.rangeTiles,
-      requiredLevel: abilityResource.requiredLevel,
-      slot: abilityResource.slot,
-    };
-  });
-  const activeCreatureAvailableAbilities = species.abilities.map(function ability(abilityResource) {
-    return {
-      accuracy: abilityResource.accuracy,
-      areaRadius: abilityResource.areaRadius,
-      category: abilityResource.category,
-      cooldownMs: abilityResource.cooldownMs,
-      element: abilityResource.typeSlug,
-      id: abilityResource.id,
-      name: abilityResource.name,
-      power: abilityResource.power,
-      range: abilityResource.rangeTiles,
-      requiredLevel: abilityResource.requiredLevel,
-    };
-  });
-  return {
-    activeCreatureAbilities,
-    activeCreatureAvailableAbilities,
-    activeCreatureLevel: creature.level,
-  };
-}
-
 async function sendCreatureCollection(
   socket: GameSocket,
   state: AuthenticatedState,
   storagePage?: number,
 ): Promise<void> {
-  const cityConfigurationQueries: CityConfigurationQueries = [
-    loadCreatureCollection(state.supabase, state.characterId, storagePage),
-    loadHuntResources(state.supabase, state.characterId, 1),
-  ];
-  const [collection, resources] = await Promise.all(cityConfigurationQueries);
-  const activeCreatureId = resources.activeCreatureId;
-  const activeCreature = activeCreatureId
-    ? resources.creatures.find(function selectedCreature(creature): boolean {
-        return creature.id === activeCreatureId;
-      })
-    : resources.creatures[0];
-  const partyConfigurations: Record<string, CityPartyConfiguration> = {};
-  for (const creature of resources.creatures) {
-    const species = resources.species[String(creature.speciesId)];
-    if (species) {
-      partyConfigurations[creature.id] = cityPartyConfiguration(creature, species);
-    }
-  }
-  const activeConfiguration = activeCreature ? partyConfigurations[activeCreature.id] : undefined;
-  const configuration = activeConfiguration
-    ? {
-        ...activeConfiguration,
-        captureConfiguration: resources.captureConfiguration,
-        captureItems: resources.captureItems,
-        healingConfiguration: resources.healingConfiguration,
-        healingItemCooldownEndsAt: 0,
-        healingItems: resources.healingItems,
-      }
-    : undefined;
-  const completeCollection = { ...collection, configuration, partyConfigurations };
+  const collectionPromise = loadCreatureCollection(state.supabase, state.characterId, storagePage);
+  const collection = await collectionPromise;
+  const battle = await loadCityBattleConfigurations(
+    state.supabase,
+    state.characterId,
+    collection.activeCreatureId,
+  );
+  const completeCollection = { ...collection, ...battle };
   send(socket, {
     collection: completeCollection,
     type: 'collection_state',

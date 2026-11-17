@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { loadCatalog } from '../game/catalog-cache.ts';
+
 export type HealingItemResource = {
   goldCost: number;
   healingAmount: number;
@@ -32,9 +34,29 @@ type HealingItemRow = {
   slug: string;
 };
 type HealingItemRows = Array<HealingItemRow>;
+type HealingItemQueryResult = { data: HealingItemRows; error: null };
 type HealingItemResources = Array<HealingItemResource>;
 type ResourceQuery = PromiseLike<{ data: unknown; error: unknown }>;
 type CharacterHealingQueries = [ResourceQuery, ResourceQuery];
+
+function loadHealingItemRows(client: SupabaseClient): Promise<HealingItemRows> {
+  async function load(): Promise<HealingItemRows> {
+    const result = await client
+      .from('items')
+      .select('id, slug, name, healing_amount, restores_full_health, buy_price')
+      .eq('category', 'medicine')
+      .order('id');
+    if (result.error) {
+      throw result.error;
+    }
+    return result.data as HealingItemRows;
+  }
+  return loadCatalog('healing-items', load);
+}
+
+function healingItemQueryResult(data: HealingItemRows): HealingItemQueryResult {
+  return { data, error: null };
+}
 
 function mapHealingItem(item: HealingItemRow): HealingItemResource {
   return {
@@ -73,11 +95,7 @@ export async function loadCharacterHealingResources(
       .select('gold, character_battle_item_configuration(item_id, threshold_percentage)')
       .eq('id', characterId)
       .single(),
-    client
-      .from('items')
-      .select('id, slug, name, healing_amount, restores_full_health, buy_price')
-      .eq('category', 'medicine')
-      .order('id'),
+    loadHealingItemRows(client).then(healingItemQueryResult),
   ];
   const [characterResult, healingItemResult] = await Promise.all(queries);
   if (characterResult.error) {

@@ -64,6 +64,21 @@ O WebSocket aceita somente `GET /ws` com upgrade e origem permitida. Também lim
 
 `snapshot` da cidade nunca é um histórico de banco.
 
+### Leitura e cache no servidor
+
+Os catálogos imutáveis de itens de batalha, natures, evoluções por nível e
+configuração de locais de caça são carregados uma vez por processo e reutilizados
+entre conexões. O cache não contém dados de personagem, inventário, ouro,
+configurações, criaturas ou checkpoints.
+Uma nova implantação reinicializa o catálogo; alterações de seed e regras exigem
+reinício controlado do servidor para entrarem em vigor.
+
+As leituras de coleção mantêm dados do personagem separados dos recursos de
+combate. A configuração da cidade lê somente equipe, moves equipados e
+disponíveis, itens e configurações; ela não inicializa recursos de encontro ou o
+motor da caça. A página de armazenamento usa o índice parcial de criaturas fora
+da equipe, ordenado por captura, para não percorrer a coleção inteira ao paginar.
+
 ## Supabase Auth
 
 ### Cadastro

@@ -1,6 +1,7 @@
 /* eslint-disable complexity, max-lines, max-lines-per-function, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { loadCatalog } from '../game/catalog-cache.ts';
 import {
   loadCharacterCaptureResources,
   type CaptureConfigurationResource,
@@ -222,6 +223,10 @@ type TypeEffectivenessRow = {
   defender_type_id: number;
   multiplier: number;
 };
+type StaticHuntRules = {
+  evolutions: Array<EvolutionRow>;
+  natures: Array<NatureRow>;
+};
 type ResourceQueries = [
   PromiseLike<{ data: unknown; error: unknown }>,
   PromiseLike<{ data: unknown; error: unknown }>,
@@ -246,6 +251,27 @@ function databaseStat(value: string | null): HuntBattleStat | null {
     default:
       return null;
   }
+}
+
+function loadStaticHuntRules(client: SupabaseClient): Promise<StaticHuntRules> {
+  async function load(): Promise<StaticHuntRules> {
+    const queries = [
+      client
+        .from('evolutions')
+        .select('from_species_id, to_species_id, required_level')
+        .eq('trigger', 'level'),
+      client.from('natures').select('slug, increased_stat, decreased_stat'),
+    ];
+    const [evolutionResult, natureResult] = await Promise.all(queries);
+    if (evolutionResult.error || natureResult.error) {
+      throw evolutionResult.error ?? natureResult.error;
+    }
+    return {
+      evolutions: evolutionResult.data as Array<EvolutionRow>,
+      natures: natureResult.data as Array<NatureRow>,
+    };
+  }
+  return loadCatalog('hunt-static-rules', load);
 }
 
 export async function loadHuntResources(
@@ -286,27 +312,19 @@ export async function loadHuntResources(
     loadCharacterHealingResources(client, characterId),
     loadCharacterCaptureResources(client, characterId),
   ]);
-  const [characterResult, evolutionResult, natureResult] = await Promise.all([
-    client
-      .from('characters')
-      .select('name, level, avatar_url, active_creature_id')
-      .eq('id', characterId)
-      .single(),
-    client
-      .from('evolutions')
-      .select('from_species_id, to_species_id, required_level')
-      .eq('trigger', 'level'),
-    client.from('natures').select('slug, increased_stat, decreased_stat'),
-  ]);
-  if (characterResult.error || natureResult.error) {
-    throw characterResult.error ?? natureResult.error;
-  }
-  if (evolutionResult.error) {
-    throw evolutionResult.error;
+  const characterQuery = client
+    .from('characters')
+    .select('name, level, avatar_url, active_creature_id')
+    .eq('id', characterId)
+    .single();
+  const characterAndRules = [characterQuery, loadStaticHuntRules(client)];
+  const [characterResult, staticRules] = await Promise.all(characterAndRules);
+  if (characterResult.error) {
+    throw characterResult.error;
   }
   const character = characterResult.data as CharacterRow;
   const natures = new Map<string, HuntNatureResource>();
-  for (const row of natureResult.data as Array<NatureRow>) {
+  for (const row of staticRules.natures) {
     const increasedStat = databaseStat(row.increased_stat);
     const decreasedStat = databaseStat(row.decreased_stat);
     if (
@@ -319,7 +337,7 @@ export async function loadHuntResources(
     }
     natures.set(row.slug, { decreasedStat, increasedStat, slug: row.slug });
   }
-  const evolutionRows = evolutionResult.data as Array<EvolutionRow>;
+  const evolutionRows = staticRules.evolutions;
   const evolutions = evolutionRows.map(function evolution(
     row: EvolutionRow,
   ): HuntEvolutionResource {
