@@ -3,7 +3,14 @@ import type { GameObjects, Scene } from 'phaser';
 /* eslint-disable max-lines */
 
 import type { Tile } from '../api/game-protocol';
-import type { HuntCommand, HuntGrid, HuntState } from '../api/hunt-protocol';
+import { applyHuntDelta } from '../api/hunt-protocol';
+import type {
+  HuntCombatEvent,
+  HuntCommand,
+  HuntDeltaPatch,
+  HuntGrid,
+  HuntState,
+} from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
 import { CREATURE_ALLY_KEY, HuntCreatures } from './hunt-creatures';
 import type { CreatureSpec } from './hunt-creatures';
@@ -13,6 +20,7 @@ type CommandSender = (command: HuntCommand) => boolean;
 type CameraFocusHandler = (target: Tile | null) => void;
 type TransitionChangeHandler = (active: boolean, message: string) => void;
 type AssetsReadyHandler = () => void;
+type HuntRenderField = keyof HuntDeltaPatch;
 
 const PLAYER_ATLAS_KEY = 'male-walking-running';
 const PLAYER_FRAME = 'idle/east/frame_1';
@@ -31,6 +39,20 @@ const STATUS_STYLE = {
   padding: { x: 8, y: 6 },
   wordWrap: { width: 288 },
 };
+const HUNT_RENDER_FIELDS = [
+  'activeCreatureAvailableAt',
+  'activeCreatureHealth',
+  'activeCreatureId',
+  'activeCreatureMaximumHealth',
+  'activeCreatureSpeciesId',
+  'activeCreatureSwitchCompletesAt',
+  'enemies',
+  'enemyPatches',
+  'enemySpawns',
+  'playerPosition',
+  'removedEnemyCombatIds',
+  'wave',
+] satisfies Array<HuntRenderField>;
 
 function tileKey(tile: Tile): string {
   return `${tile.x},${tile.y}`;
@@ -106,6 +128,38 @@ export class HuntView {
       this.sendAfterLoading.bind(this, command),
       this.handleLoadingFailure.bind(this),
     );
+    return true;
+  }
+
+  public applyCombatEvent(event: HuntCombatEvent): void {
+    this.effects.applyCombatEvent(event, Date.now());
+  }
+
+  public applyDelta(huntId: string, revision: number, patch: HuntDeltaPatch): boolean {
+    const current = this.state;
+    if (!current || current.huntId !== huntId || revision !== current.revision + 1) {
+      return false;
+    }
+    const state = applyHuntDelta(current, patch, revision);
+    this.state = state;
+    const receivedAt = Date.now();
+    if (patch.serverTime !== undefined) {
+      this.observeServerTime(patch.serverTime, receivedAt);
+    }
+    const now = this.serverNow(receivedAt);
+    this.creatures.fastForward(now);
+    if (patch.captureAttempts !== undefined) {
+      this.effects.applyCaptureAttempts(patch.captureAttempts, now);
+    }
+    if (!this.huntAssetsReady(state)) {
+      this.loadCurrentHuntAssets();
+      return true;
+    }
+    if (HuntView.canApplyEnemyPatch(patch)) {
+      this.applyEnemyPatch(state, patch, now);
+    } else if (HuntView.hasRenderPatch(patch)) {
+      this.redraw();
+    }
     return true;
   }
 
@@ -435,6 +489,13 @@ export class HuntView {
   }
 
   private addCreatures(state: HuntState, now: number): void {
+    this.addAlly(state, now);
+    for (const [index, enemy] of state.enemies.entries()) {
+      this.addEnemy(state, enemy, index, now);
+    }
+  }
+
+  private addAlly(state: HuntState, now: number): void {
     const hasActiveCreatureTarget = now >= state.activeCreatureAvailableAt;
     const allySpec: CreatureSpec = {
       direction: ALLY_DIRECTION,
@@ -449,23 +510,28 @@ export class HuntView {
       tile: state.allyPosition,
     };
     this.creatures.add(allySpec, now);
-    for (const [index, enemy] of state.enemies.entries()) {
-      const enemySpec: CreatureSpec = {
-        direction: ENEMY_DIRECTION,
-        faceTargetUntil: HuntView.enemyFaceTargetUntil(enemy.position, state, now),
-        health: enemy.health,
-        key: enemy.combatId
-          ? `${ENEMY_KEY_PREFIX}${enemy.combatId}`
-          : `${ENEMY_KEY_PREFIX}${state.wave}-${index}-${enemy.id}`,
-        maximumHealth: enemy.maximumHealth,
-        movement: enemy.movement,
-        speciesId: enemy.id,
-        switchesOutAt: undefined,
-        target: hasActiveCreatureTarget ? state.allyPosition : null,
-        tile: enemy.position,
-      };
-      this.creatures.add(enemySpec, now);
-    }
+  }
+
+  private addEnemy(
+    state: HuntState,
+    enemy: HuntState['enemies'][number],
+    index: number,
+    now: number,
+  ): void {
+    const hasActiveCreatureTarget = now >= state.activeCreatureAvailableAt;
+    const enemySpec: CreatureSpec = {
+      direction: ENEMY_DIRECTION,
+      faceTargetUntil: HuntView.enemyFaceTargetUntil(enemy.position, state, now),
+      health: enemy.health,
+      key: HuntView.enemyKey(enemy, state, index),
+      maximumHealth: enemy.maximumHealth,
+      movement: enemy.movement,
+      speciesId: enemy.id,
+      switchesOutAt: undefined,
+      target: hasActiveCreatureTarget ? state.allyPosition : null,
+      tile: enemy.position,
+    };
+    this.creatures.add(enemySpec, now);
   }
 
   private configureGrid(state: HuntState): void {
@@ -636,6 +702,78 @@ export class HuntView {
       cutoff = Math.max(cutoff, event.occurredAt);
     }
     return cutoff;
+  }
+
+  private static hasRenderPatch(patch: HuntDeltaPatch): boolean {
+    for (const field of HUNT_RENDER_FIELDS) {
+      if (patch[field] !== undefined) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static canApplyEnemyPatch(patch: HuntDeltaPatch): boolean {
+    const hasEnemyPatch =
+      patch.enemyPatches !== undefined ||
+      patch.enemySpawns !== undefined ||
+      patch.removedEnemyCombatIds !== undefined;
+    return hasEnemyPatch && !HuntView.hasNonEnemyRenderPatch(patch);
+  }
+
+  private static hasNonEnemyRenderPatch(patch: HuntDeltaPatch): boolean {
+    return (
+      patch.activeCreatureAvailableAt !== undefined ||
+      patch.activeCreatureHealth !== undefined ||
+      patch.activeCreatureId !== undefined ||
+      patch.activeCreatureMaximumHealth !== undefined ||
+      patch.activeCreatureSpeciesId !== undefined ||
+      patch.activeCreatureSwitchCompletesAt !== undefined ||
+      patch.enemies !== undefined ||
+      patch.playerPosition !== undefined
+    );
+  }
+
+  private static enemyKey(
+    enemy: HuntState['enemies'][number],
+    state: HuntState,
+    index: number,
+  ): string {
+    return enemy.combatId
+      ? `${ENEMY_KEY_PREFIX}${enemy.combatId}`
+      : `${ENEMY_KEY_PREFIX}${state.wave}-${index}-${enemy.id}`;
+  }
+
+  private applyEnemyPatch(state: HuntState, patch: HuntDeltaPatch, now: number): void {
+    for (const combatId of patch.removedEnemyCombatIds ?? []) {
+      this.creatures.remove(`${ENEMY_KEY_PREFIX}${combatId}`, now);
+    }
+    for (const enemyPatch of patch.enemyPatches ?? []) {
+      const index = HuntView.enemyIndex(state, enemyPatch.combatId);
+      if (index >= 0) {
+        const enemy = state.enemies[index];
+        if (enemy) {
+          this.addEnemy(state, enemy, index, now);
+        }
+      }
+    }
+    for (const enemy of patch.enemySpawns ?? []) {
+      const index = HuntView.enemyIndex(state, enemy.combatId);
+      if (index >= 0) {
+        this.addEnemy(state, enemy, index, now);
+      }
+    }
+    this.addAlly(state, now);
+    this.creatures.update(now);
+  }
+
+  private static enemyIndex(state: HuntState, combatId: string | undefined): number {
+    for (const [index, candidate] of state.enemies.entries()) {
+      if (candidate.combatId === combatId) {
+        return index;
+      }
+    }
+    return -1;
   }
 
   private retireHunt(huntId: string): void {

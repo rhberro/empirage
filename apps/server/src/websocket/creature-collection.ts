@@ -1,4 +1,4 @@
-/* eslint-disable complexity, max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
+/* eslint-disable complexity, max-lines, max-lines-per-function, oxsome/no-inline-functions-objects-arrays */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { experienceForLevel } from './hunt-engine.ts';
@@ -84,8 +84,23 @@ export type CreatureCollection = {
   storagePageCount: number;
   storageTotal: number;
 };
+type CollectionStructureCreatureRow = { id: string; party_slot: number | null };
+type CollectionStructureCreatureRows = Array<CollectionStructureCreatureRow>;
+export type CreatureCollectionStructure = {
+  activeCreatureId: string | null;
+  partyIds: Array<string>;
+  revision: number;
+  storageIds: Array<string>;
+  storagePage: number;
+  storagePageCount: number;
+  storageTotal: number;
+};
 
 const STORAGE_PAGE_SIZE = 50;
+
+function structureCreatureId(row: CollectionStructureCreatureRow): string {
+  return row.id;
+}
 
 function numberIds(rows: CreatureRows): Array<number> {
   const ids = new Set<number>();
@@ -289,6 +304,75 @@ export async function loadCreatureCollection(
     party,
     revision: activeCreature.collection_revision,
     storage,
+    storagePage,
+    storagePageCount,
+    storageTotal,
+  };
+}
+
+export async function loadCreatureCollectionStructure(
+  client: SupabaseClient,
+  characterId: string,
+  requestedStoragePage: number,
+): Promise<CreatureCollectionStructure> {
+  const requestedPage = Math.max(1, Math.trunc(requestedStoragePage));
+  const storageStart = (requestedPage - 1) * STORAGE_PAGE_SIZE;
+  const storageEnd = storageStart + STORAGE_PAGE_SIZE - 1;
+  const [activeCreatureResult, partyResult, storageResult] = await Promise.all([
+    client
+      .from('characters')
+      .select('active_creature_id, collection_revision')
+      .eq('id', characterId)
+      .single(),
+    client
+      .from('creatures')
+      .select('id, party_slot')
+      .eq('character_id', characterId)
+      .not('party_slot', 'is', null)
+      .order('party_slot', { ascending: true }),
+    client
+      .from('creatures')
+      .select('id', { count: 'exact' })
+      .eq('character_id', characterId)
+      .is('party_slot', null)
+      .order('captured_at', { ascending: false })
+      .range(storageStart, storageEnd),
+  ]);
+  if (activeCreatureResult.error) {
+    throw activeCreatureResult.error;
+  }
+  if (partyResult.error) {
+    throw partyResult.error;
+  }
+  if (storageResult.error) {
+    throw storageResult.error;
+  }
+  const storageTotal = storageResult.count ?? 0;
+  const storagePageCount = Math.max(1, Math.ceil(storageTotal / STORAGE_PAGE_SIZE));
+  const storagePage = Math.min(requestedPage, storagePageCount);
+  let storageRows = storageResult.data as CollectionStructureCreatureRows;
+  if (storagePage !== requestedPage) {
+    const pageStart = (storagePage - 1) * STORAGE_PAGE_SIZE;
+    const pageEnd = pageStart + STORAGE_PAGE_SIZE - 1;
+    const storagePageResult = await client
+      .from('creatures')
+      .select('id')
+      .eq('character_id', characterId)
+      .is('party_slot', null)
+      .order('captured_at', { ascending: false })
+      .range(pageStart, pageEnd);
+    if (storagePageResult.error) {
+      throw storagePageResult.error;
+    }
+    storageRows = storagePageResult.data as CollectionStructureCreatureRows;
+  }
+  const activeCreature = activeCreatureResult.data as ActiveCreatureRow;
+  const party = partyResult.data as CollectionStructureCreatureRows;
+  return {
+    activeCreatureId: activeCreature.active_creature_id,
+    partyIds: party.map(structureCreatureId),
+    revision: activeCreature.collection_revision,
+    storageIds: storageRows.map(structureCreatureId),
     storagePage,
     storagePageCount,
     storageTotal,

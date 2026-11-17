@@ -7,7 +7,7 @@ import type { HuntCommand } from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
 import { configureCameraViewport } from '../lib/camera-viewport';
 import { PlayerInput } from '../lib/player-input';
-import { gameStore } from '../model/game-store';
+import { gameStore, selectCollection, selectParty } from '../model/game-store';
 import { PlayerWorld } from '../model/player-world';
 import type { WorldPlayer } from '../model/player-world';
 import { bindCityInput } from './city-input';
@@ -168,16 +168,16 @@ export class CityScene extends Scene {
     if (event.type === 'hunt_delta') {
       const state = gameStore.getState();
       if (state.huntSyncRequired) {
-        if (!this.huntSyncRequested) {
-          this.huntSyncRequested = true;
-          this.requestHuntState();
-        }
+        this.requestHuntResynchronization();
         return;
       }
-      const hunt = state.hunt;
-      if (hunt && hunt.huntId === event.huntId && hunt.revision === event.revision) {
-        huntView?.apply(hunt, hunt.huntId);
+      if (!event.patch || !huntView?.applyDelta(event.huntId, event.revision, event.patch)) {
+        this.requestHuntResynchronization();
       }
+      return;
+    }
+    if (event.type === 'hunt_combat_event') {
+      huntView?.applyCombatEvent(event.combatEvent);
       return;
     }
     if (event.type === 'collection_state') {
@@ -203,7 +203,7 @@ export class CityScene extends Scene {
       if (huntView) {
         huntView.fail();
       }
-      const collection = gameStore.getState().collection;
+      const collection = selectCollection(gameStore.getState());
       if (!huntView?.active && collection) {
         const command = {
           storagePage: collection.storagePage,
@@ -352,7 +352,7 @@ export class CityScene extends Scene {
       const location = this.huntingLocations.find(function findLocation(candidate): boolean {
         return candidate.id === command.huntingLocationId;
       });
-      const party = gameStore.getState().collection?.party ?? [];
+      const party = selectParty(gameStore.getState());
       const speciesIds = party.map(function speciesId(creature): number {
         return creature.species.id;
       });
@@ -366,7 +366,7 @@ export class CityScene extends Scene {
 
   private applyCollectionPatch(): void {
     const state = gameStore.getState();
-    const collection = state.collection;
+    const collection = selectCollection(state);
     if (state.collectionSyncRequired) {
       const command = {
         storagePage: collection?.storagePage ?? 1,
@@ -380,6 +380,14 @@ export class CityScene extends Scene {
   private requestHuntState(): void {
     const command = { type: 'request_hunt_state' as const, version: 1 as const };
     this.session.send(command);
+  }
+
+  private requestHuntResynchronization(): void {
+    if (this.huntSyncRequested) {
+      return;
+    }
+    this.huntSyncRequested = true;
+    this.requestHuntState();
   }
 
   private handleVisibilityChange(): void {

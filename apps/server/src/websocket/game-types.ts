@@ -1,10 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import type { HuntState } from './hunting.ts';
-
 export type CardinalDirection = 'down' | 'left' | 'right' | 'up';
 export type Direction = CardinalDirection | 'down-left' | 'down-right' | 'up-left' | 'up-right';
 export type MovementMode = 'running' | 'walking';
+export type HuntRevision = { huntId: string; revision: number };
 export type InputState = Record<CardinalDirection, boolean> & { running: boolean };
 export type Position = { x: number; y: number };
 export type Movement = {
@@ -28,11 +27,12 @@ export type AuthenticatedState = {
   lastInputRejectionAt: number;
   lastInputRejectionReason?: string;
   lastSequence: number;
-  lastHuntState?: HuntState;
+  lastHunt?: HuntRevision;
   movement?: Movement;
   position: Position;
   priority: CardinalDirection;
   requestedMode: MovementMode;
+  storagePage: number;
   hunting: boolean;
   huntTransitioning: boolean;
   supabase: SupabaseClient;

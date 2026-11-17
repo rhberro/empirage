@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import type { CollectionStateEvent } from '../api/game-protocol';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
-import { gameStore } from '../model/game-store';
+import { gameStore, selectCollection } from '../model/game-store';
 import {
   optimisticCollectionConfiguration,
   optimisticHuntConfiguration,
@@ -47,7 +47,7 @@ export function GamePage(): React.ReactElement {
     const updateCollection = collectionUpdater(identifiedCommand);
     const updateHunt = huntUpdater(identifiedCommand);
     const current = gameStore.getState();
-    current.setCollection(updateCollection(current.collection));
+    current.setCollection(updateCollection(selectCollection(current)));
     current.setHunt(updateHunt(current.hunt));
     return true;
   }

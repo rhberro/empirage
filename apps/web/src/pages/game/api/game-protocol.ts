@@ -1,12 +1,17 @@
 /* eslint-disable oxsome/no-inline-structural-types */
-import { readHuntDelta, readHuntState, readPartyCreatureConfiguration } from './hunt-protocol';
+import {
+  readHuntCombatEvent,
+  readHuntDelta,
+  readHuntState,
+  readPartyCreatureConfiguration,
+} from './hunt-protocol';
 import type {
   BattleConfiguration,
   CaptureRarity,
   PartyCreatureConfigurations,
 } from './hunt-protocol';
 /* eslint-disable max-lines */
-import type { HuntDeltaEvent, HuntStateEvent } from './hunt-protocol';
+import type { HuntCombatEventMessage, HuntDeltaEvent, HuntStateEvent } from './hunt-protocol';
 
 export const GAME_PROTOCOL_VERSION = 1;
 export const GAME_TICKS_PER_SECOND = 30;
@@ -148,11 +153,22 @@ export type CollectionCreatureProgress = {
   level: number;
   speciesId: number;
 };
+export type CollectionStructurePatch = {
+  activeCreatureId: string | null;
+  creatureUpserts: Array<CollectionCreature>;
+  partyConfigurations: PartyCreatureConfigurations | undefined;
+  partyIds: Array<string>;
+  storageIds: Array<string>;
+  storagePage: number;
+  storagePageCount: number;
+  storageTotal: number;
+};
 export type CollectionPatchEvent = {
   commandId: string | undefined;
   configuration: CollectionConfigurationPatch;
   creatures: Array<CollectionCreatureProgress> | undefined;
   revision: number;
+  structure: CollectionStructurePatch | undefined;
   type: 'collection_patch';
 };
 export type ErrorEvent = { code: string; type: 'error' };
@@ -165,6 +181,7 @@ export type GameEvent =
   | ConnectionStatusEvent
   | ErrorEvent
   | HuntClockEvent
+  | HuntCombatEventMessage
   | HuntDeltaEvent
   | HuntStateEvent
   | InputRejectedEvent
@@ -454,7 +471,13 @@ function readCollectionPatch(value: UnknownRecord): CollectionPatchEvent | null 
   const healingConfiguration = readPatchedHealingConfiguration(value.configuration);
   const captureConfiguration = readPatchedCaptureConfiguration(value.configuration);
   const creatures = readCollectionCreatureProgress(value.creatures);
-  if (healingConfiguration === null || captureConfiguration === null || creatures === null) {
+  const structure = readCollectionStructurePatch(value.structure);
+  if (
+    healingConfiguration === null ||
+    captureConfiguration === null ||
+    creatures === null ||
+    structure === null
+  ) {
     return null;
   }
   const configuration: CollectionConfigurationPatch = {};
@@ -469,7 +492,48 @@ function readCollectionPatch(value: UnknownRecord): CollectionPatchEvent | null 
     configuration,
     creatures,
     revision: value.revision,
+    structure,
     type: 'collection_patch',
+  };
+}
+
+function readCollectionStructurePatch(value: unknown): CollectionStructurePatch | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (
+    !isRecord(value) ||
+    (value.activeCreatureId !== null && typeof value.activeCreatureId !== 'string') ||
+    !Array.isArray(value.partyIds) ||
+    !Array.isArray(value.storageIds) ||
+    !Array.isArray(value.creatureUpserts) ||
+    !isPositiveInteger(value.storagePage) ||
+    !isPositiveInteger(value.storagePageCount) ||
+    !isCount(value.storageTotal)
+  ) {
+    return null;
+  }
+  const partyIds = value.partyIds;
+  const storageIds = value.storageIds;
+  const creatureUpserts = value.creatureUpserts.map(readCollectionCreature);
+  const partyConfigurations = readPartyConfigurations(value.partyConfigurations);
+  if (
+    !partyIds.every(isString) ||
+    !storageIds.every(isString) ||
+    creatureUpserts.some(isNull) ||
+    partyConfigurations === null
+  ) {
+    return null;
+  }
+  return {
+    activeCreatureId: value.activeCreatureId,
+    creatureUpserts: creatureUpserts as Array<CollectionCreature>,
+    partyConfigurations,
+    partyIds,
+    storageIds,
+    storagePage: value.storagePage,
+    storagePageCount: value.storagePageCount,
+    storageTotal: value.storageTotal,
   };
 }
 
@@ -637,6 +701,9 @@ export function parseGameEvent(value: unknown): GameEvent | null {
   }
   if (value.type === 'hunt_delta') {
     return readHuntDelta(value);
+  }
+  if (value.type === 'hunt_combat_event') {
+    return readHuntCombatEvent(value);
   }
   if (value.type === 'collection_state') {
     return readCollectionState(value);

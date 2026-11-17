@@ -15,6 +15,7 @@ type FeedbackVisual = {
 type FeedbackList = Array<FeedbackVisual>;
 type Feedbacks = { labels: FeedbackList; startedAt: number };
 type CaptureVisual = { attempt: CaptureAttempt; startedAt: number };
+type CaptureAttempts = Array<CaptureAttempt>;
 
 const EFFECT_DURATION_MS = 260;
 const FEEDBACK_DURATION_MS = 900;
@@ -49,27 +50,9 @@ export class HuntEffects {
   }
 
   public apply(state: HuntState, now: number): void {
-    for (const attempt of state.captureAttempts) {
-      const capture = this.captures.get(attempt.id);
-      if (capture) {
-        capture.attempt = attempt;
-      } else if (!this.seenCaptures.has(attempt.id)) {
-        this.seenCaptures.add(attempt.id);
-        this.captures.set(attempt.id, { attempt, startedAt: now });
-      }
-    }
+    this.applyCaptureAttempts(state.captureAttempts, now);
     for (const event of state.combatEvents) {
-      if (this.seenCombat.has(event.id)) {
-        continue;
-      }
-      this.seenCombat.add(event.id);
-      // Late snapshots must still show the attack briefly; only events still in
-      // the future wait for their logical instant.
-      const startedAt =
-        event.occurredAt > 0 ? Math.max(event.occurredAt, now - LATENCY_FLOOR_MS) : now;
-      const visual = { event, startedAt };
-      this.combat.set(event.id, visual);
-      this.createFeedback(event, startedAt);
+      this.applyCombatEvent(event, now);
     }
     while (this.seenCombat.size > MAXIMUM_SEEN_EVENTS) {
       const oldest = this.seenCombat.values().next().value;
@@ -78,6 +61,18 @@ export class HuntEffects {
       }
       this.seenCombat.delete(oldest);
     }
+  }
+
+  public applyCaptureAttempts(captureAttempts: CaptureAttempts, now: number): void {
+    for (const attempt of captureAttempts) {
+      const capture = this.captures.get(attempt.id);
+      if (capture) {
+        capture.attempt = attempt;
+      } else if (!this.seenCaptures.has(attempt.id)) {
+        this.seenCaptures.add(attempt.id);
+        this.captures.set(attempt.id, { attempt, startedAt: now });
+      }
+    }
     while (this.seenCaptures.size > MAXIMUM_SEEN_CAPTURES) {
       const oldest = this.seenCaptures.values().next().value;
       if (oldest === undefined) {
@@ -85,6 +80,18 @@ export class HuntEffects {
       }
       this.seenCaptures.delete(oldest);
     }
+  }
+
+  public applyCombatEvent(event: HuntCombatEvent, now: number): void {
+    if (this.seenCombat.has(event.id)) {
+      return;
+    }
+    this.seenCombat.add(event.id);
+    const startedAt =
+      event.occurredAt > 0 ? Math.max(event.occurredAt, now - LATENCY_FLOOR_MS) : now;
+    const visual = { event, startedAt };
+    this.combat.set(event.id, visual);
+    this.createFeedback(event, startedAt);
   }
 
   public clear(): void {

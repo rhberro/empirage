@@ -66,10 +66,14 @@ O WebSocket aceita somente `GET /ws` com upgrade e origem permitida. Também lim
 
 ### Leitura e cache no servidor
 
-Os catálogos imutáveis de itens de batalha, natures, evoluções por nível e
-configuração de locais de caça são carregados uma vez por processo e reutilizados
-entre conexões. O cache não contém dados de personagem, inventário, ouro,
-configurações, criaturas ou checkpoints.
+Os catálogos imutáveis de itens de batalha, natures, evoluções por nível,
+espécies, tipos, movimentos, efeitos, learnsets, efetividades e encontros por
+local de caça são carregados uma vez por processo e reutilizados entre conexões.
+Ao iniciar ou recuperar uma caça, o servidor chama `load_hunt_bootstrap` uma vez
+para obter equipe, moves equipados, personagem, ouro e configurações; os
+recursos estáticos da simulação são projetados a partir desse catálogo. O cache
+não contém dados de personagem, inventário, ouro, configurações, criaturas ou
+checkpoints.
 Uma nova implantação reinicializa o catálogo; alterações de seed e regras exigem
 reinício controlado do servidor para entrarem em vigor.
 
@@ -418,7 +422,7 @@ Valida criatura ativa da equipe e propriedade. Na cidade, o cliente marca a cria
 { "type": "request_creature_storage", "version": 1, "storagePage": 2 }
 ```
 
-Exige página inteira maior ou igual a um e responde com `collection_state`.
+Exige página inteira maior ou igual a um e responde com `collection_state`. O servidor registra a página efetivamente retornada no estado da conexão; os `collection_patch` estruturais seguintes projetam essa mesma página, inclusive quando uma movimentação altera seus itens ou seus totais.
 
 ### `move_creature_to_party` e `move_creature_to_storage`
 
@@ -430,7 +434,7 @@ Exige página inteira maior ou igual a um e responde com `collection_state`.
 }
 ```
 
-Validam identificador, posse, capacidade da equipe e consistência no banco. São aceitas somente na cidade: durante uma caça a equipe não pode receber ou perder integrantes. O cliente projeta imediatamente a entrada ou saída na equipe e o total do armazenamento após enviar o comando. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o cliente projeta a próxima criatura da equipe e o banco confirma a seleção. A resposta é sempre um `collection_state` completo e substitui a projeção local, inclusive quando há divergência; em caso de erro, o cliente solicita novamente a coleção completa.
+Validam identificador, posse, capacidade da equipe e consistência no banco. São aceitas somente na cidade: durante uma caça a equipe não pode receber ou perder integrantes. O cliente projeta imediatamente a entrada ou saída na equipe e o total do armazenamento após enviar o comando. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o cliente projeta a próxima criatura da equipe e o banco confirma a seleção. A resposta bem-sucedida é um `collection_patch` estrutural; em caso de lacuna de revisão, o cliente solicita novamente a coleção completa.
 
 ### `reorder_party_creature`
 
@@ -443,7 +447,7 @@ Validam identificador, posse, capacidade da equipe e consistência no banco. Sã
 }
 ```
 
-Move uma criatura da equipe para a posição de 1 a 6 solicitada; se a posição estiver ocupada, as duas criaturas trocam de posição. Pode ser enviada tanto na cidade quanto na caça. Não altera `activeCreatureId`; portanto uma criatura ativa permanece ativa mesmo ao mudar de posição. Responde com `collection_state` completo.
+Move uma criatura da equipe para a posição de 1 a 6 solicitada; se a posição estiver ocupada, as duas criaturas trocam de posição. Pode ser enviada tanto na cidade quanto na caça. Não altera `activeCreatureId`; portanto uma criatura ativa permanece ativa mesmo ao mudar de posição. Responde com `collection_patch` estrutural.
 
 ### `release_creature`
 
@@ -455,7 +459,7 @@ Move uma criatura da equipe para a posição de 1 a 6 solicitada; se a posição
 }
 ```
 
-Remove permanentemente a criatura indicada e seus registros associados. Só é aceita na cidade. O servidor rejeita a criatura ativa e a última criatura pertencente ao personagem. A resposta bem-sucedida é um `collection_state` completo.
+Remove permanentemente a criatura indicada e seus registros associados. Só é aceita na cidade. O servidor rejeita a criatura ativa e a última criatura pertencente ao personagem. A resposta bem-sucedida é um `collection_patch` estrutural.
 
 ## WebSocket: servidor para cliente
 
@@ -568,11 +572,56 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É o snapshot e a fonte de verdade visual da caça. É enviado no início, na reconexão, ao terminar a caça, quando não há uma revisão sequencial disponível ou em resposta a `request_hunt_state`; as demais mudanças podem usar `hunt_delta`. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. `combatEvents[].feedback` é uma lista aditiva de mensagens visuais calculadas pelo servidor; cada entrada contém `text` e a `tile` onde deve ser renderizada. Ela comunica acertos falhos (`Miss`) e alterações de estágio, como `Acc. Fell` e `Attack Rose`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
+É o snapshot e a fonte de verdade visual da caça. É enviado no início, na reconexão, ao terminar a caça, quando não há uma revisão sequencial disponível ou em resposta a `request_hunt_state`; as demais mudanças podem usar `hunt_delta`. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. `combatEvents` permanece no snapshot para recuperação visual após reconexão, mas não integra `hunt_delta`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
 
 ### `hunt_delta`
 
-Após o snapshot inicial, o servidor pode enviar somente os campos alterados da caça. O evento contém `huntId`, `previousRevision`, `revision` e `patch`; o cliente aplica o patch apenas quando a revisão local coincide exatamente com `previousRevision`. Se a revisão, a caça ou a validação do patch não coincidirem, o cliente não aplica o delta e envia `request_hunt_state` uma única vez até receber o `hunt_state` autoritativo.
+```json
+{
+  "type": "hunt_delta",
+  "version": 1,
+  "huntId": "hunt-uuid",
+  "previousRevision": 41,
+  "revision": 42,
+  "patch": {
+    "enemyPatches": [
+      {
+        "combatId": "enemy-combat-uuid",
+        "health": 18
+      }
+    ],
+    "removedEnemyCombatIds": [],
+    "serverTime": 1794672000034
+  }
+}
+```
+
+Após o snapshot inicial, o servidor pode enviar somente os campos runtime alterados da caça. O runtime calcula essa projeção uma vez por atualização e a reutiliza para os sockets elegíveis, sem cada conexão comparar dois estados completos. No caminho sequencial, ele não constrói o `hunt_state` completo nem o retém por socket: cada conexão guarda apenas `huntId` e `revision`; o snapshot integral é projetado sob demanda somente para entrada, ressincronização ou quebra de sequência. A origem da mutação declara seu domínio — configuração de cura, configuração de captura, criatura ativa ou faixa de onda — e o runtime projeta diretamente os campos daquele domínio, sem comparação estrutural. Durante a simulação, o motor declara troca concluída, movimento de inimigos, nova onda, vida/equipe ativa, cooldowns da criatura ativa e experiência/evolução separadamente. Um ataque aliado publica seus cooldowns e, se acertar, os inimigos afetados; um ataque inimigo publica sua agenda e, se acertar, a vida e a equipe ativa. Inimigos não são repetidos em `enemies` durante uma atualização sequencial: `enemySpawns` contém a entidade completa somente ao nascer, `enemyPatches` identifica uma entidade por `combatId` e contém apenas `health`, `position` ou `movement` que mudaram, e `removedEnemyCombatIds` contém derrotas ou remoções. O snapshot inicial continua usando `enemies` completo e não inclui atributos-base ou agendas internas do motor sem consumidor no cliente. Um comando de caça que efetivamente muda o estado publica exatamente essa única atualização; o handler WebSocket não envia uma segunda resposta de estado. Toda alteração visual avança `revision`, enquanto um comando idempotente sem mudança não emite evento. O evento contém `huntId`, `previousRevision`, `revision` e `patch`; o cliente aplica o patch apenas quando a revisão local coincide exatamente com `previousRevision`. O parser valida exclusivamente os campos presentes no patch e a store preserva as referências dos domínios que não foram alterados; a validação integral permanece restrita a `hunt_state`. A projeção Phaser recebe o patch diretamente e só reconcilia criaturas ou capturas quando os respectivos campos estão presentes. `patch` admite somente vida, criatura ativa, habilidades, spawns, patches e remoções de inimigos, configurações de batalha, ouro, tentativas de captura, posições, onda, relógios e `serverTime`; `combatEvents`, revisão, identidade da caça, grade, posição do aliado, metadados do personagem, itens de catálogo, local, geração do runtime e tamanho da onda não entram no delta. Se qualquer um desses últimos campos mudar, ou não houver uma revisão anterior sequencial, o servidor envia um `hunt_state` completo em vez de tentar representar a mudança parcialmente. Se a revisão, a caça ou a validação do patch não coincidirem, o cliente não aplica o delta e envia `request_hunt_state` uma única vez até receber o `hunt_state` autoritativo.
+
+### `hunt_combat_event`
+
+```json
+{
+  "type": "hunt_combat_event",
+  "version": 1,
+  "huntId": "hunt-uuid",
+  "revision": 42,
+  "combatEvent": {
+    "id": "event-uuid",
+    "abilityName": "Sand Attack",
+    "kind": "ranged",
+    "element": "ground",
+    "from": { "x": 2, "y": 3 },
+    "to": { "x": 8, "y": 3 },
+    "tiles": [],
+    "damages": [],
+    "feedback": [{ "text": "Acc. Fell", "tile": { "x": 8, "y": 3 } }],
+    "occurredAt": 1794672000034
+  }
+}
+```
+
+É emitido após o `hunt_delta` da mesma revisão e serve exclusivamente para animação e feedback. O cliente não o escreve na store nem o usa para decidir vida, onda, ouro ou qualquer estado persistente. `damages[].effectiveness` pode ser `normal`, `resisted` ou `super-effective`; `feedback` comunica falhas e alterações de estágio. Eventos são deduplicados por `combatEvent.id`; a perda de um evento visual não exige ressíncronia porque o próximo `hunt_state` continua autoritativo.
 
 ### `collection_state`
 
@@ -614,7 +663,7 @@ Após o snapshot inicial, o servidor pode enviar somente os campos alterados da 
 }
 ```
 
-Confirma uma alteração incremental da coleção na cidade. O cliente aplica o patch somente quando a revisão é imediatamente posterior à sua coleção local; em qualquer lacuna, pede um `collection_state` completo. `commandId` correlaciona a confirmação com a projeção otimista. Alterações de cura e captura carregam a configuração canônica; alterações de move podem ter uma configuração vazia porque o cliente já possui os metadados estáticos da habilidade escolhida.
+Confirma uma alteração incremental da coleção na cidade. O cliente aplica o patch somente quando a revisão é imediatamente posterior à sua coleção local; em qualquer lacuna, pede um `collection_state` completo. `commandId` correlaciona a confirmação com a projeção otimista. Alterações de cura e captura carregam a configuração canônica. Troca de criatura ativa e moves equipados podem incluir `partyConfigurations` completas; movimentação, reordenação e soltura as omitem. Nesses casos, o cliente preserva as configurações das criaturas ainda presentes e remove as das que saíram da equipe. `structure` traz criatura ativa, `partyIds`, `storageIds`, página corrente do armazenamento e totais. `creatureUpserts` inclui recursos completos somente das criaturas afetadas pela operação; as listas estruturais referenciam os recursos pelo ID. A projeção estrutural consulta somente IDs, slots, seleção e total da página corrente registrada para a conexão; ela não lê IVs, espécies, tipos ou configurações de combate para reenviar recursos que o cliente já possui. O patch não repete catálogos globais de itens e habilidades já presentes no último `collection_state`; o cliente recompõe a configuração da criatura ativa a partir de `partyConfigurations`. Internamente, o cliente indexa cada criatura por identificador e mantém projeções estáveis de equipe e da página de armazenamento; consumidores assinam apenas a projeção ou metadado que exibem. Se uma lista referenciar uma criatura que não exista na tabela local e não venha em `creatureUpserts`, o cliente descarta o patch e solicita o `collection_state` autoritativo.
 
 Após o checkpoint final de `leave_hunt`, o mesmo evento contém `creatures`, uma lista limitada à equipe com `id`, `speciesId`, `level`, `experience`, `experienceLevelStart` e `experienceNextLevel`. Assim, a cidade atualiza os cards com os valores efetivamente persistidos sem recarregar armazenamento, espécies, IVs ou configurações. Se uma espécie mudou por evolução durante a caça, o cliente detecta a divergência de `speciesId` e pede o `collection_state` completo para atualizar também seus metadados visuais.
 
@@ -634,6 +683,7 @@ O heartbeat real usa frames WebSocket nativos `ping` e `pong` a cada 15 segundos
 | --- | --- | --- |
 | `create_character` | criação de personagem | nome, limite, slot e concorrência no banco |
 | `checkpoint_character_hunt` | fronteira relevante, cada derrota, pausa, saída, término e segurança coalescida | revisão otimista, lock da caça e `checkpoint_id` idempotente; aplica a experiência acumulada da derrota e a criatura ativa na mesma transação do checkpoint; o término retém somente um recibo compacto por 24 h para responder com segurança a retry após remover a caça |
+| `load_hunt_bootstrap` | início ou recuperação de uma caça | leitura única, restrita a `service_role`, que agrega personagem, equipe, moves equipados e configurações dinâmicas; não escreve no banco nem inclui catálogos estáticos |
 | `complete_character_capture` | término de tentativa de captura | `command_id` idempotente, débito e criação atômicos; em falha de comunicação, o servidor reenvia o mesmo comando até obter confirmação |
 | `purchase_character_battle_item` | cura automática | compra e saldo atômicos |
 | `configure_creature_equipped_move` | configuração de habilidade | criatura, slot e movimento válidos |

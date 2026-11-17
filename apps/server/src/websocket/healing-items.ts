@@ -76,6 +76,11 @@ function isSupportedHealingItem(item: HealingItemRow): boolean {
   );
 }
 
+export async function loadHealingItems(client: SupabaseClient): Promise<HealingItemResources> {
+  const rows = await loadHealingItemRows(client);
+  return rows.filter(isSupportedHealingItem).map(mapHealingItem);
+}
+
 function hasConfiguredItem(items: HealingItemResources, itemId: number): boolean {
   for (const item of items) {
     if (item.id === itemId) {

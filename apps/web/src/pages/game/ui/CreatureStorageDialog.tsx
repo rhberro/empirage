@@ -16,7 +16,17 @@ import * as React from 'react';
 
 import type { CollectionCreature } from '../api/game-protocol';
 import type { HuntCommand } from '../api/hunt-protocol';
-import { selectCollection, selectHunt, useGameStore } from '../model/game-store';
+import {
+  selectCollectionActiveCreatureId,
+  selectCreatureById,
+  selectHunt,
+  selectPartyIds,
+  selectStorageIds,
+  selectStoragePage,
+  selectStoragePageCount,
+  selectStorageTotal,
+  useGameStore,
+} from '../model/game-store';
 import { selectStorageModalState, toggleStorageModal, useModalStore } from '../model/modal-store';
 
 type CreatureStorageDialogProps = {
@@ -25,8 +35,8 @@ type CreatureStorageDialogProps = {
 type CollectionSectionProps = React.PropsWithChildren<{ count: string; label: string }>;
 type CollectionCreatureCardProps = {
   active: boolean;
-  creature: CollectionCreature;
   creatureCount: number;
+  creatureId: string;
   isTeamFull: boolean;
   isHunting: boolean;
   onCommand: (command: HuntCommand) => boolean;
@@ -43,18 +53,18 @@ type StoragePaginationProps = {
 
 export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.ReactElement {
   const { onCommand } = props;
-  const collection = useGameStore(selectCollection);
+  const collectionActiveCreatureId = useGameStore(selectCollectionActiveCreatureId);
   const hunt = useGameStore(selectHunt);
-  const activeCreatureId = hunt?.activeCreatureId ?? collection?.activeCreatureId;
+  const partyIds = useGameStore(selectPartyIds);
+  const storageIds = useGameStore(selectStorageIds);
+  const storagePage = useGameStore(selectStoragePage);
+  const storagePageCount = useGameStore(selectStoragePageCount);
+  const storageTotal = useGameStore(selectStorageTotal);
+  const activeCreatureId = hunt?.activeCreatureId ?? collectionActiveCreatureId;
   const isHunting = hunt !== null;
   const open = useModalStore(selectStorageModalState);
-  const party = collection?.party ?? [];
-  const storage = collection?.storage ?? [];
-  const storagePage = collection?.storagePage ?? 1;
-  const storagePageCount = collection?.storagePageCount ?? 1;
-  const storageTotal = collection?.storageTotal ?? 0;
-  const isTeamFull = party.length >= 6;
-  const creatureCount = party.length + storageTotal;
+  const isTeamFull = partyIds.length >= 6;
+  const creatureCount = partyIds.length + storageTotal;
 
   function requestStoragePage(page: number): void {
     onCommand({ storagePage: page, type: 'request_creature_storage', version: 1 });
@@ -76,17 +86,17 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
           </Dialog.Header>
           <Dialog.Body overflowY="auto">
             <Stack gap="6">
-              <CollectionSection count={`${party.length}/6`} label="Time atual">
+              <CollectionSection count={`${partyIds.length}/6`} label="Time atual">
                 <HStack align="start" gap="3" overflowX="auto" pb="1">
-                  {party.map(function renderPartyCard(creature): React.ReactElement {
+                  {partyIds.map(function renderPartyCard(creatureId): React.ReactElement {
                     return (
                       <CollectionCreatureCard
-                        active={creature.id === activeCreatureId}
-                        creature={creature}
+                        active={creatureId === activeCreatureId}
                         creatureCount={creatureCount}
+                        creatureId={creatureId}
                         isTeamFull={isTeamFull}
                         isHunting={isHunting}
-                        key={creature.id}
+                        key={creatureId}
                         onCommand={onCommand}
                         onPartyReorder={reorderParty}
                         party
@@ -97,16 +107,16 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
               </CollectionSection>
               <CollectionSection count={String(storageTotal)} label="Armazenamento">
                 <Grid gap="3" templateColumns="repeat(auto-fill, minmax(7rem, 1fr))">
-                  {storage.length === 0 ? <StorageEmpty /> : null}
-                  {storage.map(function renderStorageCard(creature): React.ReactElement {
+                  {storageIds.length === 0 ? <StorageEmpty /> : null}
+                  {storageIds.map(function renderStorageCard(creatureId): React.ReactElement {
                     return (
                       <CollectionCreatureCard
                         active={false}
-                        creature={creature}
                         creatureCount={creatureCount}
+                        creatureId={creatureId}
                         isTeamFull={isTeamFull}
                         isHunting={isHunting}
-                        key={creature.id}
+                        key={creatureId}
                         onCommand={onCommand}
                         onPartyReorder={reorderParty}
                         party={false}
@@ -188,18 +198,28 @@ function StorageEmpty(): React.ReactElement {
   );
 }
 
-function CollectionCreatureCard(props: CollectionCreatureCardProps): React.ReactElement {
+function CollectionCreatureCard(props: CollectionCreatureCardProps): React.ReactElement | null {
   const {
     active,
-    creature,
     creatureCount,
+    creatureId,
     isHunting,
     isTeamFull,
     onCommand,
     onPartyReorder,
     party,
   } = props;
+  const creatureSelector = React.useMemo(
+    function createCreatureSelector() {
+      return selectCreatureById(creatureId);
+    },
+    [creatureId],
+  );
+  const creature = useGameStore(creatureSelector);
   const [releaseConfirmationOpen, setReleaseConfirmationOpen] = React.useState(false);
+  if (!creature) {
+    return null;
+  }
   const image = creatureIconUrl(creature);
   const width = active ? '8rem' : party ? '6.5rem' : 'full';
   const action = party ? 'Remover do time' : 'Adicionar ao time';

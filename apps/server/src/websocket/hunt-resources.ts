@@ -3,16 +3,18 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { loadCatalog } from '../game/catalog-cache.ts';
 import {
-  loadCharacterCaptureResources,
+  CAPTURE_RARITIES,
+  loadCaptureItems,
   type CaptureConfigurationResource,
   type CaptureItemResource,
+  type CaptureRarity,
 } from './capture-items.ts';
 import {
-  loadCharacterHealingResources,
+  loadHealingItems,
   type HealingConfigurationResource,
   type HealingItemResource,
 } from './healing-items.ts';
-import { safeExperience, uniqueNumbers } from './hunt-resource-values.ts';
+import { safeExperience } from './hunt-resource-values.ts';
 
 export type { HealingConfigurationResource, HealingItemResource } from './healing-items.ts';
 
@@ -150,12 +152,19 @@ type NatureRow = {
   increased_stat: string | null;
   slug: string;
 };
-type CharacterRow = {
+type HuntBootstrap = {
   active_creature_id: string | null;
   avatar_url: string | null;
+  capture_configuration: BootstrapCaptureConfiguration | null;
+  creatures: Array<CreatureRow>;
+  equipped_moves: Array<EquippedAbilityRow>;
+  gold: number;
+  healing_configuration: BootstrapHealingConfiguration | null;
   level: number;
   name: string;
 };
+type BootstrapHealingConfiguration = { item_id: number; threshold_percentage: number };
+type BootstrapCaptureConfiguration = { item_id: number; rarities: Array<string> };
 type EvolutionRow = {
   from_species_id: number;
   required_level: number;
@@ -223,14 +232,15 @@ type TypeEffectivenessRow = {
   defender_type_id: number;
   multiplier: number;
 };
-type StaticHuntRules = {
-  evolutions: Array<EvolutionRow>;
-  natures: Array<NatureRow>;
+type HuntingLocationSpeciesRow = EncounterRow & { hunting_location_id: number };
+type StaticHuntCatalog = {
+  abilityTemplates: Map<number, HuntAbilityResource>;
+  encountersByLocation: Map<number, Array<HuntEncounterResource>>;
+  evolutions: Array<HuntEvolutionResource>;
+  naturesBySlug: Map<string, HuntNatureResource>;
+  species: Record<string, HuntSpeciesResource>;
+  typeEffectiveness: Record<string, number>;
 };
-type ResourceQueries = [
-  PromiseLike<{ data: unknown; error: unknown }>,
-  PromiseLike<{ data: unknown; error: unknown }>,
-];
 
 function databaseStat(value: string | null): HuntBattleStat | null {
   switch (value) {
@@ -253,174 +263,163 @@ function databaseStat(value: string | null): HuntBattleStat | null {
   }
 }
 
-function loadStaticHuntRules(client: SupabaseClient): Promise<StaticHuntRules> {
-  async function load(): Promise<StaticHuntRules> {
+function isCaptureRarity(value: string): value is CaptureRarity {
+  return CAPTURE_RARITIES.includes(value as CaptureRarity);
+}
+
+function healingConfiguration(
+  configuration: BootstrapHealingConfiguration | null,
+  items: Array<HealingItemResource>,
+): HealingConfigurationResource | undefined {
+  if (!configuration) {
+    return undefined;
+  }
+  const item = items.find(function configuredItem(candidate): boolean {
+    return candidate.id === configuration.item_id;
+  });
+  return item
+    ? {
+        itemId: item.id,
+        thresholdPercentage: configuration.threshold_percentage,
+      }
+    : undefined;
+}
+
+function captureConfiguration(
+  configuration: BootstrapCaptureConfiguration | null,
+  items: Array<CaptureItemResource>,
+): CaptureConfigurationResource | undefined {
+  if (!configuration) {
+    return undefined;
+  }
+  const item = items.find(function configuredItem(candidate): boolean {
+    return candidate.id === configuration.item_id;
+  });
+  const rarities = configuration.rarities.filter(isCaptureRarity);
+  return item && rarities.length > 0 ? { itemId: item.id, rarities } : undefined;
+}
+
+async function loadHuntBootstrap(
+  client: SupabaseClient,
+  characterId: string,
+): Promise<HuntBootstrap> {
+  const parameters = { target_character_id: characterId };
+  const { data, error } = await client.rpc('load_hunt_bootstrap', parameters);
+  if (error) {
+    throw error;
+  }
+  if (!data) {
+    throw new Error('hunt_bootstrap_character_not_found');
+  }
+  return data as HuntBootstrap;
+}
+
+function staticAbility(
+  row: AbilityRow,
+  effectsByMove: Map<number, Array<HuntStatEffectResource>>,
+  typeSlugs: Map<number, string>,
+  assignment: AbilityAssignment,
+): HuntAbilityResource {
+  return {
+    accuracy: row.accuracy,
+    areaRadius: Math.max(row.area_radius, row.area_length, row.area_width),
+    category: row.category,
+    cooldownMs: row.cooldown_ms,
+    effects: effectsByMove.get(row.id) ?? [],
+    id: row.id,
+    isFire: typeSlugs.get(row.type_id) === 'fire',
+    name: row.name,
+    power: row.power,
+    rangeTiles: row.range_tiles,
+    requiredLevel: assignment.requiredLevel,
+    slot: assignment.slot,
+    target: row.target,
+    typeId: row.type_id,
+    typeSlug: typeSlugs.get(row.type_id) ?? 'normal',
+  };
+}
+
+function staticAbilities(
+  assignments: Array<AbilityAssignment>,
+  abilityTemplates: Map<number, HuntAbilityResource>,
+): Array<HuntAbilityResource> {
+  const abilities: Array<HuntAbilityResource> = [];
+  for (const assignment of assignments) {
+    const ability = abilityTemplates.get(assignment.abilityId);
+    if (ability) {
+      abilities.push({
+        ...ability,
+        requiredLevel: assignment.requiredLevel,
+        slot: assignment.slot,
+      });
+    }
+  }
+  return abilities;
+}
+
+function staticCatalog(client: SupabaseClient): Promise<StaticHuntCatalog> {
+  async function load(): Promise<StaticHuntCatalog> {
     const queries = [
       client
         .from('evolutions')
         .select('from_species_id, to_species_id, required_level')
         .eq('trigger', 'level'),
       client.from('natures').select('slug, increased_stat, decreased_stat'),
-    ];
-    const [evolutionResult, natureResult] = await Promise.all(queries);
-    if (evolutionResult.error || natureResult.error) {
-      throw evolutionResult.error ?? natureResult.error;
-    }
-    return {
-      evolutions: evolutionResult.data as Array<EvolutionRow>,
-      natures: natureResult.data as Array<NatureRow>,
-    };
-  }
-  return loadCatalog('hunt-static-rules', load);
-}
-
-export async function loadHuntResources(
-  client: SupabaseClient,
-  characterId: string,
-  locationId: number,
-): Promise<HuntResources> {
-  const queries: ResourceQueries = [
-    client
-      .from('creatures')
-      .select(
-        'id, species_id, party_slot, experience, level, nature_slug, iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed, ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed',
-      )
-      .eq('character_id', characterId)
-      .not('party_slot', 'is', null)
-      .order('party_slot'),
-    client
-      .from('hunting_location_species')
-      .select('species_id, minimum_level, maximum_level, encounter_weight')
-      .eq('hunting_location_id', locationId),
-  ];
-  const [creatureResult, encounterResult] = await Promise.all(queries);
-  if (creatureResult.error) {
-    throw creatureResult.error;
-  }
-  if (encounterResult.error) {
-    throw encounterResult.error;
-  }
-  const creatureRows = creatureResult.data as Array<CreatureRow>;
-  const encounterRows = encounterResult.data as Array<EncounterRow>;
-  if (creatureRows.length === 0) {
-    throw new Error('no_active_creatures');
-  }
-  if (encounterRows.length === 0) {
-    throw new Error('hunting_location_has_no_species');
-  }
-  const [healingResources, captureResources] = await Promise.all([
-    loadCharacterHealingResources(client, characterId),
-    loadCharacterCaptureResources(client, characterId),
-  ]);
-  const characterQuery = client
-    .from('characters')
-    .select('name, level, avatar_url, active_creature_id')
-    .eq('id', characterId)
-    .single();
-  const characterAndRules = [characterQuery, loadStaticHuntRules(client)];
-  const [characterResult, staticRules] = await Promise.all(characterAndRules);
-  if (characterResult.error) {
-    throw characterResult.error;
-  }
-  const character = characterResult.data as CharacterRow;
-  const natures = new Map<string, HuntNatureResource>();
-  for (const row of staticRules.natures) {
-    const increasedStat = databaseStat(row.increased_stat);
-    const decreasedStat = databaseStat(row.decreased_stat);
-    if (
-      increasedStat === 'accuracy' ||
-      increasedStat === 'evasion' ||
-      decreasedStat === 'accuracy' ||
-      decreasedStat === 'evasion'
-    ) {
-      continue;
-    }
-    natures.set(row.slug, { decreasedStat, increasedStat, slug: row.slug });
-  }
-  const evolutionRows = staticRules.evolutions;
-  const evolutions = evolutionRows.map(function evolution(
-    row: EvolutionRow,
-  ): HuntEvolutionResource {
-    return {
-      fromSpeciesId: row.from_species_id,
-      requiredLevel: row.required_level,
-      toSpeciesId: row.to_species_id,
-    };
-  });
-  const speciesIds = uniqueNumbers([
-    ...creatureRows.map(function creatureSpecies(row: CreatureRow): number {
-      return row.species_id;
-    }),
-    ...encounterRows.map(function encounterSpecies(row: EncounterRow): number {
-      return row.species_id;
-    }),
-    ...evolutionRows.map(function evolutionSpecies(row: EvolutionRow): number {
-      return row.to_species_id;
-    }),
-  ]);
-  const creatureIds = creatureRows.map(function creatureId(row: CreatureRow): string {
-    return row.id;
-  });
-  const [speciesResult, equippedResult, speciesMoveResult, speciesTypesResult] = await Promise.all([
-    client
-      .from('species')
-      .select(
-        'id, name, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, ev_yield_hp, ev_yield_attack, ev_yield_defense, ev_yield_special_attack, ev_yield_special_defense, ev_yield_speed',
-      )
-      .in('id', speciesIds),
-    client
-      .from('creature_equipped_moves')
-      .select('creature_id, move_id, slot')
-      .in('creature_id', creatureIds)
-      .order('slot'),
-    client
-      .from('species_move_learnsets')
-      .select('species_id, move_id, required_level')
-      .eq('learn_method', 'level')
-      .in('species_id', speciesIds),
-    client.from('species_types').select('species_id, type_id').in('species_id', speciesIds),
-  ]);
-  if (
-    speciesResult.error ||
-    equippedResult.error ||
-    speciesMoveResult.error ||
-    speciesTypesResult.error
-  ) {
-    throw (
-      speciesResult.error ??
-      equippedResult.error ??
-      speciesMoveResult.error ??
-      speciesTypesResult.error
-    );
-  }
-  const equipped = equippedResult.data as Array<EquippedAbilityRow>;
-  const speciesMoves = speciesMoveResult.data as Array<SpeciesMoveRow>;
-  const abilityIds = uniqueNumbers(
-    [...equipped, ...speciesMoves].map(function assignmentAbility(
-      row: EquippedAbilityRow | SpeciesMoveRow,
-    ): number {
-      return row.move_id;
-    }),
-  );
-  let abilityRows: Array<AbilityRow> = [];
-  const effectsByMove = new Map<number, Array<HuntStatEffectResource>>();
-  if (abilityIds.length > 0) {
-    const [abilityResult, effectResult] = await Promise.all([
+      client
+        .from('hunting_location_species')
+        .select('hunting_location_id, species_id, minimum_level, maximum_level, encounter_weight'),
+      client
+        .from('species')
+        .select(
+          'id, name, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed, ev_yield_hp, ev_yield_attack, ev_yield_defense, ev_yield_special_attack, ev_yield_special_defense, ev_yield_speed',
+        ),
+      client
+        .from('species_move_learnsets')
+        .select('species_id, move_id, required_level')
+        .eq('learn_method', 'level'),
+      client.from('species_types').select('species_id, type_id'),
       client
         .from('moves')
         .select(
           'id, name, category, type_id, power, accuracy, cooldown_ms, range_tiles, area_radius, area_length, area_width, area_shape, target',
-        )
-        .in('id', abilityIds),
-      client
-        .from('move_stat_effects')
-        .select('move_id, stat, stage, chance, target')
-        .in('move_id', abilityIds),
-    ]);
-    if (abilityResult.error || effectResult.error) {
-      throw abilityResult.error ?? effectResult.error;
+        ),
+      client.from('move_stat_effects').select('move_id, stat, stage, chance, target'),
+      client.from('types').select('id, slug'),
+      client.from('type_effectiveness').select('attacker_type_id, defender_type_id, multiplier'),
+    ];
+    const results = await Promise.all(queries);
+    for (const result of results) {
+      if (result.error) {
+        throw result.error;
+      }
     }
-    abilityRows = abilityResult.data as Array<AbilityRow>;
+    const [
+      evolutionResult,
+      natureResult,
+      encounterResult,
+      speciesResult,
+      speciesMoveResult,
+      speciesTypeResult,
+      abilityResult,
+      effectResult,
+      typeResult,
+      typeEffectivenessResult,
+    ] = results;
+    const naturesBySlug = new Map<string, HuntNatureResource>();
+    for (const row of natureResult.data as Array<NatureRow>) {
+      const increasedStat = databaseStat(row.increased_stat);
+      const decreasedStat = databaseStat(row.decreased_stat);
+      if (
+        increasedStat === 'accuracy' ||
+        increasedStat === 'evasion' ||
+        decreasedStat === 'accuracy' ||
+        decreasedStat === 'evasion'
+      ) {
+        continue;
+      }
+      naturesBySlug.set(row.slug, { decreasedStat, increasedStat, slug: row.slug });
+    }
+    const effectsByMove = new Map<number, Array<HuntStatEffectResource>>();
     for (const row of effectResult.data as Array<MoveStatEffectRow>) {
       const stat = databaseStat(row.stat);
       if (!stat) {
@@ -430,68 +429,119 @@ export async function loadHuntResources(
       effects.push({ chance: row.chance, stage: row.stage, stat, target: row.target });
       effectsByMove.set(row.move_id, effects);
     }
-  }
-  const speciesTypes = speciesTypesResult.data as Array<SpeciesTypeRow>;
-  const typeIds = uniqueNumbers([
-    ...abilityRows.map(function abilityType(row: AbilityRow): number {
-      return row.type_id;
-    }),
-    ...speciesTypes.map(function speciesType(row: SpeciesTypeRow): number {
-      return row.type_id;
-    }),
-  ]);
-  let typeRows: Array<TypeRow> = [];
-  let typeEffectivenessRows: Array<TypeEffectivenessRow> = [];
-  if (typeIds.length > 0) {
-    const [typeResult, typeEffectivenessResult] = await Promise.all([
-      client.from('types').select('id, slug').in('id', typeIds),
-      client
-        .from('type_effectiveness')
-        .select('attacker_type_id, defender_type_id, multiplier')
-        .in('attacker_type_id', typeIds)
-        .in('defender_type_id', typeIds),
-    ]);
-    if (typeResult.error || typeEffectivenessResult.error) {
-      throw typeResult.error ?? typeEffectivenessResult.error;
+    const typeSlugs = new Map<number, string>();
+    for (const row of typeResult.data as Array<TypeRow>) {
+      typeSlugs.set(row.id, row.slug);
     }
-    typeRows = typeResult.data as Array<TypeRow>;
-    typeEffectivenessRows = typeEffectivenessResult.data as Array<TypeEffectivenessRow>;
-  }
-  const typeSlugs = new Map<number, string>();
-  for (const row of typeRows) {
-    typeSlugs.set(row.id, row.slug);
-  }
-  const abilities = new Map<number, AbilityRow>();
-  for (const row of abilityRows) {
-    abilities.set(row.id, row);
-  }
-  function resolveAssignments(rows: Array<AbilityAssignment>): Array<HuntAbilityResource> {
-    const resolved: Array<HuntAbilityResource> = [];
-    for (const assignment of rows) {
-      const ability = abilities.get(assignment.abilityId);
-      if (!ability) {
-        continue;
-      }
-      resolved.push({
-        accuracy: ability.accuracy,
-        areaRadius: Math.max(ability.area_radius, ability.area_length, ability.area_width),
-        category: ability.category,
-        cooldownMs: ability.cooldown_ms,
-        effects: effectsByMove.get(ability.id) ?? [],
-        id: ability.id,
-        isFire: typeSlugs.get(ability.type_id) === 'fire',
-        name: ability.name,
-        power: ability.power,
-        rangeTiles: ability.range_tiles,
-        requiredLevel: assignment.requiredLevel,
-        slot: assignment.slot,
-        target: ability.target,
-        typeId: ability.type_id,
-        typeSlug: typeSlugs.get(ability.type_id) ?? 'normal',
+    const abilityTemplates = new Map<number, HuntAbilityResource>();
+    const defaultAssignment = { abilityId: 0, requiredLevel: 0, slot: 0 };
+    for (const row of abilityResult.data as Array<AbilityRow>) {
+      abilityTemplates.set(row.id, staticAbility(row, effectsByMove, typeSlugs, defaultAssignment));
+    }
+    const assignmentsBySpecies = new Map<number, Array<AbilityAssignment>>();
+    for (const row of speciesMoveResult.data as Array<SpeciesMoveRow>) {
+      const assignments = assignmentsBySpecies.get(row.species_id) ?? [];
+      assignments.push({
+        abilityId: row.move_id,
+        requiredLevel: row.required_level,
+        slot: row.move_id,
+      });
+      assignmentsBySpecies.set(row.species_id, assignments);
+    }
+    for (const assignments of assignmentsBySpecies.values()) {
+      assignments.sort(function sortByAbility(first, second): number {
+        return first.abilityId - second.abilityId;
       });
     }
-    return resolved;
+    const typeIdsBySpecies = new Map<number, Array<number>>();
+    for (const row of speciesTypeResult.data as Array<SpeciesTypeRow>) {
+      const typeIds = typeIdsBySpecies.get(row.species_id) ?? [];
+      typeIds.push(row.type_id);
+      typeIdsBySpecies.set(row.species_id, typeIds);
+    }
+    const species: Record<string, HuntSpeciesResource> = {};
+    for (const row of speciesResult.data as Array<SpeciesRow>) {
+      const typeIds = typeIdsBySpecies.get(row.id) ?? [];
+      const assignments = assignmentsBySpecies.get(row.id) ?? [];
+      species[String(row.id)] = {
+        abilities: staticAbilities(assignments, abilityTemplates),
+        baseAttack: row.base_attack,
+        baseDefense: row.base_defense,
+        baseHealth: row.base_hp,
+        baseSpecialAttack: row.base_special_attack,
+        baseSpecialDefense: row.base_special_defense,
+        baseSpeed: row.base_speed,
+        evYieldAttack: row.ev_yield_attack,
+        evYieldDefense: row.ev_yield_defense,
+        evYieldHealth: row.ev_yield_hp,
+        evYieldSpecialAttack: row.ev_yield_special_attack,
+        evYieldSpecialDefense: row.ev_yield_special_defense,
+        evYieldSpeed: row.ev_yield_speed,
+        id: row.id,
+        name: row.name,
+        typeIds,
+        typeSlugs: typeIds.map(function typeSlug(typeId): string {
+          return typeSlugs.get(typeId) ?? 'normal';
+        }),
+      };
+    }
+    const encountersByLocation = new Map<number, Array<HuntEncounterResource>>();
+    for (const row of encounterResult.data as Array<HuntingLocationSpeciesRow>) {
+      const encounters = encountersByLocation.get(row.hunting_location_id) ?? [];
+      encounters.push({
+        maximumLevel: row.maximum_level,
+        minimumLevel: row.minimum_level,
+        speciesId: row.species_id,
+        weight: row.encounter_weight,
+      });
+      encountersByLocation.set(row.hunting_location_id, encounters);
+    }
+    const typeEffectiveness: Record<string, number> = {};
+    for (const row of typeEffectivenessResult.data as Array<TypeEffectivenessRow>) {
+      typeEffectiveness[row.attacker_type_id + ':' + row.defender_type_id] = row.multiplier;
+    }
+    const evolutions = (evolutionResult.data as Array<EvolutionRow>).map(function evolution(
+      row: EvolutionRow,
+    ): HuntEvolutionResource {
+      return {
+        fromSpeciesId: row.from_species_id,
+        requiredLevel: row.required_level,
+        toSpeciesId: row.to_species_id,
+      };
+    });
+    return {
+      abilityTemplates,
+      encountersByLocation,
+      evolutions,
+      naturesBySlug,
+      species,
+      typeEffectiveness,
+    };
   }
+  return loadCatalog('hunt-static-catalog', load);
+}
+
+export async function loadHuntResources(
+  client: SupabaseClient,
+  characterId: string,
+  locationId: number,
+): Promise<HuntResources> {
+  const queries = [
+    loadHuntBootstrap(client, characterId),
+    loadHealingItems(client),
+    loadCaptureItems(client),
+    staticCatalog(client),
+  ];
+  const [bootstrap, healingItems, captureItems, catalog] = await Promise.all(queries);
+  const creatureRows = bootstrap.creatures;
+  const encounters = catalog.encountersByLocation.get(locationId) ?? [];
+  if (creatureRows.length === 0) {
+    throw new Error('no_active_creatures');
+  }
+  if (encounters.length === 0) {
+    throw new Error('hunting_location_has_no_species');
+  }
+  const equipped = bootstrap.equipped_moves;
   const creatures: Array<HuntCreatureResource> = [];
   for (const row of creatureRows) {
     const equippedAbilities = equipped.filter(function forCreature(
@@ -499,12 +549,13 @@ export async function loadHuntResources(
     ): boolean {
       return assignment.creature_id === row.id;
     });
-    const availableMoves = speciesMoves.filter(function forSpecies(move: SpeciesMoveRow): boolean {
-      return move.species_id === row.species_id;
-    });
+    const species = catalog.species[String(row.species_id)];
+    if (!species) {
+      throw new TypeError('creature_species_missing');
+    }
     const levelByAbilityId = new Map<number, number>();
-    for (const move of availableMoves) {
-      levelByAbilityId.set(move.move_id, move.required_level);
+    for (const ability of species.abilities) {
+      levelByAbilityId.set(ability.id, ability.requiredLevel);
     }
     const assignments = equippedAbilities.flatMap(function equippedMove(
       assignment: EquippedAbilityRow,
@@ -514,12 +565,12 @@ export async function loadHuntResources(
         ? []
         : [{ abilityId: assignment.move_id, requiredLevel, slot: assignment.slot }];
     });
-    const nature = natures.get(row.nature_slug);
+    const nature = catalog.naturesBySlug.get(row.nature_slug);
     if (!nature) {
       throw new TypeError('creature_nature_missing');
     }
     creatures.push({
-      abilities: resolveAssignments(assignments),
+      abilities: staticAbilities(assignments, catalog.abilityTemplates),
       evAttack: row.ev_attack,
       evDefense: row.ev_defense,
       evHealth: row.ev_hp,
@@ -540,82 +591,23 @@ export async function loadHuntResources(
       teamPosition: row.party_slot,
     });
   }
-  const species: Record<string, HuntSpeciesResource> = {};
-  for (const row of speciesResult.data as Array<SpeciesRow>) {
-    const assignments = speciesMoves
-      .filter(function forSpecies(move: SpeciesMoveRow): boolean {
-        return move.species_id === row.id;
-      })
-      .map(function speciesMove(move: SpeciesMoveRow): AbilityAssignment {
-        return {
-          abilityId: move.move_id,
-          requiredLevel: move.required_level,
-          slot: move.move_id,
-        };
-      });
-    assignments.sort(function sortByAbility(first, second): number {
-      return first.abilityId - second.abilityId;
-    });
-    species[String(row.id)] = {
-      abilities: resolveAssignments(assignments),
-      baseAttack: row.base_attack,
-      baseDefense: row.base_defense,
-      baseHealth: row.base_hp,
-      baseSpecialAttack: row.base_special_attack,
-      baseSpecialDefense: row.base_special_defense,
-      baseSpeed: row.base_speed,
-      evYieldAttack: row.ev_yield_attack,
-      evYieldDefense: row.ev_yield_defense,
-      evYieldHealth: row.ev_yield_hp,
-      evYieldSpecialAttack: row.ev_yield_special_attack,
-      evYieldSpecialDefense: row.ev_yield_special_defense,
-      evYieldSpeed: row.ev_yield_speed,
-      id: row.id,
-      name: row.name,
-      typeIds: speciesTypes
-        .filter(function sameSpecies(type: SpeciesTypeRow): boolean {
-          return type.species_id === row.id;
-        })
-        .map(function typeId(type: SpeciesTypeRow): number {
-          return type.type_id;
-        }),
-      typeSlugs: speciesTypes
-        .filter(function sameSpecies(type: SpeciesTypeRow): boolean {
-          return type.species_id === row.id;
-        })
-        .map(function typeSlug(type: SpeciesTypeRow): string {
-          return typeSlugs.get(type.type_id) ?? 'normal';
-        }),
-    };
-  }
-  const encounters = encounterRows.map(function encounter(
-    row: EncounterRow,
-  ): HuntEncounterResource {
-    return {
-      maximumLevel: row.maximum_level,
-      minimumLevel: row.minimum_level,
-      speciesId: row.species_id,
-      weight: row.encounter_weight,
-    };
-  });
-  const typeEffectiveness: Record<string, number> = {};
-  for (const row of typeEffectivenessRows) {
-    typeEffectiveness[row.attacker_type_id + ':' + row.defender_type_id] = row.multiplier;
-  }
   return {
-    activeCreatureId: character.active_creature_id,
-    ...captureResources,
+    activeCreatureId: bootstrap.active_creature_id,
+    captureConfiguration: captureConfiguration(bootstrap.capture_configuration, captureItems),
+    captureItems,
     character: {
-      avatarUrl: character.avatar_url,
-      level: character.level,
-      name: character.name,
+      avatarUrl: bootstrap.avatar_url,
+      level: bootstrap.level,
+      name: bootstrap.name,
     },
     creatures,
     encounters,
-    evolutions,
-    ...healingResources,
+    evolutions: catalog.evolutions,
+    gold: bootstrap.gold,
+    healingConfiguration: healingConfiguration(bootstrap.healing_configuration, healingItems),
+    healingItems,
     locationId,
-    species,
-    typeEffectiveness,
+    species: catalog.species,
+    typeEffectiveness: catalog.typeEffectiveness,
   };
 }

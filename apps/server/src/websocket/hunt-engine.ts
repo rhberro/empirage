@@ -120,9 +120,26 @@ export type HuntEngine = {
 };
 export type HuntAdvanceResult = {
   changed: boolean;
+  changes: Array<HuntAdvanceChange>;
   combatEvents: Array<HuntCombatEvent>;
   defeatedEnemies: Array<HuntEngineEnemy>;
+  enemyPatches: Array<HuntEngineEnemyPatch>;
   finished: boolean;
+  removedEnemyCombatIds: Array<string>;
+  spawnedEnemies: Array<HuntEngineEnemy>;
+};
+export type HuntAdvanceChange =
+  | 'active-creature'
+  | 'active-creature-abilities'
+  | 'active-creature-experience'
+  | 'active-creature-health'
+  | 'enemies'
+  | 'wave';
+export type HuntEngineEnemyPatch = {
+  combatId: string;
+  health?: number;
+  movement?: Movement | null;
+  position?: Position;
 };
 export type HuntEngineSnapshot = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
 
@@ -143,6 +160,11 @@ type AttackPolicy = {
 type DamageResult = { amount: number; effectiveness: CombatEffectiveness };
 type ActingEnemy = { enemy: HuntEngineEnemy; policy: AttackPolicy };
 type PathNode = { firstStep?: Position; position: Position };
+type AttackResult = {
+  blockedMovers: Set<string>;
+  changes: Set<HuntAdvanceChange>;
+  damagedEnemyCombatIds: Set<string>;
+};
 
 function areaDistance(first: Position, second: Position): number {
   return Math.max(Math.abs(first.x - second.x), Math.abs(first.y - second.y));
@@ -576,16 +598,17 @@ function spawnPosition(engine: HuntEngine, blocked: Set<string>): Position {
   return candidates[Math.floor(Math.random() * candidates.length)] ?? { x: 9, y: 3 };
 }
 
-function spawnWave(engine: HuntEngine, nowEpoch: number): void {
+function spawnWave(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
   engine.waveSize = randomWaveSize(engine.waveRange);
   const blocked = blockedTiles(engine);
+  const spawned: Array<HuntEngineEnemy> = [];
   for (let index = 0; index < engine.waveSize; index += 1) {
     const encounter = randomEncounter(engine.resources);
     const ivs = randomWildIvs();
     const position = spawnPosition(engine, blocked);
     blocked.add(positionKey(position));
     const health = wildStats(encounter, encounter.level, ivs).health;
-    engine.enemies.push({
+    const enemy = {
       ...encounter,
       ...ivs,
       combatId: randomUUID(),
@@ -595,8 +618,11 @@ function spawnWave(engine: HuntEngine, nowEpoch: number): void {
       nextMovementAt: nowEpoch,
       position,
       rarity: rarityForIvs(ivs),
-    });
+    } satisfies HuntEngineEnemy;
+    engine.enemies.push(enemy);
+    spawned.push(enemy);
   }
+  return spawned;
 }
 
 function randomWaveSize(range: HuntWaveRange): number {
@@ -700,8 +726,8 @@ function startCooldown(
   actorCooldowns[GLOBAL_COOLDOWN_KEY] = nowEpoch + ABILITY_SPACING_MS;
 }
 
-function settleMovements(engine: HuntEngine, nowEpoch: number): boolean {
-  let changed = false;
+function settleMovements(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
+  const settled: Array<HuntEngineEnemy> = [];
   for (const enemy of engine.enemies) {
     if (enemy.movement && enemy.movement.startTime + MOVEMENT_MS <= nowEpoch) {
       enemy.position = enemy.movement.toTile;
@@ -709,10 +735,10 @@ function settleMovements(engine: HuntEngine, nowEpoch: number): boolean {
       if (areaDistance(enemy.position, ALLY_POSITION) <= 1) {
         enemy.nextMovementAt = nextAdjacentWanderAt(nowEpoch);
       }
-      changed = true;
+      settled.push(enemy);
     }
   }
-  return changed;
+  return settled;
 }
 
 function attackKind(policy: AttackPolicy): HuntCombatEvent['kind'] {
@@ -864,7 +890,7 @@ function enemyAttack(
   acting: ActingEnemy,
   nowEpoch: number,
   events: Array<HuntCombatEvent>,
-): void {
+): boolean {
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
   if (acting.policy.target === 'self') {
@@ -886,7 +912,7 @@ function enemyAttack(
       tiles: [],
       to: acting.enemy.position,
     });
-    return;
+    return false;
   }
   const result = damageForAttack(
     engine,
@@ -933,6 +959,7 @@ function enemyAttack(
     tiles: acting.policy.areaRadius > 0 ? [ALLY_POSITION] : [],
     to: ALLY_POSITION,
   });
+  return hit && result.amount > 0;
 }
 
 function allyAttack(
@@ -942,7 +969,7 @@ function allyAttack(
   target: HuntEngineEnemy,
   nowEpoch: number,
   events: Array<HuntCombatEvent>,
-): void {
+): Set<string> {
   const species = engine.resources.species[String(ally.speciesId)];
   const damages: Array<{ amount: number; effectiveness: CombatEffectiveness; tile: Position }> = [];
   const feedback: Array<{ text: string; tile: Position }> = [];
@@ -962,8 +989,9 @@ function allyAttack(
       tiles,
       to: ALLY_POSITION,
     });
-    return;
+    return new Set<string>();
   }
+  const damagedEnemyCombatIds = new Set<string>();
   for (const enemy of engine.enemies) {
     if (areaDistance(enemy.position, target.position) <= policy.areaRadius) {
       const result = damageForAttack(
@@ -979,6 +1007,9 @@ function allyAttack(
       );
       if (moveHits(policy, ally.statStages, enemy.statStages ?? emptyStatStages())) {
         enemy.health = Math.max(0, enemy.health - result.amount);
+        if (result.amount > 0) {
+          damagedEnemyCombatIds.add(enemy.combatId);
+        }
         damages.push({
           amount: result.amount,
           effectiveness: result.effectiveness,
@@ -1012,16 +1043,19 @@ function allyAttack(
     tiles,
     to: target.position,
   });
+  return damagedEnemyCombatIds;
 }
 
 function processAttacks(
   engine: HuntEngine,
   nowEpoch: number,
   events: Array<HuntCombatEvent>,
-): Set<string> {
+): AttackResult {
   const blockedMovers = new Set<string>();
+  const changes = new Set<HuntAdvanceChange>();
+  const damagedEnemyCombatIds = new Set<string>();
   if (!activeCreatureAvailable(engine, nowEpoch)) {
-    return blockedMovers;
+    return { blockedMovers, changes, damagedEnemyCombatIds };
   }
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
@@ -1092,7 +1126,14 @@ function processAttacks(
       battleStats(allySpecies, ally.level, ally).speed >=
         wildStats(fastestEnemy.enemy, fastestEnemy.enemy.level, fastestEnemy.enemy).speed);
   if (allyFirst && allyPolicy && target) {
-    allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
+    const damagedEnemyCombatIds = allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
+    changes.add('active-creature-abilities');
+    for (const combatId of damagedEnemyCombatIds) {
+      damagedEnemyCombatIds.add(combatId);
+    }
+    if (damagedEnemyCombatIds.size > 0) {
+      changes.add('enemies');
+    }
   }
   const acting = actingEnemies[0];
   if (
@@ -1101,13 +1142,23 @@ function processAttacks(
     acting.enemy.health > 0 &&
     ally.health > 0
   ) {
-    enemyAttack(engine, acting, nowEpoch, events);
+    const damagedAlly = enemyAttack(engine, acting, nowEpoch, events);
+    if (damagedAlly) {
+      changes.add('active-creature-health');
+    }
     engine.enemyActionNotBefore = nowEpoch + ENEMY_SPACING_MS;
   }
   if (!allyFirst && ally.health > 0 && allyPolicy && target && target.health > 0) {
-    allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
+    const damagedEnemyCombatIds = allyAttack(engine, ally, allyPolicy, target, nowEpoch, events);
+    changes.add('active-creature-abilities');
+    for (const combatId of damagedEnemyCombatIds) {
+      damagedEnemyCombatIds.add(combatId);
+    }
+    if (damagedEnemyCombatIds.size > 0) {
+      changes.add('enemies');
+    }
   }
-  return blockedMovers;
+  return { blockedMovers, changes, damagedEnemyCombatIds };
 }
 
 function isInsideGrid(position: Position): boolean {
@@ -1211,9 +1262,13 @@ function beginMovement(
   };
 }
 
-function beginMovements(engine: HuntEngine, nowEpoch: number, blockedMovers: Set<string>): boolean {
+function beginMovements(
+  engine: HuntEngine,
+  nowEpoch: number,
+  blockedMovers: Set<string>,
+): Array<HuntEngineEnemy> {
   const occupied = blockedTiles(engine);
-  let changed = false;
+  const moving: Array<HuntEngineEnemy> = [];
   for (const enemy of engine.enemies) {
     if (
       enemy.health === 0 ||
@@ -1246,9 +1301,9 @@ function beginMovements(engine: HuntEngine, nowEpoch: number, blockedMovers: Set
     beginMovement(enemy, destination, engine, nowEpoch);
     enemy.nextMovementAt = adjacent ? nextAdjacentWanderAt(nowEpoch) : nowEpoch;
     occupied.add(positionKey(destination));
-    changed = true;
+    moving.push(enemy);
   }
-  return changed;
+  return moving;
 }
 
 function resolveDefeats(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
@@ -1375,26 +1430,116 @@ function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
 export function advanceEngine(engine: HuntEngine, nowEpoch: number): HuntAdvanceResult {
   const events: Array<HuntCombatEvent> = [];
   const defeatedEnemies: Array<HuntEngineEnemy> = [];
+  const changes = new Set<HuntAdvanceChange>();
+  const enemyPatches: Array<HuntEngineEnemyPatch> = [];
+  const spawnedEnemies: Array<HuntEngineEnemy> = [];
   if (engine.finished || engine.pausedAt !== undefined || nowEpoch < engine.nextEventAt) {
-    return { changed: false, combatEvents: events, defeatedEnemies, finished: engine.finished };
+    return {
+      changed: false,
+      changes: [],
+      combatEvents: events,
+      defeatedEnemies,
+      enemyPatches,
+      finished: engine.finished,
+      removedEnemyCombatIds: [],
+      spawnedEnemies,
+    };
   }
   let changed = completeActiveCreatureSwitch(engine, nowEpoch);
-  changed = settleMovements(engine, nowEpoch) || changed;
+  if (changed) {
+    changes.add('active-creature');
+  }
+  const settledEnemies = settleMovements(engine, nowEpoch);
+  if (settledEnemies.length > 0) {
+    changes.add('enemies');
+  }
+  addSettledEnemyPatches(enemyPatches, settledEnemies);
+  changed = settledEnemies.length > 0 || changed;
   if (engine.enemies.length === 0) {
-    spawnWave(engine, nowEpoch);
+    const spawned = spawnWave(engine, nowEpoch);
+    spawnedEnemies.push(...spawned);
+    changes.add('enemies');
+    changes.add('wave');
     changed = true;
   }
-  const blockedMovers = processAttacks(engine, nowEpoch, events);
-  const movementChanged = beginMovements(engine, nowEpoch, blockedMovers);
-  changed = events.length > 0 || movementChanged || changed;
+  const attacks = processAttacks(engine, nowEpoch, events);
+  for (const change of attacks.changes) {
+    changes.add(change);
+  }
+  addHealthEnemyPatches(enemyPatches, engine, attacks.damagedEnemyCombatIds);
+  const movingEnemies = beginMovements(engine, nowEpoch, attacks.blockedMovers);
+  if (movingEnemies.length > 0) {
+    changes.add('enemies');
+  }
+  addMovingEnemyPatches(enemyPatches, movingEnemies);
+  changed = events.length > 0 || movingEnemies.length > 0 || changed;
+  const activeCreature = engine.allies[engine.activeAllyIndex];
+  const activeCreatureId = activeCreature ? activeCreature.id : undefined;
   const resolvedDefeats = resolveDefeats(engine, nowEpoch);
   defeatedEnemies.push(...resolvedDefeats);
+  if (resolvedDefeats.length > 0) {
+    changes.add('active-creature-experience');
+    changes.add('enemies');
+    changes.add('wave');
+  }
+  const removedEnemyCombatIds = resolvedDefeats.map(enemyCombatId);
+  const nextActiveCreature = engine.allies[engine.activeAllyIndex];
+  const nextActiveCreatureId = nextActiveCreature ? nextActiveCreature.id : undefined;
+  if (activeCreatureId !== nextActiveCreatureId) {
+    changes.add('active-creature');
+  }
   changed = resolvedDefeats.length > 0 || changed;
   engine.nextEventAt = calculateNextEvent(engine, nowEpoch);
   if (changed) {
     engine.revision += 1;
   }
-  return { changed, combatEvents: events, defeatedEnemies, finished: engine.finished };
+  return {
+    changed,
+    changes: Array.from(changes),
+    combatEvents: events,
+    defeatedEnemies,
+    enemyPatches,
+    finished: engine.finished,
+    removedEnemyCombatIds,
+    spawnedEnemies,
+  };
+}
+
+function addSettledEnemyPatches(
+  target: Array<HuntEngineEnemyPatch>,
+  enemies: Array<HuntEngineEnemy>,
+): void {
+  for (const enemy of enemies) {
+    target.push({ combatId: enemy.combatId, movement: null, position: enemy.position });
+  }
+}
+
+function enemyCombatId(enemy: HuntEngineEnemy): string {
+  return enemy.combatId;
+}
+
+function addHealthEnemyPatches(
+  target: Array<HuntEngineEnemyPatch>,
+  engine: HuntEngine,
+  combatIds: Set<string>,
+): void {
+  for (const enemy of engine.enemies) {
+    if (combatIds.has(enemy.combatId)) {
+      target.push({ combatId: enemy.combatId, health: enemy.health });
+    }
+  }
+}
+
+function addMovingEnemyPatches(
+  target: Array<HuntEngineEnemyPatch>,
+  enemies: Array<HuntEngineEnemy>,
+): void {
+  for (const enemy of enemies) {
+    const movement = enemy.movement;
+    if (movement) {
+      target.push({ combatId: enemy.combatId, movement });
+    }
+  }
 }
 
 export function pauseEngine(engine: HuntEngine, nowEpoch: number): boolean {

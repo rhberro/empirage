@@ -1,13 +1,52 @@
-import type { CollectionStateEvent } from '../api/game-protocol';
-import type { PartyCreatureHealth } from '../api/hunt-protocol';
+import type { CollectionCreature, CollectionStateEvent } from '../api/game-protocol';
+import type { HuntWaveRange, PartyCreatureHealth } from '../api/hunt-protocol';
 import type { GameStoreState } from './game-store';
 
 type Party = CollectionStateEvent['collection']['party'];
+type Storage = CollectionStateEvent['collection']['storage'];
+type CreatureIds = Array<string>;
+type CreatureSelector = (state: GameStoreState) => CollectionCreature | undefined;
 
 const EMPTY_PARTY: Party = [];
+const EMPTY_STORAGE: Storage = [];
+const EMPTY_CREATURE_IDS: CreatureIds = [];
+
+export function selectPartyIds(state: GameStoreState): CreatureIds {
+  return state.collection ? state.collection.partyIds : EMPTY_CREATURE_IDS;
+}
+
+export function selectStorageIds(state: GameStoreState): CreatureIds {
+  return state.collection ? state.collection.storageIds : EMPTY_CREATURE_IDS;
+}
 
 export function selectParty(state: GameStoreState): Party {
   return state.collection ? state.collection.party : EMPTY_PARTY;
+}
+
+export function selectStorage(state: GameStoreState): Storage {
+  return state.collection ? state.collection.storage : EMPTY_STORAGE;
+}
+
+export function selectCollectionActiveCreatureId(state: GameStoreState): string | null | undefined {
+  return state.collection ? state.collection.activeCreatureId : undefined;
+}
+
+export function selectStoragePage(state: GameStoreState): number {
+  return state.collection ? state.collection.storagePage : 1;
+}
+
+export function selectStoragePageCount(state: GameStoreState): number {
+  return state.collection ? state.collection.storagePageCount : 1;
+}
+
+export function selectStorageTotal(state: GameStoreState): number {
+  return state.collection ? state.collection.storageTotal : 0;
+}
+
+export function selectCreatureById(creatureId: string): CreatureSelector {
+  return function selectCreature(state: GameStoreState): CollectionCreature | undefined {
+    return state.creaturesById[creatureId];
+  };
 }
 
 export function selectActiveCreatureId(state: GameStoreState): string | null | undefined {
@@ -37,6 +76,34 @@ export function selectDisplayedTrainerLevel(state: GameStoreState): number | und
 export function selectDisplayedTrainerName(state: GameStoreState): string | undefined {
   const profile = state.profile;
   return state.hunt ? state.hunt.characterName : profile ? profile.name : undefined;
+}
+
+export function selectHuntId(state: GameStoreState): string | undefined {
+  return state.hunt ? state.hunt.huntId : undefined;
+}
+
+export function selectHuntEnemyCount(state: GameStoreState): number {
+  return state.hunt ? state.hunt.enemies.length : 0;
+}
+
+export function selectHuntNextEventAt(state: GameStoreState): string | undefined {
+  return state.hunt ? state.hunt.nextEventAt : undefined;
+}
+
+export function selectHuntServerTime(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.serverTime : undefined;
+}
+
+export function selectHuntWave(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.wave : undefined;
+}
+
+export function selectHuntWaveRange(state: GameStoreState): HuntWaveRange | undefined {
+  return state.hunt ? state.hunt.waveRange : undefined;
+}
+
+export function selectHuntingLocationId(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.huntingLocationId : undefined;
 }
 
 export function selectPartyCreatureHealth(

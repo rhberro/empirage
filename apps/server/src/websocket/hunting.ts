@@ -23,6 +23,7 @@ import {
   resumeEngine,
   snapshotEngine,
   switchActiveCreature,
+  type HuntAdvanceChange,
   type HuntCombatEvent,
   type HuntEngine,
   type HuntEngineCheckpoint,
@@ -78,27 +79,33 @@ const GRID_WIDTH = 12;
 
 type Notify = (
   characterId: string,
-  state: HuntState | undefined,
+  update: HuntStateUpdate | undefined,
   endedHuntId?: string,
   collectionChanged?: boolean,
 ) => void;
 type RuntimeStatus = 'conflict' | 'finishing' | 'paused' | 'running';
 type PublicEnemy = {
-  base_attack: number;
-  base_defense: number;
-  base_health: number;
-  base_speed: number;
   combatId: string;
   health: number;
   id: number;
   level: number;
   maximumHealth: number;
-  movement?: HuntEngineEnemy['movement'];
+  movement: HuntEngineEnemy['movement'] | null;
   name: string;
-  nextAttackAt: number;
   position: Position;
 };
 type PublicEnemies = Array<PublicEnemy>;
+type PublicEnemyDelta = {
+  enemyPatches?: Array<PublicEnemyPatch>;
+  enemySpawns?: PublicEnemies;
+  removedEnemyCombatIds?: Array<string>;
+};
+type PublicEnemyPatch = {
+  combatId: string;
+  health?: number;
+  movement?: HuntEngineEnemy['movement'] | null;
+  position?: Position;
+};
 type PublicActiveCreatureAbility = {
   accuracy: number | null;
   areaRadius: number;
@@ -185,10 +192,12 @@ type Runtime = {
   finalizeResolve?: (finished: boolean) => void;
   healingUsePending?: Promise<void>;
   lastConfirmedCapture: number;
+  lastPublishedRevision?: number;
   lastValidActiveCreatureId: string;
   notifyOnFinish: boolean;
   remoteRevision: number;
   status: RuntimeStatus;
+  staticState?: HuntStaticState;
 };
 type RuntimeSnapshotInput = HuntEngineCheckpoint & { runtimeGeneration: string; version: 1 };
 type AllyHealth = Record<string, number>;
@@ -240,6 +249,179 @@ export type HuntState = {
   waveRange: HuntWaveRange;
   waveSize: number;
 };
+export type HuntDeltaPatch = Partial<
+  Pick<
+    HuntState,
+    | 'activeCreatureAvailableAt'
+    | 'activeCreatureElements'
+    | 'activeCreatureExperience'
+    | 'activeCreatureExperienceLevelStart'
+    | 'activeCreatureExperienceNextLevel'
+    | 'activeCreatureAbilities'
+    | 'activeCreatureAvailableAbilities'
+    | 'activeCreatureHealth'
+    | 'activeCreatureId'
+    | 'activeCreatureLevel'
+    | 'activeCreatureMaximumHealth'
+    | 'activeCreatureName'
+    | 'activeCreatureSpeciesId'
+    | 'activeCreatureSwitchCompletesAt'
+    | 'activeCreatureSwitchCooldownEndsAt'
+    | 'partyHealth'
+    | 'captureAttempts'
+    | 'captureConfiguration'
+    | 'enemies'
+    | 'gold'
+    | 'healingConfiguration'
+    | 'healingItemCooldownEndsAt'
+    | 'nextEventAt'
+    | 'playerPosition'
+    | 'serverTime'
+    | 'wave'
+    | 'waveRange'
+  >
+> &
+  PublicEnemyDelta;
+export type HuntStateUpdate = {
+  combatEvents: Array<HuntCombatEvent>;
+  huntId: string;
+  patch: HuntDeltaPatch;
+  previousRevision?: number;
+  revision: number;
+  snapshot: () => HuntState;
+};
+type HuntDeltaField = keyof HuntDeltaPatch;
+type HuntDeltaFields = Array<HuntDeltaField>;
+type PublicActiveCreatureState = Pick<
+  HuntState,
+  | 'activeCreatureAvailableAt'
+  | 'activeCreatureElements'
+  | 'activeCreatureExperience'
+  | 'activeCreatureExperienceLevelStart'
+  | 'activeCreatureExperienceNextLevel'
+  | 'activeCreatureAbilities'
+  | 'activeCreatureAvailableAbilities'
+  | 'activeCreatureHealth'
+  | 'activeCreatureId'
+  | 'activeCreatureLevel'
+  | 'activeCreatureMaximumHealth'
+  | 'activeCreatureName'
+  | 'activeCreatureSpeciesId'
+  | 'activeCreatureSwitchCompletesAt'
+  | 'activeCreatureSwitchCooldownEndsAt'
+  | 'partyHealth'
+>;
+type PublicActiveCreatureField = keyof PublicActiveCreatureState;
+type HuntStaticState = Pick<
+  HuntState,
+  | 'allyPosition'
+  | 'captureItems'
+  | 'characterAvatarUrl'
+  | 'characterLevel'
+  | 'characterName'
+  | 'grid'
+  | 'healingItems'
+  | 'huntingLocationId'
+  | 'huntId'
+  | 'runtimeGeneration'
+>;
+type EngineEnemyDelta = {
+  enemyPatches: Array<HuntEngineEnemyPatch>;
+  removedEnemyCombatIds: Array<string>;
+  spawnedEnemies: Array<HuntEngineEnemy>;
+};
+
+const HUNT_DELTA_FIELDS = [
+  'activeCreatureAvailableAt',
+  'activeCreatureElements',
+  'activeCreatureExperience',
+  'activeCreatureExperienceLevelStart',
+  'activeCreatureExperienceNextLevel',
+  'activeCreatureAbilities',
+  'activeCreatureAvailableAbilities',
+  'activeCreatureHealth',
+  'activeCreatureId',
+  'activeCreatureLevel',
+  'activeCreatureMaximumHealth',
+  'activeCreatureName',
+  'activeCreatureSpeciesId',
+  'activeCreatureSwitchCompletesAt',
+  'activeCreatureSwitchCooldownEndsAt',
+  'nextEventAt',
+  'partyHealth',
+  'captureAttempts',
+  'captureConfiguration',
+  'enemies',
+  'gold',
+  'healingConfiguration',
+  'healingItemCooldownEndsAt',
+  'nextEventAt',
+  'playerPosition',
+  'serverTime',
+  'wave',
+  'waveRange',
+] satisfies HuntDeltaFields;
+
+const HUNT_ACTIVE_CREATURE_FIELDS = [
+  'activeCreatureAvailableAt',
+  'activeCreatureElements',
+  'activeCreatureExperience',
+  'activeCreatureExperienceLevelStart',
+  'activeCreatureExperienceNextLevel',
+  'activeCreatureAbilities',
+  'activeCreatureAvailableAbilities',
+  'activeCreatureHealth',
+  'activeCreatureId',
+  'activeCreatureLevel',
+  'activeCreatureMaximumHealth',
+  'activeCreatureName',
+  'activeCreatureSpeciesId',
+  'activeCreatureSwitchCompletesAt',
+  'activeCreatureSwitchCooldownEndsAt',
+  'partyHealth',
+  'serverTime',
+] satisfies HuntDeltaFields;
+
+const HUNT_ACTIVE_CREATURE_ABILITIES_FIELDS = [
+  'activeCreatureAbilities',
+  'nextEventAt',
+  'serverTime',
+] satisfies HuntDeltaFields;
+const HUNT_ACTIVE_CREATURE_HEALTH_FIELDS = [
+  'activeCreatureHealth',
+  'nextEventAt',
+  'partyHealth',
+  'serverTime',
+] satisfies HuntDeltaFields;
+const HUNT_ACTIVE_CREATURE_EXPERIENCE_FIELDS = [
+  'activeCreatureElements',
+  'activeCreatureExperience',
+  'activeCreatureExperienceLevelStart',
+  'activeCreatureExperienceNextLevel',
+  'activeCreatureAbilities',
+  'activeCreatureAvailableAbilities',
+  'activeCreatureHealth',
+  'activeCreatureLevel',
+  'activeCreatureMaximumHealth',
+  'activeCreatureName',
+  'activeCreatureSpeciesId',
+  'partyHealth',
+  'serverTime',
+] satisfies HuntDeltaFields;
+
+const HUNT_ENEMY_FIELDS = ['enemies', 'nextEventAt', 'serverTime'] satisfies HuntDeltaFields;
+const HUNT_WAVE_FIELDS = ['enemies', 'nextEventAt', 'serverTime', 'wave'] satisfies HuntDeltaFields;
+
+const HUNT_CAPTURE_CONFIGURATION_FIELDS = [
+  'captureConfiguration',
+  'serverTime',
+] satisfies HuntDeltaFields;
+const HUNT_HEALING_CONFIGURATION_FIELDS = [
+  'healingConfiguration',
+  'serverTime',
+] satisfies HuntDeltaFields;
+const HUNT_WAVE_RANGE_FIELDS = ['serverTime', 'waveRange'] satisfies HuntDeltaFields;
+const HUNT_SIMULATION_FIELDS = HUNT_DELTA_FIELDS;
 export type PublicCaptureAttempt = {
   completesAt: number;
   id: string;
@@ -296,18 +478,13 @@ function huntGrid(locationId: number): HuntGrid {
 
 function publicEnemy(enemy: HuntEngineEnemy): PublicEnemy {
   return {
-    base_attack: enemy.baseAttack,
-    base_defense: enemy.baseDefense,
-    base_health: enemy.baseHealth,
-    base_speed: enemy.baseSpeed,
     combatId: enemy.combatId,
     health: enemy.health,
     id: enemy.id,
     level: enemy.level,
     maximumHealth: enemy.maximumHealth,
-    movement: enemy.movement,
+    movement: enemy.movement ?? null,
     name: enemy.name,
-    nextAttackAt: enemy.nextAttackAt,
     position: enemy.position,
   };
 }
@@ -363,16 +540,9 @@ function publicCaptureAttempt(attempt: PendingCapture): PublicCaptureAttempt {
   };
 }
 
-function captureAttemptIsVisible(attempt: PendingCapture): boolean {
-  return (
-    attempt.settledAt === undefined || epochNow() - attempt.settledAt < CAPTURE_RESULT_DURATION_MS
-  );
-}
-
-function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): HuntState {
+function publicActiveCreatureState(runtime: Runtime): PublicActiveCreatureState {
   const { engine } = runtime;
   const active = engine.allies[engine.activeAllyIndex];
-  const enemies = engine.enemies.map(publicEnemy);
   const activeCreatureAbilities = active
     ? active.abilities.map(function publicAbility(ability): PublicActiveCreatureAbility {
         return publicAbilityResource(ability, ability.slot, engine.abilityCooldowns[active.id]);
@@ -381,8 +551,6 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
   const activeSpecies = active ? engine.resources.species[String(active.speciesId)] : undefined;
   const experience = active ? active.experience : '0';
   const activeLevel = active ? active.level : 1;
-  const experienceLevelStart = experienceForLevel(activeLevel).toString();
-  const experienceNextLevel = experienceForLevel(activeLevel + 1).toString();
   const activeCreatureAvailableAbilities =
     active && activeSpecies
       ? activeSpecies.abilities.map(
@@ -402,8 +570,8 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
     activeCreatureAvailableAt: engine.activeCreatureAvailableAt,
     activeCreatureElements: activeSpecies ? activeSpecies.typeSlugs : [],
     activeCreatureExperience: experience,
-    activeCreatureExperienceLevelStart: experienceLevelStart,
-    activeCreatureExperienceNextLevel: experienceNextLevel,
+    activeCreatureExperienceLevelStart: experienceForLevel(activeLevel).toString(),
+    activeCreatureExperienceNextLevel: experienceForLevel(activeLevel + 1).toString(),
     activeCreatureAbilities,
     activeCreatureAvailableAbilities,
     activeCreatureHealth: active ? active.health : 0,
@@ -414,34 +582,62 @@ function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): Hu
     activeCreatureSpeciesId: active ? active.speciesId : null,
     activeCreatureSwitchCompletesAt: engine.activeCreatureSwitchCompletesAt,
     activeCreatureSwitchCooldownEndsAt: engine.activeCreatureSwitchCooldownEndsAt,
-    allyPosition: ALLY_POSITION,
     partyHealth,
+  };
+}
+
+function captureAttemptIsVisible(attempt: PendingCapture): boolean {
+  return (
+    attempt.settledAt === undefined || epochNow() - attempt.settledAt < CAPTURE_RESULT_DURATION_MS
+  );
+}
+
+function publicState(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): HuntState {
+  const { engine } = runtime;
+  const staticState = publicStaticState(runtime);
+  const active = publicActiveCreatureState(runtime);
+  const enemies = engine.enemies.map(publicEnemy);
+  return {
+    ...active,
+    ...staticState,
     combatEvents,
-    characterAvatarUrl: engine.resources.character.avatarUrl,
-    characterLevel: engine.resources.character.level,
-    characterName: engine.resources.character.name,
     captureAttempts: runtime.captureAttempts
       .filter(captureAttemptIsVisible)
       .map(publicCaptureAttempt),
     captureConfiguration: publicCaptureConfiguration(engine.resources.captureConfiguration),
-    captureItems: engine.resources.captureItems.map(publicCaptureItem),
     enemies,
     gold: engine.resources.gold,
-    grid: huntGrid(engine.resources.locationId),
     healingConfiguration: publicHealingConfiguration(engine.resources.healingConfiguration),
     healingItemCooldownEndsAt: healingItemCooldownEndsAt(engine),
-    healingItems: engine.resources.healingItems.map(publicHealingItem),
-    huntingLocationId: engine.resources.locationId,
-    huntId: engine.huntId,
     nextEventAt: new Date(engine.nextEventAt).toISOString(),
     playerPosition: engine.playerPosition,
     revision: engine.revision,
-    runtimeGeneration: engine.runtimeGeneration,
     serverTime: Date.now(),
     wave: engine.wave,
     waveRange: engine.waveRange,
     waveSize: engine.waveSize,
   };
+}
+
+function publicStaticState(runtime: Runtime): HuntStaticState {
+  if (runtime.staticState) {
+    return runtime.staticState;
+  }
+  const { engine } = runtime;
+  const staticState = {
+    allyPosition: ALLY_POSITION,
+    captureItems: engine.resources.captureItems.map(publicCaptureItem),
+    characterAvatarUrl: engine.resources.character.avatarUrl,
+    characterLevel: engine.resources.character.level,
+    characterName: engine.resources.character.name,
+    grid: huntGrid(engine.resources.locationId),
+    healingItems: engine.resources.healingItems.map(publicHealingItem),
+    huntingLocationId: engine.resources.locationId,
+    huntId: engine.huntId,
+    runtimeGeneration: engine.runtimeGeneration,
+  } satisfies HuntStaticState;
+  runtime.staticState = staticState;
+  return staticState;
 }
 
 function fullAllyHealth(resources: HuntResources): AllyHealth {
@@ -459,18 +655,17 @@ export async function switchHuntActiveCreature(
   characterId: string,
   userId: string,
   creatureId: string,
-): Promise<HuntState | undefined> {
+): Promise<boolean> {
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
-    return undefined;
+    return false;
   }
   if (!switchActiveCreature(runtime.engine, creatureId, epochNow())) {
-    return publicState(runtime, []);
+    return true;
   }
   launchCheckpoint(runtime, false);
-  const state = publicState(runtime, []);
-  notifyRuntime(runtime, []);
-  return state;
+  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS);
+  return true;
 }
 
 function matchingWaveRange(
@@ -486,7 +681,7 @@ export async function configureHuntWaveRange(
   userId: string,
   minimumSize: number,
   maximumSize: number,
-): Promise<HuntState | undefined> {
+): Promise<boolean> {
   if (
     !Number.isSafeInteger(minimumSize) ||
     !Number.isSafeInteger(maximumSize) ||
@@ -497,7 +692,7 @@ export async function configureHuntWaveRange(
   }
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
-    return undefined;
+    return false;
   }
   const location = await locationById(runtime.engine.resources.locationId);
   const range = location.hunting_location_wave_ranges.find(function findRange(candidate): boolean {
@@ -506,12 +701,19 @@ export async function configureHuntWaveRange(
   if (!range) {
     throw new TypeError('wave_range_is_not_available');
   }
-  runtime.engine.waveRange = locationWaveRange(range);
+  const selectedWaveRange = locationWaveRange(range);
+  if (sameWaveRange(runtime.engine.waveRange, selectedWaveRange)) {
+    return true;
+  }
+  runtime.engine.waveRange = selectedWaveRange;
   runtime.engine.revision += 1;
   launchCheckpoint(runtime, false);
-  const state = publicState(runtime, []);
-  notifyRuntime(runtime, []);
-  return state;
+  notifyRuntime(runtime, [], false, HUNT_WAVE_RANGE_FIELDS);
+  return true;
+}
+
+function sameWaveRange(first: HuntWaveRange, second: HuntWaveRange): boolean {
+  return first.minimumSize === second.minimumSize && first.maximumSize === second.maximumSize;
 }
 
 function publicAbilityResource(
@@ -540,13 +742,185 @@ function notifyRuntime(
   runtime: Runtime,
   events: Array<HuntCombatEvent>,
   collectionChanged = false,
+  fields: HuntDeltaFields = HUNT_SIMULATION_FIELDS,
+  enemyDelta?: EngineEnemyDelta,
 ): void {
   if (notifier) {
-    notifier(runtime.characterId, publicState(runtime, events), undefined, collectionChanged);
+    const update = publicStateUpdate(runtime, events, fields, enemyDelta);
+    notifier(runtime.characterId, update, undefined, collectionChanged);
+  }
+}
+
+function publicStateUpdate(
+  runtime: Runtime,
+  combatEvents: Array<HuntCombatEvent>,
+  fields: HuntDeltaFields,
+  enemyDelta?: EngineEnemyDelta,
+): HuntStateUpdate {
+  const previousRevision = runtime.lastPublishedRevision;
+  const revision = runtime.engine.revision;
+  runtime.lastPublishedRevision = revision;
+  return {
+    combatEvents,
+    huntId: runtime.engine.huntId,
+    patch: publicHuntPatch(runtime, fields, enemyDelta),
+    previousRevision,
+    revision,
+    snapshot: snapshotFactory(runtime, combatEvents),
+  };
+}
+
+function snapshotFactory(runtime: Runtime, combatEvents: Array<HuntCombatEvent>): () => HuntState {
+  function snapshot(): HuntState {
+    return publicState(runtime, combatEvents);
+  }
+  return snapshot;
+}
+
+function publicHuntPatch(
+  runtime: Runtime,
+  fields: HuntDeltaFields,
+  enemyDelta?: EngineEnemyDelta,
+): HuntDeltaPatch {
+  const patch: HuntDeltaPatch = {};
+  const active = hasActiveCreatureField(fields) ? publicActiveCreatureState(runtime) : undefined;
+  for (const field of fields) {
+    assignHuntPatchField(patch, field, runtime, active, enemyDelta);
+  }
+  return patch;
+}
+
+function hasActiveCreatureField(fields: HuntDeltaFields): boolean {
+  return fields.some(isActiveCreatureField);
+}
+
+function isActiveCreatureField(field: HuntDeltaField): field is PublicActiveCreatureField {
+  return (
+    field !== 'captureAttempts' &&
+    field !== 'captureConfiguration' &&
+    field !== 'enemies' &&
+    field !== 'gold' &&
+    field !== 'healingConfiguration' &&
+    field !== 'healingItemCooldownEndsAt' &&
+    field !== 'nextEventAt' &&
+    field !== 'playerPosition' &&
+    field !== 'serverTime' &&
+    field !== 'wave' &&
+    field !== 'waveRange'
+  );
+}
+
+function assignHuntPatchField(
+  patch: HuntDeltaPatch,
+  field: HuntDeltaField,
+  runtime: Runtime,
+  active: PublicActiveCreatureState | undefined,
+  enemyDelta: EngineEnemyDelta | undefined,
+): void {
+  if (isActiveCreatureField(field)) {
+    if (!active) {
+      throw new Error('active_creature_patch_requires_projection');
+    }
+    patch[field] = active[field];
+    return;
+  }
+  const { engine } = runtime;
+  switch (field) {
+    case 'captureAttempts':
+      patch.captureAttempts = runtime.captureAttempts
+        .filter(captureAttemptIsVisible)
+        .map(publicCaptureAttempt);
+      return;
+    case 'captureConfiguration':
+      patch.captureConfiguration = publicCaptureConfiguration(
+        engine.resources.captureConfiguration,
+      );
+      return;
+    case 'enemies':
+      assignEnemyPatch(patch, engine, enemyDelta);
+      return;
+    case 'gold':
+      patch.gold = engine.resources.gold;
+      return;
+    case 'healingConfiguration':
+      patch.healingConfiguration = publicHealingConfiguration(
+        engine.resources.healingConfiguration,
+      );
+      return;
+    case 'healingItemCooldownEndsAt':
+      patch.healingItemCooldownEndsAt = healingItemCooldownEndsAt(engine);
+      return;
+    case 'nextEventAt':
+      patch.nextEventAt = new Date(engine.nextEventAt).toISOString();
+      return;
+    case 'playerPosition':
+      patch.playerPosition = engine.playerPosition;
+      return;
+    case 'serverTime':
+      patch.serverTime = Date.now();
+      return;
+    case 'wave':
+      patch.wave = engine.wave;
+      return;
+    case 'waveRange':
+      patch.waveRange = engine.waveRange;
+      return;
+    default:
+      throw new Error('unknown_hunt_delta_field');
+  }
+}
+
+function assignEnemyPatch(
+  patch: HuntDeltaPatch,
+  engine: HuntEngine,
+  enemyDelta: EngineEnemyDelta | undefined,
+): void {
+  if (!enemyDelta) {
+    patch.enemies = engine.enemies.map(publicEnemy);
+    return;
+  }
+  patch.enemyPatches = enemyDelta.enemyPatches;
+  patch.enemySpawns = enemyDelta.spawnedEnemies.map(publicEnemy);
+  patch.removedEnemyCombatIds = enemyDelta.removedEnemyCombatIds;
+}
+
+function fieldsForAdvance(changes: Array<HuntAdvanceChange>): HuntDeltaFields {
+  const fields = new Set<HuntDeltaField>();
+  for (const change of changes) {
+    addAdvanceFields(fields, change);
+  }
+  fields.add('serverTime');
+  return Array.from(fields);
+}
+
+function addAdvanceFields(fields: Set<HuntDeltaField>, change: HuntAdvanceChange): void {
+  const changedFields = fieldsForAdvanceChange(change);
+  for (const field of changedFields) {
+    fields.add(field);
+  }
+}
+
+function fieldsForAdvanceChange(change: HuntAdvanceChange): HuntDeltaFields {
+  switch (change) {
+    case 'active-creature':
+      return HUNT_ACTIVE_CREATURE_FIELDS;
+    case 'active-creature-abilities':
+      return HUNT_ACTIVE_CREATURE_ABILITIES_FIELDS;
+    case 'active-creature-experience':
+      return HUNT_ACTIVE_CREATURE_EXPERIENCE_FIELDS;
+    case 'active-creature-health':
+      return HUNT_ACTIVE_CREATURE_HEALTH_FIELDS;
+    case 'enemies':
+      return HUNT_ENEMY_FIELDS;
+    case 'wave':
+      return HUNT_WAVE_FIELDS;
+    default:
+      throw new Error('unknown_hunt_advance_change');
   }
 }
 
 function installRuntime(runtime: Runtime): void {
+  runtime.lastPublishedRevision = runtime.engine.revision;
   runtimesByCharacter.set(runtime.characterId, runtime);
   runtimesByHunt.set(runtime.engine.huntId, runtime);
   runtimesByAccount.set(runtime.accountId, runtime);
@@ -627,7 +1001,7 @@ async function reconcileCheckpointConflict(
   if (notifier) {
     notifier(
       runtime.characterId,
-      recovered ? publicState(recovered, []) : undefined,
+      recovered ? publicStateUpdate(recovered, [], HUNT_SIMULATION_FIELDS) : undefined,
       recovered ? undefined : runtime.engine.huntId,
     );
   }
@@ -716,7 +1090,13 @@ function processRuntime(runtime: Runtime, now: number): void {
     if (active) {
       runtime.lastValidActiveCreatureId = active.id;
     }
-    notifyRuntime(runtime, result.combatEvents);
+    const fields = fieldsForAdvance(result.changes);
+    const enemyDelta = {
+      enemyPatches: result.enemyPatches,
+      removedEnemyCombatIds: result.removedEnemyCombatIds,
+      spawnedEnemies: result.spawnedEnemies,
+    } satisfies EngineEnemyDelta;
+    notifyRuntime(runtime, result.combatEvents, false, fields, enemyDelta);
   }
   queueHealingItemUse(runtime, now);
   if (result.finished) {
@@ -912,7 +1292,7 @@ export async function configureHuntHealingItem(
   userId: string,
   itemId: number,
   thresholdPercentage: number,
-): Promise<HuntState | undefined> {
+): Promise<boolean> {
   if (
     !Number.isSafeInteger(itemId) ||
     itemId < 0 ||
@@ -924,9 +1304,12 @@ export async function configureHuntHealingItem(
   }
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
-    return undefined;
+    return false;
   }
   if (itemId === 0) {
+    if (!runtime.engine.resources.healingConfiguration) {
+      return true;
+    }
     const { error } = await serverClient
       .from('character_battle_item_configuration')
       .delete()
@@ -935,9 +1318,9 @@ export async function configureHuntHealingItem(
       throw error;
     }
     runtime.engine.resources.healingConfiguration = undefined;
-    const state = publicState(runtime, []);
-    notifyRuntime(runtime, []);
-    return state;
+    runtime.engine.revision += 1;
+    notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS);
+    return true;
   }
   const item = runtime.engine.resources.healingItems.find(function configuredItem(
     candidate: HealingItemResource,
@@ -946,6 +1329,15 @@ export async function configureHuntHealingItem(
   });
   if (!item) {
     throw new TypeError('invalid_healing_item');
+  }
+  if (
+    sameHealingConfiguration(
+      runtime.engine.resources.healingConfiguration,
+      itemId,
+      thresholdPercentage,
+    )
+  ) {
+    return true;
   }
   const update = {
     character_id: characterId,
@@ -957,9 +1349,21 @@ export async function configureHuntHealingItem(
     throw error;
   }
   runtime.engine.resources.healingConfiguration = { itemId, thresholdPercentage };
-  const state = publicState(runtime, []);
-  notifyRuntime(runtime, []);
-  return state;
+  runtime.engine.revision += 1;
+  notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS);
+  return true;
+}
+
+function sameHealingConfiguration(
+  configuration: HealingConfigurationResource | undefined,
+  itemId: number,
+  thresholdPercentage: number,
+): boolean {
+  return Boolean(
+    configuration &&
+    configuration.itemId === itemId &&
+    configuration.thresholdPercentage === thresholdPercentage,
+  );
 }
 
 export async function configureHuntCapture(
@@ -967,7 +1371,7 @@ export async function configureHuntCapture(
   userId: string,
   itemId: number,
   rarities: Array<CaptureRarity>,
-): Promise<HuntState | undefined> {
+): Promise<boolean> {
   if (
     !Number.isSafeInteger(itemId) ||
     itemId < 0 ||
@@ -979,9 +1383,12 @@ export async function configureHuntCapture(
   }
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
-    return undefined;
+    return false;
   }
   if (itemId === 0) {
+    if (!runtime.engine.resources.captureConfiguration) {
+      return true;
+    }
     const { error } = await serverClient
       .from('character_capture_configuration')
       .delete()
@@ -990,8 +1397,9 @@ export async function configureHuntCapture(
       throw error;
     }
     runtime.engine.resources.captureConfiguration = undefined;
-    notifyRuntime(runtime, []);
-    return publicState(runtime, []);
+    runtime.engine.revision += 1;
+    notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS);
+    return true;
   }
   const item = runtime.engine.resources.captureItems.find(function configuredItem(
     candidate: CaptureItemResource,
@@ -1001,14 +1409,35 @@ export async function configureHuntCapture(
   if (!item || rarities.length === 0) {
     throw new TypeError('invalid_capture_item');
   }
+  if (sameCaptureConfiguration(runtime.engine.resources.captureConfiguration, itemId, rarities)) {
+    return true;
+  }
   const update = { character_id: characterId, item_id: itemId, rarities };
   const { error } = await serverClient.from('character_capture_configuration').upsert(update);
   if (error) {
     throw error;
   }
   runtime.engine.resources.captureConfiguration = { itemId, rarities };
-  notifyRuntime(runtime, []);
-  return publicState(runtime, []);
+  runtime.engine.revision += 1;
+  notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS);
+  return true;
+}
+
+function sameCaptureConfiguration(
+  configuration: CaptureConfigurationResource | undefined,
+  itemId: number,
+  rarities: Array<CaptureRarity>,
+): boolean {
+  if (
+    !configuration ||
+    configuration.itemId !== itemId ||
+    configuration.rarities.length !== rarities.length
+  ) {
+    return false;
+  }
+  return configuration.rarities.every(function includesRarity(rarity): boolean {
+    return rarities.includes(rarity);
+  });
 }
 
 export async function configureHuntAbility(
@@ -1016,7 +1445,7 @@ export async function configureHuntAbility(
   userId: string,
   slot: number,
   abilityId: number | null,
-): Promise<HuntState | undefined> {
+): Promise<boolean> {
   if (!Number.isSafeInteger(slot) || slot < 1 || slot > 4) {
     throw new TypeError('invalid_ability_slot');
   }
@@ -1025,7 +1454,7 @@ export async function configureHuntAbility(
   }
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
-    return undefined;
+    return false;
   }
   const active = runtime.engine.allies[runtime.engine.activeAllyIndex];
   if (!active) {
@@ -1050,7 +1479,7 @@ export async function configureHuntAbility(
     return ability.slot === slot;
   });
   if (current && current.id === abilityId) {
-    return publicState(runtime, []);
+    return true;
   }
   const parameters = {
     target_move_id: abilityId,
@@ -1084,9 +1513,9 @@ export async function configureHuntAbility(
   if (resourceCreature) {
     resourceCreature.abilities = abilities;
   }
-  const state = publicState(runtime, []);
-  notifyRuntime(runtime, []);
-  return state;
+  runtime.engine.revision += 1;
+  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS);
+  return true;
 }
 
 function simulationTick(): void {

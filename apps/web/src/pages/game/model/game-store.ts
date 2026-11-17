@@ -8,14 +8,16 @@ import type {
   CollectionStateEvent,
   GameEvent,
 } from '../api/game-protocol';
-import {
-  readHuntState,
-  type BattleConfiguration,
-  type HuntAbility,
-  type HuntAvailableAbility,
-  type HuntState,
-  type HuntWaveRange,
+import { applyHuntDelta } from '../api/hunt-protocol';
+import type {
+  BattleConfiguration,
+  HuntAbility,
+  HuntAvailableAbility,
+  HuntState,
 } from '../api/hunt-protocol';
+import { normalizeCollection } from './collection-normalization.ts';
+import type { CreatureEntities, NormalizedCollection } from './collection-normalization.ts';
+import { collectionWithStructure } from './collection-structure.ts';
 
 type Collection = CollectionStateEvent['collection'] | null;
 type PartyCreature = CollectionStateEvent['collection']['party'][number];
@@ -24,8 +26,9 @@ type BattleConfigurationKey = keyof BattleConfiguration;
 type HuntAbilities = Array<HuntAbility>;
 type HuntAvailableAbilities = Array<HuntAvailableAbility>;
 export type GameStoreState = {
-  collection: Collection;
+  collection: NormalizedCollection | null;
   collectionSyncRequired: boolean;
+  creaturesById: CreatureEntities;
   hunt: HuntState | null;
   huntSyncRequired: boolean;
   profile: CharacterProfile | null;
@@ -56,6 +59,7 @@ function createInitialState(): GameStoreState {
     applyGameEvent,
     collection: null,
     collectionSyncRequired: false,
+    creaturesById: {},
     hunt: null,
     huntSyncRequired: false,
     profile: null,
@@ -78,6 +82,7 @@ function applyGameEvent(event: GameEvent): void {
   if (event.type === 'hunt_delta') {
     const current = gameStore.getState().hunt;
     if (
+      !event.patch ||
       !current ||
       current.huntId !== event.huntId ||
       current.revision !== event.previousRevision
@@ -86,14 +91,11 @@ function applyGameEvent(event: GameEvent): void {
       gameStore.setState(state);
       return;
     }
-    const candidate = { ...current, ...event.patch, revision: event.revision };
-    const parsed = readHuntState(candidate);
-    if (parsed && parsed.hunt) {
-      setHunt(parsed.hunt);
-    } else {
-      const state = { huntSyncRequired: true };
-      gameStore.setState(state);
-    }
+    const hunt = applyHuntDelta(current, event.patch, event.revision);
+    setHunt(hunt);
+    return;
+  }
+  if (event.type === 'hunt_combat_event') {
     return;
   }
   if (event.type === 'collection_state') {
@@ -108,7 +110,8 @@ function applyGameEvent(event: GameEvent): void {
 }
 
 function applyCollectionPatch(event: CollectionPatchEvent): boolean {
-  const collection = gameStore.getState().collection;
+  const current = gameStore.getState();
+  const collection = selectCollection(current);
   if (!collection || event.revision !== collection.revision + 1 || !collection.configuration) {
     return false;
   }
@@ -131,7 +134,18 @@ function applyCollectionPatch(event: CollectionPatchEvent): boolean {
         : (event.configuration.healingConfiguration ??
           collection.configuration.healingConfiguration),
   };
-  const next = { ...collection, configuration, party, revision: event.revision, storage };
+  const structure = event.structure;
+  const state = {
+    ...collection,
+    configuration,
+    party,
+    revision: event.revision,
+    storage,
+  };
+  const next = structure ? collectionWithStructure(state, configuration, structure) : state;
+  if (!next) {
+    return false;
+  }
   setCollection(next);
   return true;
 }
@@ -166,7 +180,13 @@ function applyCreatureProgress(
 }
 
 function setCollection(collection: Collection): void {
-  const state = { collection, collectionSyncRequired: false };
+  const current = gameStore.getState();
+  const normalized = normalizeCollection(collection, current.creaturesById, current.collection);
+  const state = {
+    collection: normalized.collection,
+    collectionSyncRequired: false,
+    creaturesById: normalized.creaturesById,
+  };
   gameStore.setState(state);
 }
 
@@ -187,7 +207,12 @@ export function useGameStore<T>(selector: GameStoreSelector<T>): T {
 }
 
 export function selectCollection(state: GameStoreState): Collection {
-  return state.collection;
+  const collection = state.collection;
+  if (!collection) {
+    return null;
+  }
+  const { partyIds: _partyIds, storageIds: _storageIds, ...snapshot } = collection;
+  return snapshot;
 }
 
 export function selectHunt(state: GameStoreState): HuntState | null {
@@ -240,34 +265,6 @@ export function selectHealingItemCooldownEndsAt(state: GameStoreState): number |
 
 export function selectHealingItems(state: GameStoreState): BattleConfiguration['healingItems'] {
   return battleConfigurationValue(state, 'healingItems', EMPTY_HEALING_ITEMS);
-}
-
-export function selectHuntId(state: GameStoreState): string | undefined {
-  return state.hunt ? state.hunt.huntId : undefined;
-}
-
-export function selectHuntEnemyCount(state: GameStoreState): number {
-  return state.hunt ? state.hunt.enemies.length : 0;
-}
-
-export function selectHuntNextEventAt(state: GameStoreState): string | undefined {
-  return state.hunt ? state.hunt.nextEventAt : undefined;
-}
-
-export function selectHuntServerTime(state: GameStoreState): number | undefined {
-  return state.hunt ? state.hunt.serverTime : undefined;
-}
-
-export function selectHuntWave(state: GameStoreState): number | undefined {
-  return state.hunt ? state.hunt.wave : undefined;
-}
-
-export function selectHuntWaveRange(state: GameStoreState): HuntWaveRange | undefined {
-  return state.hunt ? state.hunt.waveRange : undefined;
-}
-
-export function selectHuntingLocationId(state: GameStoreState): number | undefined {
-  return state.hunt ? state.hunt.huntingLocationId : undefined;
 }
 
 export * from './game-selectors';

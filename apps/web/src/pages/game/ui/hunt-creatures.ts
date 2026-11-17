@@ -154,6 +154,18 @@ export class HuntCreatures {
     this.feedback.clear();
   }
 
+  public remove(key: string, now: number): void {
+    this.present.delete(key);
+    const visual = this.creatures.get(key);
+    if (!visual || visual.feedback.defeatedAt !== null) {
+      return;
+    }
+    visual.feedback.defeatedAt = now;
+    visual.feedback.health = 0;
+    visual.feedback.displayedHealth = 0;
+    visual.feedback.healthChangedAt = now;
+  }
+
   public finish(now: number): void {
     for (const [key, visual] of this.creatures) {
       if (!this.present.has(key) && visual.feedback.defeatedAt === null) {

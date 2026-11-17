@@ -14,6 +14,7 @@ export type CaptureItemResource = {
   name: string;
   slug: string;
 };
+type CaptureItems = Array<CaptureItemResource>;
 export type CaptureConfigurationResource = { itemId: number; rarities: Array<CaptureRarity> };
 export type CharacterCaptureResources = {
   captureConfiguration: CaptureConfigurationResource | undefined;
@@ -80,6 +81,11 @@ function isPurchasableCaptureItem(row: CaptureItemRow): boolean {
     row.buy_price > 0 &&
     captureRateMultiplier(row.capture_rate_multiplier) > 0
   );
+}
+
+export async function loadCaptureItems(client: SupabaseClient): Promise<CaptureItems> {
+  const rows = await loadCaptureItemRows(client);
+  return rows.filter(isPurchasableCaptureItem).map(mapCaptureItem);
 }
 
 function configuredRarities(values: Array<string>): CaptureRarities {

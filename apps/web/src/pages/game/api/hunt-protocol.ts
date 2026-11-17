@@ -8,6 +8,9 @@ export type { HuntCombatEvent } from './hunt-combat-events';
 type CombatEvents = Array<HuntCombatEvent>;
 type HealingItems = Array<HealingItem>;
 type HuntAvailableAbilities = Array<HuntAvailableAbility>;
+type HuntEnemyPatches = Array<HuntEnemyPatch>;
+type HuntEnemySpawns = Array<HuntEnemy>;
+type RemovedEnemyCombatIds = Array<string>;
 
 export type HuntMovement = {
   direction: ProtocolDirection;
@@ -25,6 +28,12 @@ export type HuntEnemy = {
   level: number;
   position: Tile;
   movement: HuntMovement | null;
+};
+export type HuntEnemyPatch = {
+  combatId: string;
+  health?: number;
+  movement?: HuntMovement | null;
+  position?: Tile;
 };
 export type HuntAbility = {
   accuracy: number | null;
@@ -145,12 +154,56 @@ export type PartyCreatureConfiguration = Pick<
 >;
 export type PartyCreatureConfigurations = Record<string, PartyCreatureConfiguration>;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
+export type HuntDeltaPatch = Partial<
+  Pick<
+    HuntState,
+    | 'activeCreatureAvailableAt'
+    | 'activeCreatureElements'
+    | 'activeCreatureExperience'
+    | 'activeCreatureExperienceLevelStart'
+    | 'activeCreatureExperienceNextLevel'
+    | 'activeCreatureAbilities'
+    | 'activeCreatureAvailableAbilities'
+    | 'activeCreatureHealth'
+    | 'activeCreatureId'
+    | 'activeCreatureLevel'
+    | 'activeCreatureMaximumHealth'
+    | 'activeCreatureName'
+    | 'activeCreatureSpeciesId'
+    | 'activeCreatureSwitchCompletesAt'
+    | 'activeCreatureSwitchCooldownEndsAt'
+    | 'partyHealth'
+    | 'captureAttempts'
+    | 'captureConfiguration'
+    | 'captureItems'
+    | 'enemies'
+    | 'gold'
+    | 'healingConfiguration'
+    | 'healingItemCooldownEndsAt'
+    | 'healingItems'
+    | 'nextEventAt'
+    | 'playerPosition'
+    | 'serverTime'
+    | 'wave'
+    | 'waveRange'
+  >
+> & {
+  enemyPatches?: HuntEnemyPatches;
+  enemySpawns?: HuntEnemySpawns;
+  removedEnemyCombatIds?: RemovedEnemyCombatIds;
+};
 export type HuntDeltaEvent = {
   huntId: string;
-  patch: Record<string, unknown>;
+  patch: HuntDeltaPatch | null;
   previousRevision: number;
   revision: number;
   type: 'hunt_delta';
+};
+export type HuntCombatEventMessage = {
+  combatEvent: HuntCombatEvent;
+  huntId: string;
+  revision: number;
+  type: 'hunt_combat_event';
 };
 type CommandIdentity = { commandId?: string };
 type HuntCommandPayload =
@@ -193,9 +246,44 @@ export type HuntCommand = CommandIdentity & HuntCommandPayload;
 type UnknownRecord = Record<string, unknown>;
 type Tiles = Array<Tile>;
 type HuntEnemies = Array<HuntEnemy>;
+type HuntDeltaField = keyof HuntDeltaPatch;
 
 const MAXIMUM_GRID_DIMENSION = 64;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const HUNT_DELTA_FIELDS = [
+  'activeCreatureAvailableAt',
+  'activeCreatureElements',
+  'activeCreatureExperience',
+  'activeCreatureExperienceLevelStart',
+  'activeCreatureExperienceNextLevel',
+  'activeCreatureAbilities',
+  'activeCreatureAvailableAbilities',
+  'activeCreatureHealth',
+  'activeCreatureId',
+  'activeCreatureLevel',
+  'activeCreatureMaximumHealth',
+  'activeCreatureName',
+  'activeCreatureSpeciesId',
+  'activeCreatureSwitchCompletesAt',
+  'activeCreatureSwitchCooldownEndsAt',
+  'partyHealth',
+  'captureAttempts',
+  'captureConfiguration',
+  'captureItems',
+  'enemies',
+  'enemyPatches',
+  'enemySpawns',
+  'gold',
+  'healingConfiguration',
+  'healingItemCooldownEndsAt',
+  'healingItems',
+  'nextEventAt',
+  'playerPosition',
+  'removedEnemyCombatIds',
+  'serverTime',
+  'wave',
+  'waveRange',
+] satisfies Array<HuntDeltaField>;
 
 export function reconcileHuntMovement(
   current: HuntMovement | null,
@@ -349,6 +437,87 @@ function readEnemies(items: Array<unknown>): HuntEnemies | null {
     enemies.push(enemy);
   }
   return enemies;
+}
+
+function readEnemySpawns(value: unknown): HuntEnemySpawns | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const enemies = readEnemies(value);
+  if (!enemies || enemies.some(enemyWithoutCombatId)) {
+    return null;
+  }
+  return enemies;
+}
+
+function readEnemyPatches(value: unknown): HuntEnemyPatches | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const patches: HuntEnemyPatches = [];
+  for (const valuePatch of value) {
+    const patch = readEnemyPatch(valuePatch);
+    if (!patch) {
+      return null;
+    }
+    patches.push(patch);
+  }
+  return patches;
+}
+
+function readEnemyPatch(value: unknown): HuntEnemyPatch | null {
+  if (
+    !isRecord(value) ||
+    typeof value.combatId !== 'string' ||
+    !UUID_PATTERN.test(value.combatId)
+  ) {
+    return null;
+  }
+  const hasHealth = value.health !== undefined;
+  const hasMovement = value.movement !== undefined;
+  const hasPosition = value.position !== undefined;
+  if (!hasHealth && !hasMovement && !hasPosition) {
+    return null;
+  }
+  if (hasHealth && !isCount(value.health)) {
+    return null;
+  }
+  const movement = hasMovement
+    ? value.movement === null
+      ? null
+      : readMovement(value.movement)
+    : undefined;
+  if (hasMovement && movement === null && value.movement !== null) {
+    return null;
+  }
+  const position = hasPosition ? readTile(value.position) : undefined;
+  if (hasPosition && !position) {
+    return null;
+  }
+  return {
+    ...(hasHealth ? { health: value.health as number } : {}),
+    ...(hasMovement ? { movement } : {}),
+    ...(hasPosition && position ? { position } : {}),
+    combatId: value.combatId,
+  };
+}
+
+function enemyWithoutCombatId(enemy: HuntEnemy): boolean {
+  return enemy.combatId === undefined;
+}
+
+function readRemovedEnemyCombatIds(value: unknown): RemovedEnemyCombatIds | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const combatIds: RemovedEnemyCombatIds = [];
+  for (const combatId of value) {
+    if (typeof combatId !== 'string' || !UUID_PATTERN.test(combatId)) {
+      return null;
+    }
+    combatIds.push(combatId);
+  }
+  return combatIds;
 }
 
 function readSpeciesId(value: unknown): number | null {
@@ -534,14 +703,12 @@ function readCaptureRarity(value: unknown): CaptureRarity | null {
     : null;
 }
 
-function readCaptureState(
-  value: UnknownRecord,
-): Pick<HuntState, 'captureAttempts' | 'captureConfiguration' | 'captureItems'> | null {
-  if (!Array.isArray(value.captureAttempts) || !Array.isArray(value.captureItems)) {
+function readCaptureItems(value: unknown): Array<CaptureItem> | null {
+  if (!Array.isArray(value)) {
     return null;
   }
   const captureItems: Array<CaptureItem> = [];
-  for (const item of value.captureItems) {
+  for (const item of value) {
     if (
       !isRecord(item) ||
       !isCount(item.captureRateMultiplier) ||
@@ -560,8 +727,15 @@ function readCaptureState(
       slug: item.slug,
     });
   }
+  return captureItems;
+}
+
+function readCaptureAttempts(value: unknown): Array<CaptureAttempt> | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
   const captureAttempts: Array<CaptureAttempt> = [];
-  for (const attempt of value.captureAttempts) {
+  for (const attempt of value) {
     if (
       !isRecord(attempt) ||
       typeof attempt.completesAt !== 'number' ||
@@ -587,29 +761,37 @@ function readCaptureState(
       succeeded: attempt.succeeded,
     });
   }
-  if (value.captureConfiguration === undefined) {
-    return { captureAttempts, captureConfiguration: undefined, captureItems };
+  return captureAttempts;
+}
+
+function readCaptureConfiguration(value: unknown): CaptureConfiguration | undefined | null {
+  if (value === undefined) {
+    return undefined;
   }
-  if (
-    !isRecord(value.captureConfiguration) ||
-    !isCount(value.captureConfiguration.itemId) ||
-    !Array.isArray(value.captureConfiguration.rarities)
-  ) {
+  if (!isRecord(value) || !isCount(value.itemId) || !Array.isArray(value.rarities)) {
     return null;
   }
   const rarities: Array<CaptureRarity> = [];
-  for (const rarityValue of value.captureConfiguration.rarities) {
+  for (const rarityValue of value.rarities) {
     const rarity = readCaptureRarity(rarityValue);
     if (!rarity) {
       return null;
     }
     rarities.push(rarity);
   }
-  return {
-    captureAttempts,
-    captureConfiguration: { itemId: value.captureConfiguration.itemId, rarities },
-    captureItems,
-  };
+  return { itemId: value.itemId, rarities };
+}
+
+function readCaptureState(
+  value: UnknownRecord,
+): Pick<HuntState, 'captureAttempts' | 'captureConfiguration' | 'captureItems'> | null {
+  const captureAttempts = readCaptureAttempts(value.captureAttempts);
+  const captureConfiguration = readCaptureConfiguration(value.captureConfiguration);
+  const captureItems = readCaptureItems(value.captureItems);
+  if (!captureAttempts || captureConfiguration === null || !captureItems) {
+    return null;
+  }
+  return { captureAttempts, captureConfiguration, captureItems };
 }
 
 function hasHuntIdentity(value: UnknownRecord): boolean {
@@ -804,6 +986,208 @@ export function readHuntState(value: unknown, envelopeHuntId?: unknown): HuntSta
   return { hunt, huntId: hunt.huntId, type: 'hunt_state' };
 }
 
+function isHuntDeltaField(value: string): value is HuntDeltaField {
+  return HUNT_DELTA_FIELDS.includes(value as HuntDeltaField);
+}
+
+function readStringArray(value: unknown): Array<string> | null {
+  return Array.isArray(value) && value.every(isString) ? value : null;
+}
+
+function readHuntDeltaPatch(value: unknown): HuntDeltaPatch | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const entries = Object.entries(value);
+  if (entries.length === 0) {
+    return null;
+  }
+  const patch: HuntDeltaPatch = {};
+  for (const [key, fieldValue] of entries) {
+    if (!isHuntDeltaField(key) || !applyHuntDeltaField(patch, key, fieldValue)) {
+      return null;
+    }
+  }
+  return patch;
+}
+
+function applyHuntDeltaField(
+  patch: HuntDeltaPatch,
+  field: HuntDeltaField,
+  value: unknown,
+): boolean {
+  switch (field) {
+    case 'activeCreatureAvailableAt':
+    case 'activeCreatureHealth':
+    case 'activeCreatureLevel':
+    case 'activeCreatureMaximumHealth':
+    case 'activeCreatureSwitchCooldownEndsAt':
+    case 'gold':
+    case 'healingItemCooldownEndsAt':
+    case 'serverTime':
+    case 'wave':
+      if (!isCount(value)) {
+        return false;
+      }
+      patch[field] = value;
+      return true;
+    case 'activeCreatureElements': {
+      const elements = readStringArray(value);
+      if (!elements) {
+        return false;
+      }
+      patch.activeCreatureElements = elements;
+      return true;
+    }
+    case 'activeCreatureExperience':
+    case 'activeCreatureExperienceLevelStart':
+    case 'activeCreatureExperienceNextLevel':
+      if (!isExperience(value)) {
+        return false;
+      }
+      patch[field] = value;
+      return true;
+    case 'activeCreatureAbilities': {
+      const abilities = readAbilities(value);
+      if (!abilities) {
+        return false;
+      }
+      patch.activeCreatureAbilities = abilities;
+      return true;
+    }
+    case 'activeCreatureAvailableAbilities': {
+      const abilities = readAvailableAbilities(value);
+      if (!abilities) {
+        return false;
+      }
+      patch.activeCreatureAvailableAbilities = abilities;
+      return true;
+    }
+    case 'activeCreatureId':
+    case 'activeCreatureName':
+    case 'nextEventAt':
+      if (!isString(value)) {
+        return false;
+      }
+      if (field === 'nextEventAt' && !Number.isFinite(Date.parse(value))) {
+        return false;
+      }
+      patch[field] = value;
+      return true;
+    case 'activeCreatureSpeciesId':
+      if (value !== null && (!isCount(value) || value === 0)) {
+        return false;
+      }
+      patch.activeCreatureSpeciesId = value;
+      return true;
+    case 'activeCreatureSwitchCompletesAt':
+      if (!isCount(value)) {
+        return false;
+      }
+      patch.activeCreatureSwitchCompletesAt = value;
+      return true;
+    case 'partyHealth': {
+      const partyHealth = readPartyHealth(value);
+      if (!partyHealth) {
+        return false;
+      }
+      patch.partyHealth = partyHealth;
+      return true;
+    }
+    case 'captureAttempts': {
+      const captureAttempts = readCaptureAttempts(value);
+      if (!captureAttempts) {
+        return false;
+      }
+      patch.captureAttempts = captureAttempts;
+      return true;
+    }
+    case 'captureConfiguration': {
+      const captureConfiguration = readCaptureConfiguration(value);
+      if (captureConfiguration === null) {
+        return false;
+      }
+      patch.captureConfiguration = captureConfiguration;
+      return true;
+    }
+    case 'captureItems': {
+      const captureItems = readCaptureItems(value);
+      if (!captureItems) {
+        return false;
+      }
+      patch.captureItems = captureItems;
+      return true;
+    }
+    case 'enemies': {
+      if (!Array.isArray(value)) {
+        return false;
+      }
+      const enemies = readEnemies(value);
+      if (!enemies) {
+        return false;
+      }
+      patch.enemies = enemies;
+      return true;
+    }
+    case 'enemyPatches': {
+      const enemyPatches = readEnemyPatches(value);
+      if (!enemyPatches) {
+        return false;
+      }
+      patch.enemyPatches = enemyPatches;
+      return true;
+    }
+    case 'enemySpawns': {
+      const enemySpawns = readEnemySpawns(value);
+      if (!enemySpawns) {
+        return false;
+      }
+      patch.enemySpawns = enemySpawns;
+      return true;
+    }
+    case 'healingConfiguration': {
+      const healingConfiguration = readHealingConfiguration(value);
+      if (healingConfiguration === null) {
+        return false;
+      }
+      patch.healingConfiguration = healingConfiguration;
+      return true;
+    }
+    case 'healingItems': {
+      const healingItems = readHealingItems(value);
+      if (!healingItems) {
+        return false;
+      }
+      patch.healingItems = healingItems;
+      return true;
+    }
+    case 'playerPosition': {
+      const playerPosition = readTile(value);
+      if (!playerPosition) {
+        return false;
+      }
+      patch.playerPosition = playerPosition;
+      return true;
+    }
+    case 'removedEnemyCombatIds': {
+      const removedEnemyCombatIds = readRemovedEnemyCombatIds(value);
+      if (!removedEnemyCombatIds) {
+        return false;
+      }
+      patch.removedEnemyCombatIds = removedEnemyCombatIds;
+      return true;
+    }
+    case 'waveRange':
+      if (!isWaveRange(value)) {
+        return false;
+      }
+      patch.waveRange = readWaveRange(value);
+      return true;
+    default:
+      return false;
+  }
+}
+
 export function readHuntDelta(value: unknown): HuntDeltaEvent | null {
   if (
     !isRecord(value) ||
@@ -811,16 +1195,88 @@ export function readHuntDelta(value: unknown): HuntDeltaEvent | null {
     !UUID_PATTERN.test(value.huntId) ||
     !isCount(value.previousRevision) ||
     !isCount(value.revision) ||
-    value.revision !== value.previousRevision + 1 ||
-    !isRecord(value.patch)
+    value.revision !== value.previousRevision + 1
   ) {
     return null;
   }
+  const patch = readHuntDeltaPatch(value.patch);
   return {
     huntId: value.huntId,
-    patch: value.patch,
+    patch,
     previousRevision: value.previousRevision,
     revision: value.revision,
     type: 'hunt_delta',
   };
+}
+
+export function applyHuntDelta(
+  current: HuntState,
+  patch: HuntDeltaPatch,
+  revision: number,
+): HuntState {
+  const { enemyPatches, enemySpawns, removedEnemyCombatIds, ...statePatch } = patch;
+  const enemies =
+    enemyPatches !== undefined || enemySpawns !== undefined || removedEnemyCombatIds !== undefined
+      ? mergeHuntEnemies(current.enemies, enemyPatches, enemySpawns, removedEnemyCombatIds)
+      : current.enemies;
+  return { ...current, ...statePatch, enemies, revision };
+}
+
+function mergeHuntEnemies(
+  current: Array<HuntEnemy>,
+  patches: HuntEnemyPatches | undefined,
+  spawns: HuntEnemySpawns | undefined,
+  removedCombatIds: RemovedEnemyCombatIds | undefined,
+): Array<HuntEnemy> {
+  const patchesByCombatId = new Map<string, HuntEnemyPatch>();
+  for (const patch of patches ?? []) {
+    const previous = patchesByCombatId.get(patch.combatId);
+    const merged = previous ? { ...previous, ...patch } : patch;
+    patchesByCombatId.set(patch.combatId, merged);
+  }
+  const spawnsByCombatId = new Map<string, HuntEnemy>();
+  for (const enemy of spawns ?? []) {
+    spawnsByCombatId.set(enemy.combatId as string, enemy);
+  }
+  const removed = new Set(removedCombatIds);
+  const enemies: Array<HuntEnemy> = [];
+  for (const enemy of current) {
+    if (enemy.combatId && removed.has(enemy.combatId)) {
+      continue;
+    }
+    const patch = enemy.combatId ? patchesByCombatId.get(enemy.combatId) : undefined;
+    const spawn = enemy.combatId ? spawnsByCombatId.get(enemy.combatId) : undefined;
+    if (patch) {
+      enemies.push({ ...enemy, ...patch });
+      patchesByCombatId.delete(enemy.combatId as string);
+    } else if (spawn) {
+      enemies.push(spawn);
+      spawnsByCombatId.delete(enemy.combatId as string);
+    } else {
+      enemies.push(enemy);
+    }
+  }
+  for (const enemy of spawnsByCombatId.values()) {
+    if (!removed.has(enemy.combatId as string)) {
+      enemies.push(enemy);
+    }
+  }
+  return enemies;
+}
+
+export function readHuntCombatEvent(value: unknown): HuntCombatEventMessage | null {
+  if (
+    !isRecord(value) ||
+    typeof value.huntId !== 'string' ||
+    !UUID_PATTERN.test(value.huntId) ||
+    !isCount(value.revision)
+  ) {
+    return null;
+  }
+  const combatEvents = readCombatEvents([value.combatEvent]);
+  const combatEvent = combatEvents[0];
+  if (!combatEvent) {
+    return null;
+  }
+  return { combatEvent, huntId: value.huntId, revision: value.revision, type: 'hunt_combat_event' };
 }

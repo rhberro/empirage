@@ -7,9 +7,12 @@ import { SerialCommandQueue } from '../game/serial-command-queue.ts';
 import { logger } from '../logger.ts';
 import { CAPTURE_RARITIES, type CaptureRarity } from './capture-items.ts';
 import { loadCityBattleConfigurations } from './city-battle-configuration.ts';
+import type { CityBattleConfigurations } from './city-battle-configuration.ts';
 import {
   loadCreatureCollection,
+  loadCreatureCollectionStructure,
   loadCreatureCollectionProgress,
+  type CreatureCollection,
   type CreatureCollectionProgresses,
 } from './creature-collection.ts';
 import type {
@@ -18,6 +21,7 @@ import type {
   CharacterRow,
   ClientMessage,
   Direction,
+  HuntRevision,
   InputState,
   Movement,
   MovementMode,
@@ -38,6 +42,7 @@ import {
   startHunt,
   suspendHunt,
   type HuntState,
+  type HuntStateUpdate,
 } from './hunting.ts';
 import { isWithinInterest } from './interest.ts';
 import {
@@ -85,6 +90,20 @@ type CollectionConfigurationPatch = {
   captureConfiguration?: { itemId: number; rarities: Array<CaptureRarity> } | null;
   healingConfiguration?: { itemId: number; thresholdPercentage: number } | null;
 };
+type CollectionStructurePatch = Pick<
+  Awaited<ReturnType<typeof loadCreatureCollectionStructure>>,
+  | 'activeCreatureId'
+  | 'partyIds'
+  | 'storageIds'
+  | 'storagePage'
+  | 'storagePageCount'
+  | 'storageTotal'
+> &
+  Partial<Pick<CityBattleConfigurations, 'partyConfigurations'>> & {
+    creatureUpserts: CreatureCollection['party'];
+    partyIds: Array<string>;
+    storageIds: Array<string>;
+  };
 type MessagePayload = { type?: unknown };
 const CARDINAL_DIRECTIONS: CardinalDirections = ['down', 'left', 'right', 'up'];
 const connectionsByAccount = new Map<string, GameSocket>();
@@ -290,6 +309,7 @@ async function authenticate(
     position,
     priority: 'down',
     requestedMode: 'walking',
+    storagePage: 1,
     supabase,
   };
   nextConnectionGeneration += 1;
@@ -337,6 +357,7 @@ async function sendCreatureCollection(
 ): Promise<void> {
   const collectionPromise = loadCreatureCollection(state.supabase, state.characterId, storagePage);
   const collection = await collectionPromise;
+  state.storagePage = collection.storagePage;
   const battle = await loadCityBattleConfigurations(
     state.supabase,
     state.characterId,
@@ -370,44 +391,60 @@ function sendHuntState(
   hunt: HuntState | undefined,
   endedHuntId?: string,
   forceSnapshot = false,
+  update?: HuntStateUpdate,
 ): void {
   const state = socket.data.authenticated;
-  const huntId = hunt ? hunt.huntId : endedHuntId;
-  const previous = state ? state.lastHuntState : undefined;
+  const huntId = hunt ? hunt.huntId : update ? update.huntId : endedHuntId;
+  const previous = state ? state.lastHunt : undefined;
   if (
-    hunt &&
     previous &&
     !forceSnapshot &&
-    previous.huntId === hunt.huntId &&
-    hunt.revision === previous.revision + 1
+    update &&
+    previous.huntId === update.huntId &&
+    update.revision === previous.revision + 1 &&
+    update.previousRevision === previous.revision &&
+    update.previousRevision === update.revision - 1
   ) {
-    const patch = huntPatch(previous, hunt);
-    send(socket, {
-      huntId: hunt.huntId,
-      patch,
-      previousRevision: previous.revision,
-      revision: hunt.revision,
+    const delta = {
+      huntId: update.huntId,
+      patch: update.patch,
+      previousRevision: update.previousRevision,
+      revision: update.revision,
       type: 'hunt_delta',
       version: PROTOCOL_VERSION,
-    });
-    state.lastHuntState = hunt;
+    };
+    send(socket, delta);
+    sendHuntCombatEvents(socket, update.huntId, update.revision, update.combatEvents);
+    state.lastHunt = huntRevision(update.huntId, update.revision);
     return;
   }
-  send(socket, { hunt: hunt ?? null, huntId, type: 'hunt_state', version: PROTOCOL_VERSION });
+  const snapshot = update ? update.snapshot() : hunt;
+  send(socket, { hunt: snapshot ?? null, huntId, type: 'hunt_state', version: PROTOCOL_VERSION });
   if (state) {
-    state.lastHuntState = hunt;
+    state.lastHunt = snapshot ? huntRevision(snapshot.huntId, snapshot.revision) : undefined;
   }
 }
 
-function huntPatch(previous: HuntState, next: HuntState): Record<string, unknown> {
-  const patch: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(next)) {
-    const prior = previous[key as keyof HuntState];
-    if (key !== 'revision' && JSON.stringify(prior) !== JSON.stringify(value)) {
-      patch[key] = value;
-    }
+function huntRevision(huntId: string, revision: number): HuntRevision {
+  return { huntId, revision };
+}
+
+function sendHuntCombatEvents(
+  socket: GameSocket,
+  huntId: string,
+  revision: number,
+  combatEvents: HuntState['combatEvents'],
+): void {
+  for (const combatEvent of combatEvents) {
+    const combatMessage = {
+      combatEvent,
+      huntId,
+      revision,
+      type: 'hunt_combat_event',
+      version: PROTOCOL_VERSION,
+    };
+    send(socket, combatMessage);
   }
-  return patch;
 }
 
 async function advanceCollectionRevision(characterId: string): Promise<CollectionRevision> {
@@ -431,16 +468,59 @@ function sendCollectionPatch(
   configuration: CollectionConfigurationPatch,
   commandId: unknown,
   creatures?: CreatureCollectionProgresses,
+  structure?: CollectionStructurePatch,
 ): void {
   const payload = {
     commandId: typeof commandId === 'string' ? commandId : undefined,
     configuration,
     creatures,
     revision,
+    structure,
     type: 'collection_patch',
     version: PROTOCOL_VERSION,
   };
   send(socket, payload);
+}
+
+function collectionStructure(
+  collection: Awaited<ReturnType<typeof loadCreatureCollectionStructure>>,
+  battle: CityBattleConfigurations | undefined,
+): CollectionStructurePatch {
+  const creatureUpserts: CreatureCollection['party'] = [];
+  return {
+    activeCreatureId: collection.activeCreatureId,
+    creatureUpserts,
+    partyConfigurations: battle ? battle.partyConfigurations : undefined,
+    partyIds: collection.partyIds,
+    storageIds: collection.storageIds,
+    storagePage: collection.storagePage,
+    storagePageCount: collection.storagePageCount,
+    storageTotal: collection.storageTotal,
+  };
+}
+
+async function sendCollectionStructurePatch(
+  socket: GameSocket,
+  state: AuthenticatedState,
+  commandId?: unknown,
+  includePartyConfigurations = false,
+): Promise<void> {
+  const revision = await advanceCollectionRevision(state.characterId);
+  const collection = await loadCreatureCollectionStructure(
+    state.supabase,
+    state.characterId,
+    state.storagePage,
+  );
+  const battle = includePartyConfigurations
+    ? await loadCityBattleConfigurations(
+        state.supabase,
+        state.characterId,
+        collection.activeCreatureId,
+      )
+    : undefined;
+  const structure = collectionStructure(collection, battle);
+  const configuration: CollectionConfigurationPatch = {};
+  sendCollectionPatch(socket, revision, configuration, commandId, undefined, structure);
 }
 
 function handleHuntClock(socket: GameSocket, clientMessage: ClientMessage): boolean {
@@ -486,14 +566,13 @@ async function configureHealingItem(
   ) {
     throw new TypeError('invalid_healing_configuration');
   }
-  const hunt = await configureHuntHealingItem(
+  const handledByHunt = await configureHuntHealingItem(
     state.characterId,
     state.accountId,
     clientMessage.healingItemId,
     clientMessage.healingThresholdPercentage,
   );
-  if (hunt) {
-    sendHuntState(socket, hunt);
+  if (handledByHunt) {
     return;
   }
   const itemId = clientMessage.healingItemId;
@@ -539,14 +618,13 @@ async function configureAbility(
   ) {
     throw new TypeError('invalid_ability_configuration');
   }
-  const hunt = await configureHuntAbility(
+  const handledByHunt = await configureHuntAbility(
     state.characterId,
     state.accountId,
     clientMessage.abilitySlot,
     clientMessage.abilityId,
   );
-  if (hunt) {
-    sendHuntState(socket, hunt);
+  if (handledByHunt) {
     return;
   }
   const { data, error: characterError } = await characterPersistenceClient
@@ -567,10 +645,7 @@ async function configureAbility(
   if (error) {
     throw error;
   }
-  const revision = await advanceCollectionRevision(state.characterId);
-  const configuration: CollectionConfigurationPatch = {};
-  sendCollectionPatch(socket, revision, configuration, clientMessage.commandId);
-  await sendCreatureCollection(socket, state);
+  await sendCollectionStructurePatch(socket, state, clientMessage.commandId, true);
 }
 
 async function configureWaveRange(
@@ -586,15 +661,12 @@ async function configureWaveRange(
   ) {
     throw new TypeError('invalid_wave_range');
   }
-  const hunt = await configureHuntWaveRange(
+  await configureHuntWaveRange(
     state.characterId,
     state.accountId,
     clientMessage.waveRangeMinimumSize,
     clientMessage.waveRangeMaximumSize,
   );
-  if (hunt) {
-    sendHuntState(socket, hunt);
-  }
 }
 
 async function switchActiveCreature(
@@ -605,13 +677,12 @@ async function switchActiveCreature(
   if (typeof clientMessage.creatureId !== 'string') {
     throw new TypeError('invalid_creature');
   }
-  const hunt = await switchHuntActiveCreature(
+  const handledByHunt = await switchHuntActiveCreature(
     state.characterId,
     state.accountId,
     clientMessage.creatureId,
   );
-  if (hunt) {
-    sendHuntState(socket, hunt);
+  if (handledByHunt) {
     return;
   }
   const parameters = {
@@ -622,7 +693,7 @@ async function switchActiveCreature(
   if (error) {
     throw error;
   }
-  await sendCreatureCollection(socket, state);
+  await sendCollectionStructurePatch(socket, state, undefined, true);
 }
 
 // The operation stays together so validation and its resulting collection snapshot remain coupled.
@@ -645,7 +716,7 @@ async function moveCreature(
     if (error) {
       throw error;
     }
-    await sendCreatureCollection(socket, state);
+    await sendCollectionStructurePatch(socket, state);
     return;
   }
   const moveToPartyParams = { target_creature_id: creatureId };
@@ -653,7 +724,7 @@ async function moveCreature(
   if (error) {
     throw error;
   }
-  await sendCreatureCollection(socket, state);
+  await sendCollectionStructurePatch(socket, state);
 }
 
 async function releaseCreature(
@@ -672,7 +743,7 @@ async function releaseCreature(
   if (error) {
     throw error;
   }
-  await sendCreatureCollection(socket, state);
+  await sendCollectionStructurePatch(socket, state);
 }
 
 async function reorderPartyCreature(
@@ -695,7 +766,7 @@ async function reorderPartyCreature(
   if (error) {
     throw error;
   }
-  await sendCreatureCollection(socket, state);
+  await sendCollectionStructurePatch(socket, state);
 }
 
 type CaptureRarities = Array<CaptureRarity>;
@@ -720,14 +791,13 @@ async function configureCapture(
     throw new TypeError('invalid_capture_configuration');
   }
   const rarities = clientMessage.captureItemId === 0 ? [] : clientMessage.captureRarities;
-  const hunt = await configureHuntCapture(
+  const handledByHunt = await configureHuntCapture(
     state.characterId,
     state.accountId,
     clientMessage.captureItemId,
     rarities,
   );
-  if (hunt) {
-    sendHuntState(socket, hunt);
+  if (handledByHunt) {
     return;
   }
   const itemId = clientMessage.captureItemId;
@@ -1307,20 +1377,20 @@ const heartbeatTimer = globalThis.setInterval(heartbeat, HEARTBEAT_INTERVAL_MS);
 
 function notifyHunt(
   characterId: string,
-  hunt: HuntState | undefined,
+  update: HuntStateUpdate | undefined,
   endedHuntId?: string,
   collectionChanged = false,
 ): void {
   for (const socket of authenticatedSockets) {
     const state = socket.data.authenticated;
     if (state && state.characterId === characterId) {
-      if (!hunt && state.hunting) {
+      if (!update && state.hunting) {
         state.hunting = false;
         const joined = cityPresence(state, 'player_joined');
         broadcastExcept(state, joined, socket);
         send(socket, createSnapshot(state));
       }
-      sendHuntState(socket, hunt, endedHuntId);
+      sendHuntState(socket, undefined, endedHuntId, false, update);
       if (collectionChanged) {
         sendCreatureCollection(socket, state).catch(logCreatureCollectionError);
       }
