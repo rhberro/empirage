@@ -8,6 +8,7 @@ import {
   optimisticCollectionConfiguration,
   optimisticHuntConfiguration,
 } from '../model/optimistic-configuration';
+import { optimisticPartyState } from '../model/optimistic-party';
 import { useHuntingLocations } from '../model/use-hunting-locations';
 import { GameCanvas } from './GameCanvas';
 import { HuntInterface } from './HuntInterface';
@@ -95,7 +96,11 @@ type HuntUpdater = (current: Hunt) => Hunt;
 
 function collectionUpdater(command: HuntCommand): CollectionUpdater {
   return function updateCollection(current: Collection): Collection {
-    return current ? optimisticCollectionConfiguration(current, command) : current;
+    if (!current) {
+      return current;
+    }
+    const configured = optimisticCollectionConfiguration(current, command);
+    return optimisticPartyState(configured, command);
   };
 }
 

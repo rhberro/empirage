@@ -25,7 +25,13 @@ import type {
   SocketData,
 } from './game-types.ts';
 import { isPositionWithin, positionAfterVector } from './grid-movement.ts';
-import { loadHuntResources, type HuntResources } from './hunt-resources.ts';
+import {
+  loadHuntResources,
+  type HuntAbilityResource,
+  type HuntCreatureResource,
+  type HuntResources,
+  type HuntSpeciesResource,
+} from './hunt-resources.ts';
 import {
   configureHuntHealingItem,
   configureHuntWaveRange,
@@ -87,6 +93,26 @@ type CollectionRevision = number;
 type CollectionConfigurationPatch = {
   captureConfiguration?: { itemId: number; rarities: Array<CaptureRarity> } | null;
   healingConfiguration?: { itemId: number; thresholdPercentage: number } | null;
+};
+type CityEquippedAbility = {
+  accuracy: number | null;
+  areaRadius: number;
+  category: HuntAbilityResource['category'];
+  cooldownEndsAt: number;
+  cooldownMs: number;
+  element: string;
+  id: number;
+  name: string;
+  power: number | null;
+  range: number;
+  requiredLevel: number;
+  slot: number;
+};
+type CityAvailableAbility = Omit<CityEquippedAbility, 'cooldownEndsAt' | 'slot'>;
+type CityPartyConfiguration = {
+  activeCreatureAbilities: Array<CityEquippedAbility>;
+  activeCreatureAvailableAbilities: Array<CityAvailableAbility>;
+  activeCreatureLevel: number;
 };
 type MessagePayload = { type?: unknown };
 const CARDINAL_DIRECTIONS: CardinalDirections = ['down', 'left', 'right', 'up'];
@@ -333,6 +359,47 @@ async function authenticate(
   await sendCreatureCollection(socket, state);
 }
 
+function cityPartyConfiguration(
+  creature: HuntCreatureResource,
+  species: HuntSpeciesResource,
+): CityPartyConfiguration {
+  const activeCreatureAbilities = creature.abilities.map(function ability(abilityResource) {
+    return {
+      accuracy: abilityResource.accuracy,
+      areaRadius: abilityResource.areaRadius,
+      category: abilityResource.category,
+      cooldownEndsAt: 0,
+      cooldownMs: abilityResource.cooldownMs,
+      element: abilityResource.typeSlug,
+      id: abilityResource.id,
+      name: abilityResource.name,
+      power: abilityResource.power,
+      range: abilityResource.rangeTiles,
+      requiredLevel: abilityResource.requiredLevel,
+      slot: abilityResource.slot,
+    };
+  });
+  const activeCreatureAvailableAbilities = species.abilities.map(function ability(abilityResource) {
+    return {
+      accuracy: abilityResource.accuracy,
+      areaRadius: abilityResource.areaRadius,
+      category: abilityResource.category,
+      cooldownMs: abilityResource.cooldownMs,
+      element: abilityResource.typeSlug,
+      id: abilityResource.id,
+      name: abilityResource.name,
+      power: abilityResource.power,
+      range: abilityResource.rangeTiles,
+      requiredLevel: abilityResource.requiredLevel,
+    };
+  });
+  return {
+    activeCreatureAbilities,
+    activeCreatureAvailableAbilities,
+    activeCreatureLevel: creature.level,
+  };
+}
+
 async function sendCreatureCollection(
   socket: GameSocket,
   state: AuthenticatedState,
@@ -349,54 +416,30 @@ async function sendCreatureCollection(
         return creature.id === activeCreatureId;
       })
     : resources.creatures[0];
-  const activeSpecies = activeCreature
-    ? resources.species[String(activeCreature.speciesId)]
+  const partyConfigurations: Record<string, CityPartyConfiguration> = {};
+  for (const creature of resources.creatures) {
+    const species = resources.species[String(creature.speciesId)];
+    if (species) {
+      partyConfigurations[creature.id] = cityPartyConfiguration(creature, species);
+    }
+  }
+  const activeConfiguration = activeCreature ? partyConfigurations[activeCreature.id] : undefined;
+  const configuration = activeConfiguration
+    ? {
+        ...activeConfiguration,
+        captureConfiguration: resources.captureConfiguration,
+        captureItems: resources.captureItems,
+        healingConfiguration: resources.healingConfiguration,
+        healingItemCooldownEndsAt: 0,
+        healingItems: resources.healingItems,
+      }
     : undefined;
-  const configuration =
-    activeCreature && activeSpecies
-      ? {
-          activeCreatureAbilities: activeCreature.abilities.map(function ability(abilityResource) {
-            return {
-              accuracy: abilityResource.accuracy,
-              areaRadius: abilityResource.areaRadius,
-              category: abilityResource.category,
-              cooldownEndsAt: 0,
-              cooldownMs: abilityResource.cooldownMs,
-              element: abilityResource.typeSlug,
-              id: abilityResource.id,
-              name: abilityResource.name,
-              power: abilityResource.power,
-              range: abilityResource.rangeTiles,
-              requiredLevel: abilityResource.requiredLevel,
-              slot: abilityResource.slot,
-            };
-          }),
-          activeCreatureAvailableAbilities: activeSpecies.abilities.map(
-            function ability(abilityResource) {
-              return {
-                accuracy: abilityResource.accuracy,
-                areaRadius: abilityResource.areaRadius,
-                category: abilityResource.category,
-                cooldownMs: abilityResource.cooldownMs,
-                element: abilityResource.typeSlug,
-                id: abilityResource.id,
-                name: abilityResource.name,
-                power: abilityResource.power,
-                range: abilityResource.rangeTiles,
-                requiredLevel: abilityResource.requiredLevel,
-              };
-            },
-          ),
-          activeCreatureLevel: activeCreature.level,
-          captureConfiguration: resources.captureConfiguration,
-          captureItems: resources.captureItems,
-          healingConfiguration: resources.healingConfiguration,
-          healingItemCooldownEndsAt: 0,
-          healingItems: resources.healingItems,
-        }
-      : undefined;
-  collection.configuration = configuration;
-  send(socket, { collection, type: 'collection_state', version: PROTOCOL_VERSION });
+  const completeCollection = { ...collection, configuration, partyConfigurations };
+  send(socket, {
+    collection: completeCollection,
+    type: 'collection_state',
+    version: PROTOCOL_VERSION,
+  });
 }
 
 async function requestCreatureStorage(
@@ -583,6 +626,7 @@ async function configureAbility(
   const revision = await advanceCollectionRevision(state.characterId);
   const configuration: CollectionConfigurationPatch = {};
   sendCollectionPatch(socket, revision, configuration, clientMessage.commandId);
+  await sendCreatureCollection(socket, state);
 }
 
 async function configureWaveRange(

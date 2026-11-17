@@ -1,6 +1,10 @@
 /* eslint-disable oxsome/no-inline-structural-types */
-import { readHuntState } from './hunt-protocol';
-import type { BattleConfiguration, CaptureRarity } from './hunt-protocol';
+import { readHuntState, readPartyCreatureConfiguration } from './hunt-protocol';
+import type {
+  BattleConfiguration,
+  CaptureRarity,
+  PartyCreatureConfigurations,
+} from './hunt-protocol';
 /* eslint-disable max-lines */
 import type { HuntStateEvent } from './hunt-protocol';
 
@@ -122,6 +126,7 @@ export type CollectionStateEvent = {
   collection: {
     activeCreatureId: string | null;
     configuration?: BattleConfiguration;
+    partyConfigurations?: PartyCreatureConfigurations;
     party: Array<CollectionCreature>;
     revision: number;
     storage: Array<CollectionCreature>;
@@ -399,7 +404,8 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
   }
   const party = value.collection.party.map(readCollectionCreature);
   const storage = value.collection.storage.map(readCollectionCreature);
-  if (party.some(isNull) || storage.some(isNull)) {
+  const partyConfigurations = readPartyConfigurations(value.collection.partyConfigurations);
+  if (party.some(isNull) || storage.some(isNull) || partyConfigurations === null) {
     return null;
   }
   return {
@@ -407,6 +413,7 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
       activeCreatureId: value.collection.activeCreatureId,
       configuration: value.collection.configuration as BattleConfiguration | undefined,
       party: party as Array<CollectionCreature>,
+      partyConfigurations,
       revision: value.collection.revision,
       storage: storage as Array<CollectionCreature>,
       storagePage: value.collection.storagePage,
@@ -415,6 +422,24 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
     },
     type: 'collection_state',
   };
+}
+
+function readPartyConfigurations(value: unknown): PartyCreatureConfigurations | undefined | null {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value) || Object.keys(value).length > 6) {
+    return null;
+  }
+  const configurations: PartyCreatureConfigurations = {};
+  for (const [creatureId, configuration] of Object.entries(value)) {
+    const parsed = readPartyCreatureConfiguration(configuration);
+    if (!parsed) {
+      return null;
+    }
+    configurations[creatureId] = parsed;
+  }
+  return configurations;
 }
 
 function readCollectionPatch(value: UnknownRecord): CollectionPatchEvent | null {

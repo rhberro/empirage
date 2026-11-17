@@ -26,7 +26,23 @@ export function optimisticCollectionConfiguration(
   if (configuration === collection.configuration) {
     return collection;
   }
-  return { ...collection, configuration };
+  if (command.type !== 'configure_ability' || !collection.activeCreatureId) {
+    return { ...collection, configuration };
+  }
+  const current = collection.partyConfigurations
+    ? collection.partyConfigurations[collection.activeCreatureId]
+    : undefined;
+  if (!current) {
+    return { ...collection, configuration };
+  }
+  const partyConfigurations = {
+    ...collection.partyConfigurations,
+    [collection.activeCreatureId]: {
+      ...current,
+      activeCreatureAbilities: configuration.activeCreatureAbilities,
+    },
+  };
+  return { ...collection, configuration, partyConfigurations };
 }
 
 export function optimisticHuntConfiguration(hunt: HuntState, command: HuntCommand): HuntState {

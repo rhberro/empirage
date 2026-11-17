@@ -19,6 +19,7 @@ import {
   healingItemDue,
   maximumHealthForCreature,
   pauseEngine,
+  resumeEngine,
   snapshotEngine,
   switchActiveCreature,
   type HuntCombatEvent,
@@ -551,9 +552,15 @@ function installRuntime(runtime: Runtime): void {
 }
 
 function removeRuntime(runtime: Runtime): void {
-  runtimesByCharacter.delete(runtime.characterId);
-  runtimesByHunt.delete(runtime.engine.huntId);
-  runtimesByAccount.delete(runtime.accountId);
+  if (runtimesByCharacter.get(runtime.characterId) === runtime) {
+    runtimesByCharacter.delete(runtime.characterId);
+  }
+  if (runtimesByHunt.get(runtime.engine.huntId) === runtime) {
+    runtimesByHunt.delete(runtime.engine.huntId);
+  }
+  if (runtimesByAccount.get(runtime.accountId) === runtime) {
+    runtimesByAccount.delete(runtime.accountId);
+  }
 }
 
 function subtractConfirmedExperience(engine: HuntEngine, snapshot: HuntEngineSnapshot): void {
@@ -590,6 +597,41 @@ function logCheckpointFailure(runtime: Runtime, error: unknown): void {
   logger.error(details, 'hunt checkpoint failed; stable checkpoint will retry');
 }
 
+async function reconcileCheckpointConflict(
+  runtime: Runtime,
+  pending: PendingCheckpoint,
+): Promise<void> {
+  const row = await rowForCharacter(runtime.characterId);
+  if (runtime.checkpoint !== pending) {
+    return;
+  }
+  if (row && row.hunt_id === runtime.engine.huntId && row.revision <= runtime.remoteRevision) {
+    pending.retryAt = epochNow() + RETRY_INTERVAL_MS;
+    throw new Error('hunt_checkpoint_conflict_without_newer_revision');
+  }
+  const details = {
+    characterId: runtime.characterId,
+    expectedRevision: pending.request.expectedRevision,
+    huntId: runtime.engine.huntId,
+    persistedRevision: row ? row.revision : undefined,
+  };
+  logger.warn(details, 'reloading hunt after checkpoint revision conflict');
+  const wasPaused = runtime.engine.pausedAt !== undefined;
+  runtime.checkpoint = undefined;
+  removeRuntime(runtime);
+  if (wasPaused) {
+    return;
+  }
+  const recovered = row ? await runtimeForCharacter(runtime.characterId) : undefined;
+  if (notifier) {
+    notifier(
+      runtime.characterId,
+      recovered ? publicState(recovered, []) : undefined,
+      recovered ? undefined : runtime.engine.huntId,
+    );
+  }
+}
+
 async function performCheckpoint(runtime: Runtime, pending: PendingCheckpoint): Promise<void> {
   try {
     const result = await writeHuntCheckpoint(serverClient, pending.request);
@@ -606,7 +648,8 @@ async function performCheckpoint(runtime: Runtime, pending: PendingCheckpoint): 
         expectedRevision: pending.request.expectedRevision,
         huntId: runtime.engine.huntId,
       };
-      logger.error(details, 'hunt checkpoint revision conflict; runtime frozen');
+      logger.warn(details, 'hunt checkpoint revision conflict; reconciling persisted state');
+      await reconcileCheckpointConflict(runtime, pending);
       return;
     }
     subtractConfirmedExperience(runtime.engine, pending.request.snapshot);
@@ -1443,7 +1486,24 @@ export function setHuntNotifier(value: Notify): void {
 }
 
 export async function findHunt(characterId: string): Promise<HuntState | undefined> {
-  const runtime = await runtimeForCharacter(characterId);
+  let runtime = await runtimeForCharacter(characterId);
+  if (runtime && runtime.status === 'conflict') {
+    const pending = runtime.checkpoint;
+    if (!pending) {
+      throw new Error('hunt_runtime_recovery_pending');
+    }
+    await reconcileCheckpointConflict(runtime, pending);
+    runtime = await runtimeForCharacter(characterId);
+    if (runtime && runtime.status === 'conflict') {
+      throw new Error('hunt_runtime_recovery_pending');
+    }
+  }
+  if (runtime && runtime.status === 'paused') {
+    if (resumeEngine(runtime.engine, epochNow())) {
+      runtime.engine.revision += 1;
+    }
+    runtime.status = 'running';
+  }
   return runtime ? publicState(runtime, []) : undefined;
 }
 
@@ -1720,6 +1780,9 @@ async function stopRuntime(runtime: Runtime, deadline: number): Promise<boolean>
   if (!runtimesByHunt.has(runtime.engine.huntId)) {
     return true;
   }
+  if (runtime.status === 'running') {
+    return true;
+  }
   if (runtime.checkpoint || runtime.status === 'conflict') {
     return false;
   }
@@ -1771,6 +1834,9 @@ export async function suspendHunt(characterId: string): Promise<void> {
   }
   const deadline = epochNow() + STOP_TIMEOUT_MS;
   const persisted = await stopRuntime(runtime, deadline);
+  if (runtime.status === 'running') {
+    return;
+  }
   if (!persisted) {
     throw new Error('hunt_suspend_checkpoint_failed');
   }

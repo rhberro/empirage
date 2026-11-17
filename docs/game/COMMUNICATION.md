@@ -265,6 +265,8 @@ Enviada imediatamente após abrir a conexão.
 
 O servidor valida versão, tipos, JWT no Supabase, existência e propriedade do personagem, exclusividade de uma caça por conta e substitui uma conexão anterior da mesma conta após persistir sua posição. A confirmação é enviada por `snapshot`, `authenticated`, `collection_state` e sempre por `hunt_state` — com `hunt: null` quando o personagem está na cidade.
 
+Ao reconectar durante uma suspensão cujo checkpoint ainda está pendente, o servidor retoma a simulação em memória antes de enviar `hunt_state` e cancela a remoção iniciada pela desconexão anterior. Se um checkpoint encontra uma revisão já avançada por outra execução, o servidor descarta o runtime divergente, recarrega a caça persistida e envia um novo `hunt_state` autoritativo; se a caça já terminou, envia `hunt: null`. O estado local ainda não persistido pode ser perdido nessa reconciliação. Falhas transitórias do banco continuam usando o mesmo `checkpoint_id` em novas tentativas.
+
 ### `input`
 
 Enviada ao mudar a entrada de movimento na cidade.
@@ -370,7 +372,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. O cliente atualiza o slot otimisticamente após enviar o comando; o `hunt_state` ou `collection_patch` autoritativo confirma ou corrige a projeção. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_patch` atualizado.
+`abilityId: null` remove a habilidade do slot. Valida slot de 1 a 4, habilidade, nível necessário, criatura ativa e propriedade. O cliente atualiza o slot otimisticamente após enviar o comando; o `hunt_state` ou `collection_patch` autoritativo confirma ou corrige a projeção. Pode ser enviada tanto na cidade quanto na caça: durante a caça responde com `hunt_state`; na cidade responde com `collection_patch` e depois com `collection_state` completo para atualizar `partyConfigurations`.
 
 ### `switch_active_creature`
 
@@ -382,7 +384,7 @@ Exige uma caça ativa e inteiros que correspondam exatamente a uma faixa do loca
 }
 ```
 
-Valida criatura ativa da equipe e propriedade. Na cidade, persiste imediatamente a seleção no personagem e responde com `collection_state`. Na caça, também dispara checkpoint de estado e responde com `hunt_state`. A criatura ativa é recuperada ao reconectar, iniciar outra caça ou retornar à cidade.
+Valida criatura ativa da equipe e propriedade. Na cidade, o cliente marca a criatura escolhida e mostra suas habilidades imediatamente a partir de `partyConfigurations` do último `collection_state`; aguarda um novo `collection_state` completo para confirmar ou corrigir a seleção. Se a configuração da criatura ainda não estiver disponível, oculta as habilidades anteriores até a resposta. O servidor persiste a seleção no personagem. Na caça, a troca segue os tempos e cooldowns da simulação, dispara checkpoint e responde com `hunt_state`. A criatura ativa é recuperada ao reconectar, iniciar outra caça ou retornar à cidade.
 
 ### `request_creature_storage`
 
@@ -402,7 +404,7 @@ Exige página inteira maior ou igual a um e responde com `collection_state`.
 }
 ```
 
-Validam identificador, posse, capacidade da equipe e consistência no banco. São aceitas somente na cidade: durante uma caça a equipe não pode receber ou perder integrantes. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o banco seleciona a próxima criatura da equipe. A resposta é sempre um `collection_state` completo.
+Validam identificador, posse, capacidade da equipe e consistência no banco. São aceitas somente na cidade: durante uma caça a equipe não pode receber ou perder integrantes. O cliente projeta imediatamente a entrada ou saída na equipe e o total do armazenamento após enviar o comando. Não é permitido remover a última criatura da equipe: sempre há uma criatura ativa enquanto houver equipe. Ao remover a criatura ativa, o cliente projeta a próxima criatura da equipe e o banco confirma a seleção. A resposta é sempre um `collection_state` completo e substitui a projeção local, inclusive quando há divergência; em caso de erro, o cliente solicita novamente a coleção completa.
 
 ### `reorder_party_creature`
 
@@ -551,6 +553,13 @@ Confirma que a conexão está autorizada a operar o personagem.
   "collection": {
     "activeCreatureId": "creature-uuid",
     "party": [],
+    "partyConfigurations": {
+      "creature-uuid": {
+        "activeCreatureAbilities": [],
+        "activeCreatureAvailableAbilities": [],
+        "activeCreatureLevel": 8
+      }
+    },
     "storage": [],
     "storagePage": 1,
     "storagePageCount": 1,
@@ -559,7 +568,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. Cada criatura inclui `experience`, `experienceLevelStart` e `experienceNextLevel`, os limites autoritativos da sua faixa de nível usados para renderizar a barra de XP. `revision` identifica a versão local da coleção. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. Ela não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
+É enviada após autenticação, pedido de armazenamento, movimentação entre equipe/armazenamento, reordenação, soltura e captura concluída. Cada criatura inclui `experience`, `experienceLevelStart` e `experienceNextLevel`, os limites autoritativos da sua faixa de nível usados para renderizar a barra de XP. `revision` identifica a versão local da coleção. `activeCreatureId` é a seleção persistente do personagem. Na cidade, `configuration` contém as habilidades e itens da criatura ativa para que os diálogos da barra inferior possam ser configurados sem uma caça em curso. `partyConfigurations` é um mapa aditivo da versão 1, limitado aos seis integrantes da equipe; cada entrada traz nível, habilidades equipadas e habilidades disponíveis, sem duplicar itens ou configurações globais. O cliente usa esse mapa para trocar imediatamente a barra de habilidades e substitui a projeção pelo próximo estado autoritativo. Clientes antigos podem ignorar o campo. A coleção não acompanha dano, movimento, cooldown, onda ou relógio da caça. O servidor a produz para evitar que o cliente mantenha uma coleção divergente sem consultar o banco a cada atualização de combate.
 
 ### `collection_patch`
 

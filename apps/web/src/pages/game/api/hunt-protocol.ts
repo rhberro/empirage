@@ -139,6 +139,11 @@ export type BattleConfiguration = Pick<
   | 'healingItemCooldownEndsAt'
   | 'healingItems'
 >;
+export type PartyCreatureConfiguration = Pick<
+  BattleConfiguration,
+  'activeCreatureAbilities' | 'activeCreatureAvailableAbilities' | 'activeCreatureLevel'
+>;
+export type PartyCreatureConfigurations = Record<string, PartyCreatureConfiguration>;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
 type CommandIdentity = { commandId?: string };
 type HuntCommandPayload =
@@ -426,6 +431,24 @@ function readAbilities(value: unknown): HuntAbilities | null {
     abilities.push(ability);
   }
   return abilities;
+}
+
+export function readPartyCreatureConfiguration(value: unknown): PartyCreatureConfiguration | null {
+  if (!isRecord(value) || !isCount(value.activeCreatureLevel)) {
+    return null;
+  }
+  const activeCreatureAbilities = readAbilities(value.activeCreatureAbilities);
+  const activeCreatureAvailableAbilities = readAvailableAbilities(
+    value.activeCreatureAvailableAbilities,
+  );
+  if (!activeCreatureAbilities || !activeCreatureAvailableAbilities) {
+    return null;
+  }
+  return {
+    activeCreatureAbilities,
+    activeCreatureAvailableAbilities,
+    activeCreatureLevel: value.activeCreatureLevel,
+  };
 }
 
 function readHealingItem(value: unknown): HealingItem | null {
