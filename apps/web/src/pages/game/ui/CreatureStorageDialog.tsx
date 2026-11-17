@@ -14,15 +14,12 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 
-import type { CollectionCreature, CollectionStateEvent } from '../api/game-protocol';
+import type { CollectionCreature } from '../api/game-protocol';
 import type { HuntCommand } from '../api/hunt-protocol';
+import { selectCollection, selectHunt, useGameStore } from '../model/game-store';
 import { selectStorageModalState, toggleStorageModal, useModalStore } from '../model/modal-store';
 
-type CreatureCollection = CollectionStateEvent['collection'];
 type CreatureStorageDialogProps = {
-  activeCreatureId: string | undefined;
-  collection: CreatureCollection | null;
-  isHunting: boolean;
   onCommand: (command: HuntCommand) => boolean;
 };
 type CollectionSectionProps = React.PropsWithChildren<{ count: string; label: string }>;
@@ -45,7 +42,11 @@ type StoragePaginationProps = {
 };
 
 export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.ReactElement {
-  const { activeCreatureId, collection, isHunting, onCommand } = props;
+  const { onCommand } = props;
+  const collection = useGameStore(selectCollection);
+  const hunt = useGameStore(selectHunt);
+  const activeCreatureId = hunt?.activeCreatureId ?? collection?.activeCreatureId;
+  const isHunting = hunt !== null;
   const open = useModalStore(selectStorageModalState);
   const party = collection?.party ?? [];
   const storage = collection?.storage ?? [];

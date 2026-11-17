@@ -8,15 +8,26 @@ import type {
   CollectionStateEvent,
   GameEvent,
 } from '../api/game-protocol';
-import type { HuntState } from '../api/hunt-protocol';
+import {
+  readHuntState,
+  type BattleConfiguration,
+  type HuntAbility,
+  type HuntAvailableAbility,
+  type HuntState,
+  type HuntWaveRange,
+} from '../api/hunt-protocol';
 
 type Collection = CollectionStateEvent['collection'] | null;
 type PartyCreature = CollectionStateEvent['collection']['party'][number];
 type CreatureProgressEntry = [string, CollectionCreatureProgress];
-type GameStoreState = {
+type BattleConfigurationKey = keyof BattleConfiguration;
+type HuntAbilities = Array<HuntAbility>;
+type HuntAvailableAbilities = Array<HuntAvailableAbility>;
+export type GameStoreState = {
   collection: Collection;
   collectionSyncRequired: boolean;
   hunt: HuntState | null;
+  huntSyncRequired: boolean;
   profile: CharacterProfile | null;
   applyCollectionPatch: (event: CollectionPatchEvent) => boolean;
   applyGameEvent: (event: GameEvent) => void;
@@ -25,6 +36,11 @@ type GameStoreState = {
   setProfile: (profile: CharacterProfile | null) => void;
 };
 type GameStoreSelector<T> = (state: GameStoreState) => T;
+
+const EMPTY_ABILITIES: HuntAbilities = [];
+const EMPTY_AVAILABLE_ABILITIES: HuntAvailableAbilities = [];
+const EMPTY_CAPTURE_ITEMS: BattleConfiguration['captureItems'] = [];
+const EMPTY_HEALING_ITEMS: BattleConfiguration['healingItems'] = [];
 
 function progressEntry(entry: CollectionCreatureProgress): CreatureProgressEntry {
   return [entry.id, entry];
@@ -41,6 +57,7 @@ function createInitialState(): GameStoreState {
     collection: null,
     collectionSyncRequired: false,
     hunt: null,
+    huntSyncRequired: false,
     profile: null,
     setCollection,
     setHunt,
@@ -54,7 +71,29 @@ function applyGameEvent(event: GameEvent): void {
     return;
   }
   if (event.type === 'hunt_state') {
-    setHunt(event.hunt);
+    const state = { hunt: event.hunt, huntSyncRequired: false };
+    gameStore.setState(state);
+    return;
+  }
+  if (event.type === 'hunt_delta') {
+    const current = gameStore.getState().hunt;
+    if (
+      !current ||
+      current.huntId !== event.huntId ||
+      current.revision !== event.previousRevision
+    ) {
+      const state = { huntSyncRequired: true };
+      gameStore.setState(state);
+      return;
+    }
+    const candidate = { ...current, ...event.patch, revision: event.revision };
+    const parsed = readHuntState(candidate);
+    if (parsed && parsed.hunt) {
+      setHunt(parsed.hunt);
+    } else {
+      const state = { huntSyncRequired: true };
+      gameStore.setState(state);
+    }
     return;
   }
   if (event.type === 'collection_state') {
@@ -157,4 +196,94 @@ export function selectHunt(state: GameStoreState): HuntState | null {
 
 export function selectProfile(state: GameStoreState): CharacterProfile | null {
   return state.profile;
+}
+
+export function selectIsHunting(state: GameStoreState): boolean {
+  return state.hunt !== null;
+}
+
+export function selectHuntActiveCreatureAbilities(state: GameStoreState): HuntAbilities {
+  return battleConfigurationValue(state, 'activeCreatureAbilities', EMPTY_ABILITIES);
+}
+
+export function selectHuntAvailableAbilities(state: GameStoreState): HuntAvailableAbilities {
+  return battleConfigurationValue(
+    state,
+    'activeCreatureAvailableAbilities',
+    EMPTY_AVAILABLE_ABILITIES,
+  );
+}
+
+export function selectHuntActiveCreatureLevel(state: GameStoreState): number | undefined {
+  return battleConfigurationValue(state, 'activeCreatureLevel');
+}
+
+export function selectCaptureConfiguration(
+  state: GameStoreState,
+): BattleConfiguration['captureConfiguration'] {
+  return battleConfigurationValue(state, 'captureConfiguration');
+}
+
+export function selectCaptureItems(state: GameStoreState): BattleConfiguration['captureItems'] {
+  return battleConfigurationValue(state, 'captureItems', EMPTY_CAPTURE_ITEMS);
+}
+
+export function selectHealingConfiguration(
+  state: GameStoreState,
+): BattleConfiguration['healingConfiguration'] {
+  return battleConfigurationValue(state, 'healingConfiguration');
+}
+
+export function selectHealingItemCooldownEndsAt(state: GameStoreState): number | undefined {
+  return battleConfigurationValue(state, 'healingItemCooldownEndsAt');
+}
+
+export function selectHealingItems(state: GameStoreState): BattleConfiguration['healingItems'] {
+  return battleConfigurationValue(state, 'healingItems', EMPTY_HEALING_ITEMS);
+}
+
+export function selectHuntId(state: GameStoreState): string | undefined {
+  return state.hunt ? state.hunt.huntId : undefined;
+}
+
+export function selectHuntEnemyCount(state: GameStoreState): number {
+  return state.hunt ? state.hunt.enemies.length : 0;
+}
+
+export function selectHuntNextEventAt(state: GameStoreState): string | undefined {
+  return state.hunt ? state.hunt.nextEventAt : undefined;
+}
+
+export function selectHuntServerTime(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.serverTime : undefined;
+}
+
+export function selectHuntWave(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.wave : undefined;
+}
+
+export function selectHuntWaveRange(state: GameStoreState): HuntWaveRange | undefined {
+  return state.hunt ? state.hunt.waveRange : undefined;
+}
+
+export function selectHuntingLocationId(state: GameStoreState): number | undefined {
+  return state.hunt ? state.hunt.huntingLocationId : undefined;
+}
+
+export * from './game-selectors';
+
+function battleConfiguration(state: GameStoreState): BattleConfiguration | undefined {
+  if (state.hunt) {
+    return state.hunt;
+  }
+  return state.collection ? state.collection.configuration : undefined;
+}
+
+function battleConfigurationValue<Key extends BattleConfigurationKey>(
+  state: GameStoreState,
+  key: Key,
+  fallback: BattleConfiguration[Key],
+): BattleConfiguration[Key] {
+  const configuration = battleConfiguration(state);
+  return configuration ? configuration[key] : fallback;
 }

@@ -1,10 +1,9 @@
 /* eslint-disable import/max-dependencies, max-lines, oxc/no-optional-chaining, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import { Scene } from 'phaser';
 
-import type { CharacterProfile, CollectionPatchEvent, GameEvent, Tile } from '../api/game-protocol';
-import type { CollectionStateEvent } from '../api/game-protocol';
+import type { GameEvent, Tile } from '../api/game-protocol';
 import { GameSession } from '../api/game-socket';
-import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { HuntCommand } from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
 import { configureCameraViewport } from '../lib/camera-viewport';
 import { PlayerInput } from '../lib/player-input';
@@ -28,9 +27,6 @@ const MAP_COLUMNS = 100;
 const MAP_ROWS = 100;
 const SNAP_DISTANCE = 3;
 type EventHandler = () => void;
-type HuntStateChangeHandler = (hunt: HuntState | null) => void;
-type CollectionChangeHandler = (collection: CollectionStateEvent['collection']) => void;
-type CharacterProfileChangeHandler = (profile: CharacterProfile) => void;
 type HuntCommandSenderChangeHandler = (
   sender: ((command: HuntCommand) => boolean) | undefined,
 ) => void;
@@ -40,9 +36,6 @@ type GameReadyHandler = () => void;
 export class CityScene extends Scene {
   private readonly characterId: string;
   private readonly deactivationHandler: EventHandler;
-  private readonly onHuntStateChange: HuntStateChangeHandler;
-  private readonly onCollectionChange: CollectionChangeHandler;
-  private readonly onCharacterProfileChange: CharacterProfileChangeHandler;
   private readonly onHuntCommandSenderChange: HuntCommandSenderChangeHandler;
   private readonly onTransitionChange: TransitionChangeHandler;
   private readonly onGameReady: GameReadyHandler;
@@ -58,22 +51,17 @@ export class CityScene extends Scene {
   private hasHuntState = false;
   private hasSnapshot = false;
   private gameReady = false;
+  private huntSyncRequested = false;
 
   public constructor(
     characterId: string,
-    onCharacterProfileChange: CharacterProfileChangeHandler,
-    onCollectionChange: CollectionChangeHandler,
-    onHuntStateChange: HuntStateChangeHandler,
     onHuntCommandSenderChange: HuntCommandSenderChangeHandler,
     onTransitionChange: TransitionChangeHandler,
     onGameReady: GameReadyHandler,
   ) {
     super('CityScene');
     this.characterId = characterId;
-    this.onCharacterProfileChange = onCharacterProfileChange;
-    this.onCollectionChange = onCollectionChange;
     this.deactivationHandler = this.handleDeactivation.bind(this);
-    this.onHuntStateChange = onHuntStateChange;
     this.onHuntCommandSenderChange = onHuntCommandSenderChange;
     this.onTransitionChange = onTransitionChange;
     this.onGameReady = onGameReady;
@@ -167,8 +155,8 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'hunt_state') {
+      this.huntSyncRequested = false;
       this.playerInput.neutralize();
-      this.onHuntStateChange(event.hunt);
       if (huntView) {
         huntView.apply(event.hunt, event.huntId);
       }
@@ -177,8 +165,22 @@ export class CityScene extends Scene {
       this.playerInput.enabled = !event.hunt && Boolean(huntView && huntView.connected);
       return;
     }
+    if (event.type === 'hunt_delta') {
+      const state = gameStore.getState();
+      if (state.huntSyncRequired) {
+        if (!this.huntSyncRequested) {
+          this.huntSyncRequested = true;
+          this.requestHuntState();
+        }
+        return;
+      }
+      const hunt = state.hunt;
+      if (hunt && hunt.huntId === event.huntId && hunt.revision === event.revision) {
+        huntView?.apply(hunt, hunt.huntId);
+      }
+      return;
+    }
     if (event.type === 'collection_state') {
-      this.onCollectionChange(event.collection);
       const partySpeciesIds = event.collection.party.map(function speciesId(creature): number {
         return creature.species.id;
       });
@@ -188,7 +190,7 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'collection_patch') {
-      this.applyCollectionPatch(event);
+      this.applyCollectionPatch();
       return;
     }
     if (event.type === 'hunt_clock') {
@@ -214,7 +216,6 @@ export class CityScene extends Scene {
       return;
     }
     if (event.type === 'authenticated') {
-      this.onCharacterProfileChange(event.profile);
       if (huntView) {
         huntView.authenticate();
       }
@@ -363,7 +364,7 @@ export class CityScene extends Scene {
     return this.session.send(command);
   }
 
-  private applyCollectionPatch(_event: CollectionPatchEvent): void {
+  private applyCollectionPatch(): void {
     const state = gameStore.getState();
     const collection = state.collection;
     if (state.collectionSyncRequired) {
@@ -373,20 +374,11 @@ export class CityScene extends Scene {
         version: 1 as const,
       };
       this.session.send(command);
-      return;
-    }
-    const nextCollection = collection;
-    if (nextCollection) {
-      this.onCollectionChange(nextCollection);
     }
   }
 
-  private requestCollection(storagePage: number): void {
-    const command = {
-      storagePage,
-      type: 'request_creature_storage' as const,
-      version: 1 as const,
-    };
+  private requestHuntState(): void {
+    const command = { type: 'request_hunt_state' as const, version: 1 as const };
     this.session.send(command);
   }
 

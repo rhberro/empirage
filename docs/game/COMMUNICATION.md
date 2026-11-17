@@ -325,6 +325,17 @@ Enviada ao autenticar e a cada sete segundos enquanto houver caça.
 
 O servidor exige versão e timestamp finito e responde com `hunt_clock`. Não grava no banco.
 
+### `request_hunt_state`
+
+```json
+{ "type": "request_hunt_state", "version": 1 }
+```
+
+O cliente envia esse comando somente para recuperar a sincronização após não conseguir
+aplicar um `hunt_delta`. O servidor responde com um `hunt_state` completo e
+autoritativo da caça atual, ou `hunt: null` na cidade. A resposta força o snapshot,
+mesmo se a revisão avançou desde o último evento emitido, e não altera o banco.
+
 ### `start_hunt` e `leave_hunt`
 
 ```json
@@ -557,7 +568,11 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É a fonte de verdade visual da caça. É enviado no início, ações de configuração, atualizações do motor, captura, cura, pausa, reconexão e finalização. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. `combatEvents[].feedback` é uma lista aditiva de mensagens visuais calculadas pelo servidor; cada entrada contém `text` e a `tile` onde deve ser renderizada. Ela comunica acertos falhos (`Miss`) e alterações de estágio, como `Acc. Fell` e `Attack Rose`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
+É o snapshot e a fonte de verdade visual da caça. É enviado no início, na reconexão, ao terminar a caça, quando não há uma revisão sequencial disponível ou em resposta a `request_hunt_state`; as demais mudanças podem usar `hunt_delta`. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. Cada item de `combatEvents[].damages` inclui `effectiveness`: `normal`, `resisted` ou `super-effective`, calculado pelo servidor a partir da tabela de efetividade elemental; é um campo aditivo da versão 1 e clientes anteriores podem tratá-lo como `normal`. `combatEvents[].feedback` é uma lista aditiva de mensagens visuais calculadas pelo servidor; cada entrada contém `text` e a `tile` onde deve ser renderizada. Ela comunica acertos falhos (`Miss`) e alterações de estágio, como `Acc. Fell` e `Attack Rose`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
+
+### `hunt_delta`
+
+Após o snapshot inicial, o servidor pode enviar somente os campos alterados da caça. O evento contém `huntId`, `previousRevision`, `revision` e `patch`; o cliente aplica o patch apenas quando a revisão local coincide exatamente com `previousRevision`. Se a revisão, a caça ou a validação do patch não coincidirem, o cliente não aplica o delta e envia `request_hunt_state` uma única vez até receber o `hunt_state` autoritativo.
 
 ### `collection_state`
 

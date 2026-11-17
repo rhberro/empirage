@@ -1,12 +1,12 @@
 /* eslint-disable oxsome/no-inline-structural-types */
-import { readHuntState, readPartyCreatureConfiguration } from './hunt-protocol';
+import { readHuntDelta, readHuntState, readPartyCreatureConfiguration } from './hunt-protocol';
 import type {
   BattleConfiguration,
   CaptureRarity,
   PartyCreatureConfigurations,
 } from './hunt-protocol';
 /* eslint-disable max-lines */
-import type { HuntStateEvent } from './hunt-protocol';
+import type { HuntDeltaEvent, HuntStateEvent } from './hunt-protocol';
 
 export const GAME_PROTOCOL_VERSION = 1;
 export const GAME_TICKS_PER_SECOND = 30;
@@ -165,6 +165,7 @@ export type GameEvent =
   | ConnectionStatusEvent
   | ErrorEvent
   | HuntClockEvent
+  | HuntDeltaEvent
   | HuntStateEvent
   | InputRejectedEvent
   | MovementStartedEvent
@@ -633,6 +634,9 @@ export function parseGameEvent(value: unknown): GameEvent | null {
   }
   if (value.type === 'hunt_state') {
     return readHuntState(value.hunt, value.huntId);
+  }
+  if (value.type === 'hunt_delta') {
+    return readHuntDelta(value);
   }
   if (value.type === 'collection_state') {
     return readCollectionState(value);

@@ -4,9 +4,9 @@ import * as React from 'react';
 
 import { Icon } from '~/shared/ui/Icon';
 
-import type { CharacterProfile, CollectionStateEvent } from '../api/game-protocol';
-import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { HuntCommand } from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
+import { selectIsHunting, useGameStore } from '../model/game-store';
 import { toggleHuntingLocationsModal, toggleStorageModal } from '../model/modal-store';
 import { BottomBar } from './BottomBar';
 import { CreatureStorageDialog } from './CreatureStorageDialog';
@@ -17,60 +17,49 @@ import { HuntWaveCountdown } from './HuntWaveCountdown';
 import { WaveRangeDialog } from './WaveRangeDialog';
 
 type HuntInterfaceProps = {
-  collection: CollectionStateEvent['collection'] | null;
-  hunt: HuntState | null;
   locations: Array<HuntingLocation>;
-  profile: CharacterProfile | null;
   sendHuntCommand: (command: HuntCommand) => boolean;
 };
 type LeaveHuntButtonProps = { onCommand: (command: HuntCommand) => boolean };
 
 export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
-  const { collection, hunt, locations, profile, sendHuntCommand } = props;
-  const collectionActiveCreatureId = collection ? collection.activeCreatureId : undefined;
-  const collectionConfiguration = collection ? collection.configuration : undefined;
-  const activeCreatureId = hunt ? hunt.activeCreatureId : collectionActiveCreatureId;
-  const configuration = hunt ?? collectionConfiguration;
-  const huntInterface = (
-    <HuntControls configuration={configuration} hunt={hunt} onCommand={sendHuntCommand} />
-  );
+  const { locations, sendHuntCommand } = props;
   return (
     <>
-      <HuntStatusPanels
-        collection={collection}
-        hunt={hunt}
-        onCommand={sendHuntCommand}
-        profile={profile}
-      />
-      <HStack left="50%" position="fixed" top="3" transform="translateX(-50%)" zIndex="2">
-        <Button aria-label="Abrir armazenamento" onClick={toggleStorageModal}>
-          <Icon name="inventory_2" />
-          Armazenamento
-        </Button>
-        {hunt ? (
-          <LeaveHuntButton onCommand={sendHuntCommand} />
-        ) : (
-          <Button aria-label="Abrir locais de caça" onClick={toggleHuntingLocationsModal}>
-            <Icon name="explore" />
-            Locais de caça
-          </Button>
-        )}
-      </HStack>
-      <BottomBar configuration={configuration} hunt={hunt} onCommand={sendHuntCommand} />
-      <HuntWaveCountdown hunt={hunt} />
-      <CreatureStorageDialog
-        activeCreatureId={activeCreatureId}
-        collection={collection}
-        isHunting={hunt !== null}
-        onCommand={sendHuntCommand}
-      />
+      <HuntStatusPanels onCommand={sendHuntCommand} />
+      <HuntNavigation onCommand={sendHuntCommand} />
+      <BottomBar />
+      <HuntWaveCountdown />
+      <CreatureStorageDialog onCommand={sendHuntCommand} />
       <HuntingLocationsDialog
         locations={locations}
         onStart={startHunt.bind(null, sendHuntCommand)}
       />
-      <WaveRangeDialog hunt={hunt} locations={locations} onCommand={sendHuntCommand} />
-      {huntInterface}
+      <WaveRangeDialog locations={locations} onCommand={sendHuntCommand} />
+      <HuntControls onCommand={sendHuntCommand} />
     </>
+  );
+}
+
+function HuntNavigation(props: LeaveHuntButtonProps): React.ReactElement {
+  const { onCommand } = props;
+  const isHunting = useGameStore(selectIsHunting);
+  const secondaryAction = isHunting ? (
+    <LeaveHuntButton onCommand={onCommand} />
+  ) : (
+    <Button aria-label="Abrir locais de caça" onClick={toggleHuntingLocationsModal}>
+      <Icon name="explore" />
+      Locais de caça
+    </Button>
+  );
+  return (
+    <HStack left="50%" position="fixed" top="3" transform="translateX(-50%)" zIndex="2">
+      <Button aria-label="Abrir armazenamento" onClick={toggleStorageModal}>
+        <Icon name="inventory_2" />
+        Armazenamento
+      </Button>
+      {secondaryAction}
+    </HStack>
   );
 }
 

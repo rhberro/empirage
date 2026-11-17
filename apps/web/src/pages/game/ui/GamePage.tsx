@@ -2,15 +2,9 @@
 import './game.css';
 import * as React from 'react';
 
-import type { CharacterProfile, CollectionStateEvent } from '../api/game-protocol';
+import type { CollectionStateEvent } from '../api/game-protocol';
 import type { HuntCommand, HuntState } from '../api/hunt-protocol';
-import {
-  gameStore,
-  selectCollection,
-  selectHunt,
-  selectProfile,
-  useGameStore,
-} from '../model/game-store';
+import { gameStore } from '../model/game-store';
 import {
   optimisticCollectionConfiguration,
   optimisticHuntConfiguration,
@@ -21,22 +15,7 @@ import { GameCanvas } from './GameCanvas';
 import { HuntInterface } from './HuntInterface';
 import { TransitionLoadingScreen } from './TransitionLoadingScreen';
 
-function handleHuntStateChange(_nextHunt: HuntState | null): void {
-  // GameSession applies authoritative events before Phaser receives them.
-}
-
-function handleCollectionChange(_nextCollection: CollectionStateEvent['collection']): void {
-  // GameSession applies authoritative events before Phaser receives them.
-}
-
-function handleCharacterProfileChange(_nextProfile: CharacterProfile): void {
-  // GameSession applies authoritative events before Phaser receives them.
-}
-
 export function GamePage(): React.ReactElement {
-  const collection = useGameStore(selectCollection);
-  const hunt = useGameStore(selectHunt);
-  const profile = useGameStore(selectProfile);
   const [gameReady, setGameReady] = React.useState(false);
   const [transitionMessage, setTransitionMessage] = React.useState<string | null>('Conectando…');
   const commandSenderRef = React.useRef<HuntCommandSender | null>(null);
@@ -76,21 +55,12 @@ export function GamePage(): React.ReactElement {
     <main className="game-frame">
       <GameCanvas
         huntingLocations={huntingLocations.data ?? []}
-        onCharacterProfileChange={handleCharacterProfileChange}
-        onCollectionChange={handleCollectionChange}
         onHuntCommandSenderChange={handleHuntCommandSenderChange}
-        onHuntStateChange={handleHuntStateChange}
         onGameReady={handleGameReady}
         onTransitionChange={handleTransitionChange}
       />
       {gameReady && !transitionMessage ? (
-        <HuntInterface
-          collection={collection}
-          hunt={hunt}
-          locations={huntingLocations.data ?? []}
-          profile={profile}
-          sendHuntCommand={sendHuntCommand}
-        />
+        <HuntInterface locations={huntingLocations.data ?? []} sendHuntCommand={sendHuntCommand} />
       ) : null}
       {transitionMessage ? <TransitionLoadingScreen message={transitionMessage} /> : null}
     </main>

@@ -1,7 +1,8 @@
 import { Dialog, Stack, Text } from '@chakra-ui/react';
 import * as React from 'react';
 
-import type { HealingConfiguration, HealingItem, HuntCommand } from '../api/hunt-protocol';
+import type { HuntCommand } from '../api/hunt-protocol';
+import { selectHealingConfiguration, selectHealingItems, useGameStore } from '../model/game-store';
 import type { HealingConfigurationInput } from '../model/healing-configuration';
 import {
   selectHealingItemModalState,
@@ -11,13 +12,13 @@ import {
 import { HealingItemDialogForm } from './HealingItemDialogForm';
 
 type HealingItemDialogProps = {
-  configuration: HealingConfiguration | undefined;
-  items: Array<HealingItem>;
   onConfigure: (command: HuntCommand) => boolean;
 };
 const healingDialogHeight = { base: 'calc(100dvh - 4)', md: 'min(42rem, calc(100dvh - 8))' };
 export function HealingItemDialog(props: HealingItemDialogProps): React.ReactElement {
-  const { configuration, items, onConfigure } = props;
+  const { onConfigure } = props;
+  const configuration = useGameStore(selectHealingConfiguration);
+  const items = useGameStore(selectHealingItems);
   const open = useModalStore(selectHealingItemModalState);
   const defaultValues = getDefaultValues(configuration);
   const formKey = getFormKey(open, defaultValues);

@@ -2,17 +2,18 @@ import { Image } from '@chakra-ui/react';
 
 import { Icon } from '~/shared/ui/Icon';
 
-import type { CaptureConfiguration, CaptureItem } from '../../api/hunt-protocol';
+import type { CaptureItem } from '../../api/hunt-protocol';
+import {
+  selectCaptureConfiguration,
+  selectCaptureItems,
+  useGameStore,
+} from '../../model/game-store';
 import { toggleCaptureModal } from '../../model/modal-store';
 import { Slot } from './Slot';
 
-type CaptureSlotProps = {
-  configuration: CaptureConfiguration | undefined;
-  items: Array<CaptureItem>;
-};
-
-export function CaptureSlot(props: CaptureSlotProps): React.ReactElement {
-  const { configuration, items } = props;
+export function CaptureSlot(): React.ReactElement {
+  const configuration = useGameStore(selectCaptureConfiguration);
+  const items = useGameStore(selectCaptureItems);
   const selectedItemId = configuration ? configuration.itemId : undefined;
   function selectedItem(item: CaptureItem): boolean {
     return item.id === selectedItemId;

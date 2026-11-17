@@ -7,17 +7,11 @@ import { z } from 'zod';
 import { createForm } from '~/shared/ui/Form';
 import { RadioCardField } from '~/shared/ui/RadioCard';
 
-import type {
-  CaptureConfiguration,
-  CaptureItem,
-  CaptureRarity,
-  HuntCommand,
-} from '../api/hunt-protocol';
+import type { CaptureItem, CaptureRarity, HuntCommand } from '../api/hunt-protocol';
+import { selectCaptureConfiguration, selectCaptureItems, useGameStore } from '../model/game-store';
 import { selectCaptureModalState, toggleCaptureModal, useModalStore } from '../model/modal-store';
 
 type CaptureDialogProps = {
-  configuration: CaptureConfiguration | undefined;
-  items: Array<CaptureItem>;
   onConfigure: (command: HuntCommand) => boolean;
 };
 type CaptureConfigurationInput = { itemId: string; rarities: Array<CaptureRarity> };
@@ -40,7 +34,9 @@ const CaptureSchema = z.object(fields).refine(hasRaritiesWhenCapturing, 'Selecio
 const Form = createForm(CaptureSchema);
 
 export function CaptureDialog(props: CaptureDialogProps): React.ReactElement {
-  const { configuration, items, onConfigure } = props;
+  const { onConfigure } = props;
+  const configuration = useGameStore(selectCaptureConfiguration);
+  const items = useGameStore(selectCaptureItems);
   const open = useModalStore(selectCaptureModalState);
   const defaultValues = captureDefaultValues(configuration);
   const formKey = captureFormKey(open, defaultValues);

@@ -4,9 +4,15 @@ import * as React from 'react';
 
 import { Icon } from '~/shared/ui/Icon';
 
-import type { HuntState } from '../api/hunt-protocol';
+import {
+  selectHuntEnemyCount,
+  selectHuntId,
+  selectHuntNextEventAt,
+  selectHuntServerTime,
+  selectHuntWave,
+  useGameStore,
+} from '../model/game-store';
 
-type HuntWaveCountdownProps = { hunt: HuntState | null };
 type IntervalCleanup = () => void;
 
 function currentTime(): number {
@@ -28,29 +34,33 @@ function useCurrentTime(): number {
   return now;
 }
 
-export function HuntWaveCountdown(props: HuntWaveCountdownProps): React.ReactElement | null {
-  const { hunt } = props;
-  if (!hunt || hunt.enemies.length > 0) {
+export function HuntWaveCountdown(): React.ReactElement | null {
+  const enemyCount = useGameStore(selectHuntEnemyCount);
+  const huntId = useGameStore(selectHuntId);
+  const nextEventAt = useGameStore(selectHuntNextEventAt);
+  const serverTime = useGameStore(selectHuntServerTime);
+  const wave = useGameStore(selectHuntWave);
+  if (!huntId || !nextEventAt || wave === undefined || enemyCount > 0) {
     return null;
   }
-  const key = `${hunt.huntId}-${hunt.wave}`;
-  return <WaveCountdown hunt={hunt} key={key} />;
+  const key = `${huntId}-${wave}`;
+  return <WaveCountdown key={key} nextEventAt={nextEventAt} serverTime={serverTime} />;
 }
 
-type WaveCountdownProps = { hunt: HuntState };
+type WaveCountdownProps = { nextEventAt: string; serverTime: number | undefined };
 
 function WaveCountdown(props: WaveCountdownProps): React.ReactElement {
-  const { hunt } = props;
+  const { nextEventAt, serverTime } = props;
   const now = useCurrentTime();
   const [clock] = React.useState(function createClock(): CountdownClock {
-    const serverTime = hunt.serverTime ?? currentTime();
-    const endsAt = new Date(hunt.nextEventAt).getTime();
-    return { startedAt: serverTime, totalMs: Math.max(1, endsAt - serverTime) };
+    const startedAt = serverTime ?? currentTime();
+    const endsAt = new Date(nextEventAt).getTime();
+    return { startedAt, totalMs: Math.max(1, endsAt - startedAt) };
   });
-  const nextEventAt = new Date(hunt.nextEventAt).getTime();
+  const nextEventAtMs = new Date(nextEventAt).getTime();
   const elapsedMs = Math.max(0, now - clock.startedAt);
   const serverNow = clock.startedAt + elapsedMs;
-  const delayMs = Math.max(0, nextEventAt - serverNow);
+  const delayMs = Math.max(0, nextEventAtMs - serverNow);
   const seconds = Math.ceil(delayMs / 1_000);
   const progress = Math.min(100, Math.max(0, ((clock.totalMs - delayMs) / clock.totalMs) * 100));
   const progressWidth = `${progress}%`;

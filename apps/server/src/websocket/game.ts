@@ -369,9 +369,45 @@ function sendHuntState(
   socket: GameSocket,
   hunt: HuntState | undefined,
   endedHuntId?: string,
+  forceSnapshot = false,
 ): void {
+  const state = socket.data.authenticated;
   const huntId = hunt ? hunt.huntId : endedHuntId;
+  const previous = state ? state.lastHuntState : undefined;
+  if (
+    hunt &&
+    previous &&
+    !forceSnapshot &&
+    previous.huntId === hunt.huntId &&
+    hunt.revision === previous.revision + 1
+  ) {
+    const patch = huntPatch(previous, hunt);
+    send(socket, {
+      huntId: hunt.huntId,
+      patch,
+      previousRevision: previous.revision,
+      revision: hunt.revision,
+      type: 'hunt_delta',
+      version: PROTOCOL_VERSION,
+    });
+    state.lastHuntState = hunt;
+    return;
+  }
   send(socket, { hunt: hunt ?? null, huntId, type: 'hunt_state', version: PROTOCOL_VERSION });
+  if (state) {
+    state.lastHuntState = hunt;
+  }
+}
+
+function huntPatch(previous: HuntState, next: HuntState): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(next)) {
+    const prior = previous[key as keyof HuntState];
+    if (key !== 'revision' && JSON.stringify(prior) !== JSON.stringify(value)) {
+      patch[key] = value;
+    }
+  }
+  return patch;
 }
 
 async function advanceCollectionRevision(characterId: string): Promise<CollectionRevision> {
@@ -801,6 +837,10 @@ async function handleHuntCommand(
   }
   if (clientMessage.type === 'request_creature_storage') {
     await requestCreatureStorage(socket, state, clientMessage);
+    return true;
+  }
+  if (clientMessage.type === 'request_hunt_state') {
+    sendHuntState(socket, await findHunt(state.characterId), undefined, true);
     return true;
   }
   if (clientMessage.type === 'release_creature') {

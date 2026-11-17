@@ -2,8 +2,14 @@
 import { Badge, Button, Dialog, HStack, Stack, Text } from '@chakra-ui/react';
 import * as React from 'react';
 
-import type { HuntCommand, HuntState } from '../api/hunt-protocol';
+import type { HuntCommand } from '../api/hunt-protocol';
 import type { HuntingLocation } from '../api/hunting-locations';
+import {
+  selectHuntWaveRange,
+  selectHuntingLocationId,
+  selectIsHunting,
+  useGameStore,
+} from '../model/game-store';
 import {
   selectWaveRangeModalState,
   toggleWaveRangeModal,
@@ -11,7 +17,6 @@ import {
 } from '../model/modal-store';
 
 type WaveRangeDialogProps = {
-  hunt: HuntState | null;
   locations: Array<HuntingLocation>;
   onCommand: (command: HuntCommand) => boolean;
 };
@@ -21,13 +26,16 @@ function closeDialog(): void {
 }
 
 export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement | null {
-  const { hunt, locations, onCommand } = props;
+  const { locations, onCommand } = props;
+  const isHunting = useGameStore(selectIsHunting);
+  const huntingLocationId = useGameStore(selectHuntingLocationId);
+  const waveRange = useGameStore(selectHuntWaveRange);
   const open = useModalStore(selectWaveRangeModalState);
-  if (!hunt) {
+  if (!isHunting || !huntingLocationId || !waveRange) {
     return null;
   }
   const location = locations.find(function findLocation(candidate): boolean {
-    return candidate.id === hunt.huntingLocationId;
+    return candidate.id === huntingLocationId;
   });
   if (!location) {
     return null;
@@ -61,8 +69,8 @@ export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement
               </Text>
               {location.waveRanges.map(function renderRange(range): React.ReactElement {
                 const selected =
-                  hunt.waveRange.minimumSize === range.minimumSize &&
-                  hunt.waveRange.maximumSize === range.maximumSize;
+                  waveRange.minimumSize === range.minimumSize &&
+                  waveRange.maximumSize === range.maximumSize;
                 const onClick = selectRange.bind(null, range.minimumSize, range.maximumSize);
                 return (
                   <Button

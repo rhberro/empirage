@@ -145,6 +145,13 @@ export type PartyCreatureConfiguration = Pick<
 >;
 export type PartyCreatureConfigurations = Record<string, PartyCreatureConfiguration>;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
+export type HuntDeltaEvent = {
+  huntId: string;
+  patch: Record<string, unknown>;
+  previousRevision: number;
+  revision: number;
+  type: 'hunt_delta';
+};
 type CommandIdentity = { commandId?: string };
 type HuntCommandPayload =
   | { huntingLocationId: number; type: 'start_hunt'; version: 1 }
@@ -174,6 +181,7 @@ type HuntCommandPayload =
       version: 1;
     }
   | { storagePage: number; type: 'request_creature_storage'; version: 1 }
+  | { type: 'request_hunt_state'; version: 1 }
   | { abilityId: number | null; abilitySlot: number; type: 'configure_ability'; version: 1 }
   | {
       type: 'configure_wave_range';
@@ -794,4 +802,25 @@ export function readHuntState(value: unknown, envelopeHuntId?: unknown): HuntSta
     return null;
   }
   return { hunt, huntId: hunt.huntId, type: 'hunt_state' };
+}
+
+export function readHuntDelta(value: unknown): HuntDeltaEvent | null {
+  if (
+    !isRecord(value) ||
+    typeof value.huntId !== 'string' ||
+    !UUID_PATTERN.test(value.huntId) ||
+    !isCount(value.previousRevision) ||
+    !isCount(value.revision) ||
+    value.revision !== value.previousRevision + 1 ||
+    !isRecord(value.patch)
+  ) {
+    return null;
+  }
+  return {
+    huntId: value.huntId,
+    patch: value.patch,
+    previousRevision: value.previousRevision,
+    revision: value.revision,
+    type: 'hunt_delta',
+  };
 }

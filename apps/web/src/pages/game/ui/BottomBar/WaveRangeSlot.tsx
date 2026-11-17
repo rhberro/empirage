@@ -1,13 +1,11 @@
 import { Icon } from '~/shared/ui/Icon';
 
-import type { HuntWaveRange } from '../../api/hunt-protocol';
+import { selectHuntWaveRange, useGameStore } from '../../model/game-store';
 import { toggleWaveRangeModal } from '../../model/modal-store';
 import { Slot } from './Slot';
 
-type WaveRangeSlotProps = { waveRange: HuntWaveRange | undefined };
-
-export function WaveRangeSlot(props: WaveRangeSlotProps): React.ReactElement {
-  const { waveRange } = props;
+export function WaveRangeSlot(): React.ReactElement {
+  const waveRange = useGameStore(selectHuntWaveRange);
   const label = waveRange
     ? `Criaturas por onda: ${waveRange.minimumSize}–${waveRange.maximumSize}`
     : 'Criaturas por onda';

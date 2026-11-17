@@ -12,12 +12,15 @@ import {
 import * as React from 'react';
 
 import type { HuntAbility, HuntAvailableAbility, HuntCommand } from '../api/hunt-protocol';
+import {
+  selectHuntActiveCreatureAbilities,
+  selectHuntActiveCreatureLevel,
+  selectHuntAvailableAbilities,
+  useGameStore,
+} from '../model/game-store';
 import { closeAbilityModal, selectAbilitySlot, useModalStore } from '../model/modal-store';
 import { AbilityDetails } from './AbilityDetails';
 type AbilityDialogProps = {
-  abilities: Array<HuntAvailableAbility>;
-  equipped: Array<HuntAbility>;
-  level: number;
   onConfigure: (command: HuntCommand) => boolean;
 };
 type EquippedAbilities = Array<HuntAbility>;
@@ -29,8 +32,14 @@ function handleOpenChange(details: Dialog.OpenChangeDetails): void {
   }
 }
 export function AbilityDialog(props: AbilityDialogProps): React.ReactElement {
-  const { abilities, equipped, level, onConfigure } = props;
+  const { onConfigure } = props;
+  const abilities = useGameStore(selectHuntAvailableAbilities);
+  const equipped = useGameStore(selectHuntActiveCreatureAbilities);
+  const level = useGameStore(selectHuntActiveCreatureLevel);
   const slot = useModalStore(selectAbilitySlot);
+  if (level === undefined) {
+    return <div hidden />;
+  }
   const open = slot !== null;
   const selected = findEquippedAbility(equipped, slot);
   const disableClear = selected === undefined;

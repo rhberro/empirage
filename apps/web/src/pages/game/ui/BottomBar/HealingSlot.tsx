@@ -2,20 +2,22 @@ import { Image } from '@chakra-ui/react';
 
 import { Icon } from '~/shared/ui/Icon';
 
-import { HealingConfiguration, HealingItem } from '../../api/hunt-protocol';
+import { HealingItem } from '../../api/hunt-protocol';
+import {
+  selectHealingConfiguration,
+  selectHealingItemCooldownEndsAt,
+  selectHealingItems,
+  useGameStore,
+} from '../../model/game-store';
 import { toggleHealingItemModal } from '../../model/modal-store';
 import { Slot } from './Slot';
 
-type HealingSlotProps = {
-  healingConfiguration: HealingConfiguration | undefined;
-  healingItemCooldownEndsAt: number | undefined;
-  healingItems: Array<HealingItem> | undefined;
-};
-
 type HealingItems = Array<HealingItem>;
 
-export function HealingSlot(props: HealingSlotProps): React.ReactElement {
-  const { healingConfiguration, healingItemCooldownEndsAt, healingItems = [] } = props;
+export function HealingSlot(): React.ReactElement {
+  const healingConfiguration = useGameStore(selectHealingConfiguration);
+  const healingItemCooldownEndsAt = useGameStore(selectHealingItemCooldownEndsAt);
+  const healingItems = useGameStore(selectHealingItems);
   const { itemId } = healingConfiguration ?? {};
   const selected = getSelectedHealingItem(healingItems, itemId);
   if (selected) {

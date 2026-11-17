@@ -1,14 +1,18 @@
 import { Icon } from '~/shared/ui/Icon';
 
 import { HuntAbility } from '../../api/hunt-protocol';
+import { selectHuntActiveCreatureAbilities, useGameStore } from '../../model/game-store';
 import { openAbilityModal } from '../../model/modal-store';
 import { AbilityIcon } from './AbilityIcon';
 import { Slot } from './Slot';
 
-type AbilitySlotProps = { ability: HuntAbility | undefined; slot: number };
+type AbilitySlotProps = { slot: number };
+type HuntAbilities = Array<HuntAbility>;
 
 export function AbilitySlot(props: AbilitySlotProps): React.ReactElement {
-  const { ability, slot } = props;
+  const { slot } = props;
+  const abilities = useGameStore(selectHuntActiveCreatureAbilities);
+  const ability = findAbilityBySlot(abilities, slot);
   const openModal = openAbilityModal.bind(undefined, slot);
   if (ability) {
     const { cooldownEndsAt, cooldownMs, element, name } = ability;
@@ -33,4 +37,13 @@ export function AbilitySlot(props: AbilitySlotProps): React.ReactElement {
       onClick={openModal}
     />
   );
+}
+
+function findAbilityBySlot(abilities: HuntAbilities, slot: number): HuntAbility | undefined {
+  for (const ability of abilities) {
+    if (ability.slot === slot) {
+      return ability;
+    }
+  }
+  return undefined;
 }
