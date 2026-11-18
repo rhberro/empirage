@@ -231,6 +231,19 @@ export function selectHuntActiveCreatureAbilities(state: GameStoreState): HuntAb
   return battleConfigurationValue(state, 'activeCreatureAbilities', EMPTY_ABILITIES);
 }
 
+export function selectHuntActiveCreatureAbilityBySlot(
+  slot: number,
+  state: GameStoreState,
+): HuntAbility | undefined {
+  const abilities = battleConfigurationValue(state, 'activeCreatureAbilities', EMPTY_ABILITIES);
+  for (const ability of abilities) {
+    if (ability.slot === slot) {
+      return ability;
+    }
+  }
+  return undefined;
+}
+
 export function selectHuntAvailableAbilities(state: GameStoreState): HuntAvailableAbilities {
   return battleConfigurationValue(
     state,

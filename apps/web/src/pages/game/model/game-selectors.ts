@@ -1,5 +1,6 @@
 import type { CollectionCreature, CollectionStateEvent } from '../api/game-protocol';
 import type { HuntWaveRange, PartyCreatureHealth } from '../api/hunt-protocol';
+import { HuntingLocation } from '../api/hunting-locations';
 import type { GameStoreState } from './game-store';
 
 type Party = CollectionStateEvent['collection']['party'];
@@ -100,6 +101,10 @@ export function selectHuntWave(state: GameStoreState): number | undefined {
 
 export function selectHuntWaveRange(state: GameStoreState): HuntWaveRange | undefined {
   return state.hunt ? state.hunt.waveRange : undefined;
+}
+
+export function selectHuntWaveRangeMaximumSize(state: GameStoreState): number | undefined {
+  return state.hunt && state.hunt.waveRange ? state.hunt.waveRange.maximumSize : undefined;
 }
 
 export function selectHuntingLocationId(state: GameStoreState): number | undefined {

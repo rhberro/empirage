@@ -113,6 +113,7 @@ export class HuntEffects {
     for (const [id, visual] of this.combat) {
       const duration = visual.event.kind === 'ranged' ? RANGED_DURATION_MS : EFFECT_DURATION_MS;
       const progress = Math.max(0, (now - visual.startedAt) / duration);
+      const impactStart = visual.event.kind === 'melee' ? 0 : IMPACT_START_PROGRESS;
       if (now < visual.startedAt) {
         continue;
       }
@@ -120,9 +121,11 @@ export class HuntEffects {
         this.combat.delete(id);
         continue;
       }
-      this.drawProjectile(visual.event, progress);
-      if (progress >= IMPACT_START_PROGRESS) {
-        this.drawImpactTiles(visual.event, progress);
+      if (visual.event.kind === 'ranged') {
+        this.drawProjectile(visual.event, progress);
+      }
+      if (progress >= impactStart) {
+        this.drawImpactTiles(visual.event, progress, impactStart);
       }
     }
     this.updateFeedback(now);
@@ -170,8 +173,8 @@ export class HuntEffects {
     );
   }
 
-  private drawImpactTiles(event: HuntCombatEvent, progress: number): void {
-    const fade = 1 - (progress - IMPACT_START_PROGRESS) / (1 - IMPACT_START_PROGRESS);
+  private drawImpactTiles(event: HuntCombatEvent, progress: number, impactStart: number): void {
+    const fade = 1 - (progress - impactStart) / (1 - impactStart);
     const color = Number.parseInt(huntElementBackgroundColor(event.element).slice(1), 16);
     const tiles = event.tiles.length > 0 ? event.tiles : event.damages.map(HuntEffects.damageTile);
     for (const tile of tiles) {

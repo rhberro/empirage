@@ -1,4 +1,4 @@
-import { ActionBar, Portal } from '@chakra-ui/react';
+import { ActionBar, Portal, Show } from '@chakra-ui/react';
 import * as React from 'react';
 
 import { selectIsHunting, useGameStore } from '../../model/game-store';
@@ -9,15 +9,15 @@ import { WaveRangeSlot } from './WaveRangeSlot';
 
 export function BottomBar(): React.ReactElement {
   const isHunting = useGameStore(selectIsHunting);
-  const waveRangeSlot = isHunting ? <WaveRangeSlot /> : null;
-  const waveRangeSeparator = isHunting ? <ActionBar.Separator /> : null;
   return (
     <ActionBar.Root closeOnEscape={false} defaultOpen closeOnInteractOutside={false}>
       <Portal>
         <ActionBar.Positioner>
           <ActionBar.Content bg="bg.muted">
-            {waveRangeSlot}
-            {waveRangeSeparator}
+            <Show when={isHunting}>
+              <WaveRangeSlot />
+              <ActionBar.Separator />
+            </Show>
             <AbilitySlot slot={1} />
             <AbilitySlot slot={2} />
             <AbilitySlot slot={3} />

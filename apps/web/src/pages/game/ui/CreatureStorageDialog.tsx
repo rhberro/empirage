@@ -70,6 +70,9 @@ export function CreatureStorageDialog(props: CreatureStorageDialogProps): React.
     onCommand({ storagePage: page, type: 'request_creature_storage', version: 1 });
   }
   function reorderParty(creatureId: string, targetPartySlot: number): void {
+    if (isHunting) {
+      return;
+    }
     onCommand({ creatureId, targetPartySlot, type: 'reorder_party_creature', version: 1 });
   }
 
@@ -227,6 +230,9 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
   const canRelease = !isHunting && !active && creatureCount > 1;
 
   function moveCreature(): void {
+    if (isHunting) {
+      return;
+    }
     const type = party ? 'move_creature_to_storage' : 'move_creature_to_party';
     onCommand({ creatureId: creature.id, type, version: 1 });
   }
@@ -244,6 +250,9 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
   }
 
   function releaseCreature(): void {
+    if (!canRelease) {
+      return;
+    }
     onCommand({ creatureId: creature.id, type: 'release_creature', version: 1 });
     closeReleaseConfirmation();
   }
@@ -327,22 +336,46 @@ function CollectionCreatureCard(props: CollectionCreatureCardProps): React.React
             {party ? (
               <>
                 <Menu.Separator />
-                <Menu.Item onClick={moveToFirstPosition} value={`position-1-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToFirstPosition}
+                  value={`position-1-${creature.id}`}
+                >
                   Mover para posição 1
                 </Menu.Item>
-                <Menu.Item onClick={moveToSecondPosition} value={`position-2-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToSecondPosition}
+                  value={`position-2-${creature.id}`}
+                >
                   Mover para posição 2
                 </Menu.Item>
-                <Menu.Item onClick={moveToThirdPosition} value={`position-3-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToThirdPosition}
+                  value={`position-3-${creature.id}`}
+                >
                   Mover para posição 3
                 </Menu.Item>
-                <Menu.Item onClick={moveToFourthPosition} value={`position-4-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToFourthPosition}
+                  value={`position-4-${creature.id}`}
+                >
                   Mover para posição 4
                 </Menu.Item>
-                <Menu.Item onClick={moveToFifthPosition} value={`position-5-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToFifthPosition}
+                  value={`position-5-${creature.id}`}
+                >
                   Mover para posição 5
                 </Menu.Item>
-                <Menu.Item onClick={moveToSixthPosition} value={`position-6-${creature.id}`}>
+                <Menu.Item
+                  disabled={isHunting}
+                  onClick={moveToSixthPosition}
+                  value={`position-6-${creature.id}`}
+                >
                   Mover para posição 6
                 </Menu.Item>
               </>

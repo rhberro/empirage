@@ -19,16 +19,63 @@ import { safeExperience } from './hunt-resource-values.ts';
 export type { HealingConfigurationResource, HealingItemResource } from './healing-items.ts';
 
 export type HuntAbilityCategory = 'physical' | 'special' | 'status';
+export type HuntAbilityDelivery = 'melee' | 'ranged';
+export type HuntAbilityTarget =
+  | 'self'
+  | 'enemy'
+  | 'ally'
+  | 'all_enemies'
+  | 'all_allies'
+  | 'all_adjacent'
+  | 'field'
+  | 'random_enemy';
+export type HuntStatus = 'burn' | 'confusion' | 'freeze' | 'paralysis' | 'poison' | 'sleep';
+export type HuntMoveEffectKind =
+  | 'action_block'
+  | 'always_hit'
+  | 'critical_ratio'
+  | 'damage'
+  | 'damage_screen'
+  | 'fixed_damage'
+  | 'full_heal_and_sleep'
+  | 'health_delta'
+  | 'level_damage'
+  | 'miss_recoil'
+  | 'multi_hit'
+  | 'one_hit_ko'
+  | 'random_status'
+  | 'reset_stat_stages'
+  | 'self_faint'
+  | 'target_health_fraction'
+  | 'recurring_damage'
+  | 'stat_stage'
+  | 'status'
+  | 'target_requirement';
+export type HuntMoveEffectResource = {
+  chance: number;
+  durationMaxTicks: number | null;
+  durationMinTicks: number | null;
+  intervalMs: number | null;
+  kind: HuntMoveEffectKind;
+  magnitude: number | null;
+  parameters: Record<string, boolean | number | string | Array<string>>;
+  requirement: string | null;
+  stat: HuntBattleStat | null;
+  status: HuntStatus | null;
+  target: 'all' | 'target' | 'user';
+};
 export type HuntAbilityResource = {
   accuracy: number | null;
   areaRadius: number;
   category: HuntAbilityCategory;
   cooldownMs: number;
+  delivery: HuntAbilityDelivery;
   id: number;
   isFire: boolean;
-  effects: Array<HuntStatEffectResource>;
+  moveEffects: Array<HuntMoveEffectResource>;
   name: string;
   power: number | null;
+  priority: number;
   rangeTiles: number;
   requiredLevel: number;
   slot: number;
@@ -44,12 +91,6 @@ export type HuntBattleStat =
   | 'speed'
   | 'accuracy'
   | 'evasion';
-export type HuntStatEffectResource = {
-  chance: number;
-  stage: number;
-  stat: HuntBattleStat;
-  target: 'target' | 'user';
-};
 export type HuntCreatureResource = {
   abilities: Array<HuntAbilityResource>;
   experience: string;
@@ -192,12 +233,19 @@ type SpeciesRow = {
   id: number;
   name: string;
 };
-type MoveStatEffectRow = {
+type MoveEffectRow = {
   chance: number;
+  duration_max_ticks: number | null;
+  duration_min_ticks: number | null;
+  interval_ms: number | null;
+  kind: HuntMoveEffectKind;
+  magnitude: number | null;
   move_id: number;
-  stage: number;
-  stat: string;
-  target: 'target' | 'user';
+  parameters: Record<string, boolean | number | string | Array<string>>;
+  requirement: string | null;
+  stat: string | null;
+  status: HuntStatus | null;
+  target: 'all' | 'target' | 'user';
 };
 type EquippedAbilityRow = {
   move_id: number;
@@ -205,8 +253,9 @@ type EquippedAbilityRow = {
   slot: number;
 };
 type SpeciesMoveRow = {
+  learn_method: 'evolution' | 'level' | 'machine' | 'reminder';
   move_id: number;
-  required_level: number;
+  required_level: number | null;
   species_id: number;
 };
 type AbilityAssignment = { abilityId: number; requiredLevel: number; slot: number };
@@ -214,15 +263,17 @@ type AbilityRow = {
   accuracy: number | null;
   category: HuntAbilityCategory;
   cooldown_ms: number;
+  delivery: HuntAbilityDelivery;
   id: number;
   name: string;
   power: number | null;
+  priority: number;
   area_length: number;
   area_radius: number;
   area_shape: string;
   area_width: number;
   range_tiles: number;
-  target: 'self' | 'tile' | 'unit';
+  target: HuntAbilityTarget;
   type_id: number;
 };
 type TypeRow = { id: number; slug: string };
@@ -316,7 +367,7 @@ async function loadHuntBootstrap(
 
 function staticAbility(
   row: AbilityRow,
-  effectsByMove: Map<number, Array<HuntStatEffectResource>>,
+  effectsByMove: Map<number, Array<HuntMoveEffectResource>>,
   typeSlugs: Map<number, string>,
   assignment: AbilityAssignment,
 ): HuntAbilityResource {
@@ -325,11 +376,13 @@ function staticAbility(
     areaRadius: Math.max(row.area_radius, row.area_length, row.area_width),
     category: row.category,
     cooldownMs: row.cooldown_ms,
-    effects: effectsByMove.get(row.id) ?? [],
+    delivery: row.delivery,
     id: row.id,
     isFire: typeSlugs.get(row.type_id) === 'fire',
+    moveEffects: effectsByMove.get(row.id) ?? [],
     name: row.name,
     power: row.power,
+    priority: row.priority,
     rangeTiles: row.range_tiles,
     requiredLevel: assignment.requiredLevel,
     slot: assignment.slot,
@@ -375,15 +428,19 @@ function staticCatalog(client: SupabaseClient): Promise<StaticHuntCatalog> {
         ),
       client
         .from('species_move_learnsets')
-        .select('species_id, move_id, required_level')
+        .select('species_id, move_id, learn_method, required_level')
         .eq('learn_method', 'level'),
       client.from('species_types').select('species_id, type_id'),
       client
         .from('moves')
         .select(
-          'id, name, category, type_id, power, accuracy, cooldown_ms, range_tiles, area_radius, area_length, area_width, area_shape, target',
+          'id, name, category, type_id, power, accuracy, priority, cooldown_ms, delivery, range_tiles, area_radius, area_length, area_width, area_shape, target',
         ),
-      client.from('move_stat_effects').select('move_id, stat, stage, chance, target'),
+      client
+        .from('move_effects')
+        .select(
+          'move_id, kind, target, chance, magnitude, duration_min_ticks, duration_max_ticks, interval_ms, requirement, stat, status, parameters',
+        ),
       client.from('types').select('id, slug'),
       client.from('type_effectiveness').select('attacker_type_id, defender_type_id, multiplier'),
     ];
@@ -419,14 +476,22 @@ function staticCatalog(client: SupabaseClient): Promise<StaticHuntCatalog> {
       }
       naturesBySlug.set(row.slug, { decreasedStat, increasedStat, slug: row.slug });
     }
-    const effectsByMove = new Map<number, Array<HuntStatEffectResource>>();
-    for (const row of effectResult.data as Array<MoveStatEffectRow>) {
-      const stat = databaseStat(row.stat);
-      if (!stat) {
-        continue;
-      }
+    const effectsByMove = new Map<number, Array<HuntMoveEffectResource>>();
+    for (const row of effectResult.data as Array<MoveEffectRow>) {
       const effects = effectsByMove.get(row.move_id) ?? [];
-      effects.push({ chance: row.chance, stage: row.stage, stat, target: row.target });
+      effects.push({
+        chance: row.chance,
+        durationMaxTicks: row.duration_max_ticks,
+        durationMinTicks: row.duration_min_ticks,
+        intervalMs: row.interval_ms,
+        kind: row.kind,
+        magnitude: row.magnitude,
+        parameters: row.parameters,
+        requirement: row.requirement,
+        stat: databaseStat(row.stat),
+        status: row.status,
+        target: row.target,
+      });
       effectsByMove.set(row.move_id, effects);
     }
     const typeSlugs = new Map<number, string>();
@@ -443,7 +508,7 @@ function staticCatalog(client: SupabaseClient): Promise<StaticHuntCatalog> {
       const assignments = assignmentsBySpecies.get(row.species_id) ?? [];
       assignments.push({
         abilityId: row.move_id,
-        requiredLevel: row.required_level,
+        requiredLevel: row.required_level ?? 1,
         slot: row.move_id,
       });
       assignmentsBySpecies.set(row.species_id, assignments);

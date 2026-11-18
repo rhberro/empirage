@@ -28,6 +28,7 @@ type CreatureVisual = {
   faceTargetUntil: number;
   sprite: CreatureSprite;
   spriteOffsetY: number;
+  speciesId: number | null;
   switchesOutAt: number | undefined;
   target: Tile | null;
   tile: Tile;
@@ -217,6 +218,7 @@ export class HuntCreatures {
       healthBar,
       maximumHealth: spec.maximumHealth,
       movement: existing ? existing.movement : spec.movement,
+      speciesId: spec.speciesId,
       sprite,
       spriteOffsetY,
       switchesOutAt: spec.switchesOutAt,
@@ -234,6 +236,20 @@ export class HuntCreatures {
     this.finishAuthoritativeMovement(visual, now);
     visual.maximumHealth = spec.maximumHealth;
     visual.feedback = this.resolveFeedback(spec, now);
+    if (visual.speciesId !== spec.speciesId) {
+      if (visual.animated && spec.speciesId !== null && this.ensureCreatureAtlas(spec.speciesId)) {
+        visual.animated.setTexture(
+          creatureAtlasKey(spec.speciesId),
+          creatureFrame(spec.direction, 1),
+        );
+        visual.speciesId = spec.speciesId;
+        visual.direction = spec.direction;
+        return true;
+      }
+      visual.sprite.destroy();
+      visual.healthBar.destroy();
+      return false;
+    }
     if (visual.animated || spec.speciesId === null || !this.ensureCreatureAtlas(spec.speciesId)) {
       return true;
     }

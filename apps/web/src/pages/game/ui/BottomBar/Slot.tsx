@@ -1,13 +1,16 @@
 import './Slot.css';
-import { Portal, Show, Square, Tooltip } from '@chakra-ui/react';
+import { Show, Square } from '@chakra-ui/react';
 import * as React from 'react';
 
-type SlotProps = Omit<React.BaseHTMLAttributes<HTMLDivElement>, 'content'> & {
-  content: React.ReactNode;
-  cooldownMs: number | undefined;
-  cooldownEndsAt: number | undefined;
-  label: string;
-};
+import { Tooltip } from '~/shared/ui/Tooltip';
+
+type SlotProps = Omit<React.BaseHTMLAttributes<HTMLDivElement>, 'content'> &
+  Partial<{
+    content: React.ReactNode;
+    cooldownMs: number;
+    cooldownEndsAt: number;
+    label: string;
+  }>;
 type Cooldown = { delayMs: number; endsAt: number };
 type CooldownStyle = React.CSSProperties & {
   '--cooldown-delay': string;
@@ -40,38 +43,27 @@ function SlotComponent(props: SlotProps): React.ReactElement {
       }
     : undefined;
   const hasCooldown = cooldown && cooldownStyle;
+  const disabled = !label;
   const cursor = onClick ? 'pointer' : undefined;
   return (
-    <Tooltip.Root>
-      <Portal>
-        <Tooltip.Positioner>
-          <Tooltip.Content>
-            <Tooltip.Arrow>
-              <Tooltip.ArrowTip />
-            </Tooltip.Arrow>
-            {label}
-          </Tooltip.Content>
-        </Tooltip.Positioner>
-      </Portal>
-      <Tooltip.Trigger>
-        <Square
-          aspectRatio="square"
-          // border="sm"
-          borderRadius="sm"
-          boxShadow="panel"
-          cursor={cursor}
-          onClick={onClick}
-          overflow="hidden"
-          position="relative"
-          w="14"
-        >
-          <Show when={hasCooldown}>
-            <span aria-hidden="true" className="slot__cooldown" style={cooldownStyle} />
-          </Show>
-          {content}
-        </Square>
-      </Tooltip.Trigger>
-    </Tooltip.Root>
+    <Tooltip disabled={disabled} content={label}>
+      <Square
+        aspectRatio="square"
+        // border="sm"
+        borderRadius="sm"
+        boxShadow="panel"
+        cursor={cursor}
+        onClick={onClick}
+        overflow="hidden"
+        position="relative"
+        w="16"
+      >
+        <Show when={hasCooldown}>
+          <span aria-hidden="true" className="slot__cooldown" style={cooldownStyle} />
+        </Show>
+        {content}
+      </Square>
+    </Tooltip>
   );
 }
 

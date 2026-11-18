@@ -1,0 +1,1025 @@
+{
+  "scope": "Generation 1 species moves learnt by level up",
+  "summary": {
+    "supported": 141,
+    "outside_scope": 4,
+    "pending": 0
+  },
+  "moves": [
+    {
+      "classification": "outside_scope",
+      "effect": "Money is earned after the battle.",
+      "name": "Pay Day",
+      "reason": "battle_reward",
+      "slug": "pay-day"
+    },
+    {
+      "classification": "outside_scope",
+      "effect": "In battles, the opponent switches. In the wild, the Pok\u00e9mon runs.",
+      "name": "Roar",
+      "reason": "wild_encounter_escape",
+      "slug": "roar"
+    },
+    {
+      "classification": "outside_scope",
+      "effect": "Allows user to flee wild battles; also warps player to last Pok\u00e9Center.",
+      "name": "Teleport",
+      "reason": "world_travel",
+      "slug": "teleport"
+    },
+    {
+      "classification": "outside_scope",
+      "effect": "In battles, the opponent switches. In the wild, the Pok\u00e9mon runs.",
+      "name": "Whirlwind",
+      "reason": "wild_encounter_escape",
+      "slug": "whirlwind"
+    },
+    {
+      "classification": "supported",
+      "effect": "User recovers half the HP inflicted on opponent.",
+      "name": "Absorb",
+      "reason": "structured_effect",
+      "slug": "absorb"
+    },
+    {
+      "classification": "supported",
+      "effect": "May lower opponent's Special Defense.",
+      "name": "Acid",
+      "reason": "structured_effect",
+      "slug": "acid"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Defense.",
+      "name": "Acid Armor",
+      "reason": "structured_effect",
+      "slug": "acid-armor"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Speed.",
+      "name": "Agility",
+      "reason": "structured_effect",
+      "slug": "agility"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Special Defense.",
+      "name": "Amnesia",
+      "reason": "structured_effect",
+      "slug": "amnesia"
+    },
+    {
+      "classification": "supported",
+      "effect": "May lower opponent's Attack.",
+      "name": "Aurora Beam",
+      "reason": "structured_effect",
+      "slug": "aurora-beam"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Barrage",
+      "reason": "classic_structured_effect",
+      "slug": "barrage"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Defense.",
+      "name": "Barrier",
+      "reason": "structured_effect",
+      "slug": "barrier"
+    },
+    {
+      "classification": "supported",
+      "effect": "Traps opponent, damaging them for 4-5 turns.",
+      "name": "Bind",
+      "reason": "structured_effect",
+      "slug": "bind"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Bite",
+      "reason": "structured_effect",
+      "slug": "bite"
+    },
+    {
+      "classification": "supported",
+      "effect": "May freeze opponent.",
+      "name": "Blizzard",
+      "reason": "structured_effect",
+      "slug": "blizzard"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze opponent.",
+      "name": "Body Slam",
+      "reason": "structured_effect",
+      "slug": "body-slam"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Bone Club",
+      "reason": "structured_effect",
+      "slug": "bone-club"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits twice in one turn.",
+      "name": "Bonemerang",
+      "reason": "classic_structured_effect",
+      "slug": "bonemerang"
+    },
+    {
+      "classification": "supported",
+      "effect": "May lower opponent's Speed.",
+      "name": "Bubble",
+      "reason": "structured_effect",
+      "slug": "bubble"
+    },
+    {
+      "classification": "supported",
+      "effect": "Traps opponent, damaging them for 4-5 turns.",
+      "name": "Clamp",
+      "reason": "structured_effect",
+      "slug": "clamp"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Comet Punch",
+      "reason": "classic_structured_effect",
+      "slug": "comet-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "Confuses opponent.",
+      "name": "Confuse Ray",
+      "reason": "structured_effect",
+      "slug": "confuse-ray"
+    },
+    {
+      "classification": "supported",
+      "effect": "May confuse opponent.",
+      "name": "Confusion",
+      "reason": "structured_effect",
+      "slug": "confusion"
+    },
+    {
+      "classification": "supported",
+      "effect": "May lower opponent's Speed by one stage.",
+      "name": "Constrict",
+      "reason": "structured_effect",
+      "slug": "constrict"
+    },
+    {
+      "classification": "supported",
+      "effect": "Changes user's type to that of its first move.",
+      "name": "Conversion",
+      "reason": "classic_structured_effect",
+      "slug": "conversion"
+    },
+    {
+      "classification": "supported",
+      "effect": "When hit by a Physical Attack, user strikes back with 2x power.",
+      "name": "Counter",
+      "reason": "classic_structured_effect",
+      "slug": "counter"
+    },
+    {
+      "classification": "supported",
+      "effect": "High critical hit ratio.",
+      "name": "Crabhammer",
+      "reason": "classic_structured_effect",
+      "slug": "crabhammer"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Defense.",
+      "name": "Defense Curl",
+      "reason": "structured_effect",
+      "slug": "defense-curl"
+    },
+    {
+      "classification": "supported",
+      "effect": "Digs underground on first turn, attacks on second. Can also escape from caves.",
+      "name": "Dig",
+      "reason": "classic_structured_effect",
+      "slug": "dig"
+    },
+    {
+      "classification": "supported",
+      "effect": "Opponent can't use its last attack for a few turns.",
+      "name": "Disable",
+      "reason": "classic_structured_effect",
+      "slug": "disable"
+    },
+    {
+      "classification": "supported",
+      "effect": "May confuse opponent.",
+      "name": "Dizzy Punch",
+      "reason": "structured_effect",
+      "slug": "dizzy-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "User receives recoil damage.",
+      "name": "Double-Edge",
+      "reason": "structured_effect",
+      "slug": "double-edge"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits twice in one turn.",
+      "name": "Double Kick",
+      "reason": "classic_structured_effect",
+      "slug": "double-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Double Slap",
+      "reason": "classic_structured_effect",
+      "slug": "double-slap"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Evasiveness.",
+      "name": "Double Team",
+      "reason": "structured_effect",
+      "slug": "double-team"
+    },
+    {
+      "classification": "supported",
+      "effect": "Always inflicts 40 HP.",
+      "name": "Dragon Rage",
+      "reason": "classic_structured_effect",
+      "slug": "dragon-rage"
+    },
+    {
+      "classification": "supported",
+      "effect": "User recovers half the HP inflicted on a sleeping opponent.",
+      "name": "Dream Eater",
+      "reason": "classic_structured_effect",
+      "slug": "dream-eater"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Drill Peck",
+      "reason": "damage",
+      "slug": "drill-peck"
+    },
+    {
+      "classification": "supported",
+      "effect": "Power is doubled if opponent is underground from using Dig.",
+      "name": "Earthquake",
+      "reason": "classic_structured_effect",
+      "slug": "earthquake"
+    },
+    {
+      "classification": "supported",
+      "effect": "May burn opponent.",
+      "name": "Ember",
+      "reason": "structured_effect",
+      "slug": "ember"
+    },
+    {
+      "classification": "supported",
+      "effect": "User faints.",
+      "name": "Explosion",
+      "reason": "classic_structured_effect",
+      "slug": "explosion"
+    },
+    {
+      "classification": "supported",
+      "effect": "May burn opponent.",
+      "name": "Fire Punch",
+      "reason": "structured_effect",
+      "slug": "fire-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "Traps opponent, damaging them for 4-5 turns.",
+      "name": "Fire Spin",
+      "reason": "structured_effect",
+      "slug": "fire-spin"
+    },
+    {
+      "classification": "supported",
+      "effect": "May burn opponent.",
+      "name": "Flamethrower",
+      "reason": "structured_effect",
+      "slug": "flamethrower"
+    },
+    {
+      "classification": "supported",
+      "effect": "Increases critical hit ratio.",
+      "name": "Focus Energy",
+      "reason": "classic_structured_effect",
+      "slug": "focus-energy"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Fury Attack",
+      "reason": "classic_structured_effect",
+      "slug": "fury-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Fury Swipes",
+      "reason": "classic_structured_effect",
+      "slug": "fury-swipes"
+    },
+    {
+      "classification": "supported",
+      "effect": "Paralyzes opponent.",
+      "name": "Glare",
+      "reason": "structured_effect",
+      "slug": "glare"
+    },
+    {
+      "classification": "supported",
+      "effect": "Lowers opponent's Attack.",
+      "name": "Growl",
+      "reason": "structured_effect",
+      "slug": "growl"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Attack and Special Attack.",
+      "name": "Growth",
+      "reason": "structured_effect",
+      "slug": "growth"
+    },
+    {
+      "classification": "supported",
+      "effect": "One-Hit-KO, if it hits.",
+      "name": "Guillotine",
+      "reason": "classic_structured_effect",
+      "slug": "guillotine"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits Pok\u00e9mon using Fly/Bounce/Sky Drop with double power.",
+      "name": "Gust",
+      "reason": "classic_structured_effect",
+      "slug": "gust"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Defense.",
+      "name": "Harden",
+      "reason": "structured_effect",
+      "slug": "harden"
+    },
+    {
+      "classification": "supported",
+      "effect": "Resets all stat changes.",
+      "name": "Haze",
+      "reason": "classic_structured_effect",
+      "slug": "haze"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Headbutt",
+      "reason": "structured_effect",
+      "slug": "headbutt"
+    },
+    {
+      "classification": "supported",
+      "effect": "If it misses, the user loses half their HP.",
+      "name": "High Jump Kick",
+      "reason": "classic_structured_effect",
+      "slug": "high-jump-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Horn Attack",
+      "reason": "damage",
+      "slug": "horn-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "One-Hit-KO, if it hits.",
+      "name": "Horn Drill",
+      "reason": "classic_structured_effect",
+      "slug": "horn-drill"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Hydro Pump",
+      "reason": "damage",
+      "slug": "hydro-pump"
+    },
+    {
+      "classification": "supported",
+      "effect": "User must recharge next turn.",
+      "name": "Hyper Beam",
+      "reason": "classic_structured_effect",
+      "slug": "hyper-beam"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Hyper Fang",
+      "reason": "structured_effect",
+      "slug": "hyper-fang"
+    },
+    {
+      "classification": "supported",
+      "effect": "Puts opponent to sleep.",
+      "name": "Hypnosis",
+      "reason": "structured_effect",
+      "slug": "hypnosis"
+    },
+    {
+      "classification": "supported",
+      "effect": "May freeze opponent.",
+      "name": "Ice Beam",
+      "reason": "structured_effect",
+      "slug": "ice-beam"
+    },
+    {
+      "classification": "supported",
+      "effect": "May freeze opponent.",
+      "name": "Ice Punch",
+      "reason": "structured_effect",
+      "slug": "ice-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "If it misses, the user loses half their HP.",
+      "name": "Jump Kick",
+      "reason": "classic_structured_effect",
+      "slug": "jump-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "High critical hit ratio.",
+      "name": "Karate Chop",
+      "reason": "classic_structured_effect",
+      "slug": "karate-chop"
+    },
+    {
+      "classification": "supported",
+      "effect": "User recovers half the HP inflicted on opponent.",
+      "name": "Leech Life",
+      "reason": "structured_effect",
+      "slug": "leech-life"
+    },
+    {
+      "classification": "supported",
+      "effect": "Drains HP from opponent each turn.",
+      "name": "Leech Seed",
+      "reason": "structured_effect",
+      "slug": "leech-seed"
+    },
+    {
+      "classification": "supported",
+      "effect": "Lowers opponent's Defense.",
+      "name": "Leer",
+      "reason": "structured_effect",
+      "slug": "leer"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze opponent.",
+      "name": "Lick",
+      "reason": "structured_effect",
+      "slug": "lick"
+    },
+    {
+      "classification": "supported",
+      "effect": "Halves damage from Special attacks for 5 turns.",
+      "name": "Light Screen",
+      "reason": "classic_structured_effect",
+      "slug": "light-screen"
+    },
+    {
+      "classification": "supported",
+      "effect": "Puts opponent to sleep.",
+      "name": "Lovely Kiss",
+      "reason": "structured_effect",
+      "slug": "lovely-kiss"
+    },
+    {
+      "classification": "supported",
+      "effect": "The heavier the opponent, the stronger the attack.",
+      "name": "Low Kick",
+      "reason": "classic_structured_effect",
+      "slug": "low-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Attack.",
+      "name": "Meditate",
+      "reason": "structured_effect",
+      "slug": "meditate"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Mega Kick",
+      "reason": "damage",
+      "slug": "mega-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Mega Punch",
+      "reason": "damage",
+      "slug": "mega-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "User performs almost any move in the game at random.",
+      "name": "Metronome",
+      "reason": "classic_structured_effect",
+      "slug": "metronome"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Evasiveness.",
+      "name": "Minimize",
+      "reason": "structured_effect",
+      "slug": "minimize"
+    },
+    {
+      "classification": "supported",
+      "effect": "User performs the opponent's last move.",
+      "name": "Mirror Move",
+      "reason": "classic_structured_effect",
+      "slug": "mirror-move"
+    },
+    {
+      "classification": "supported",
+      "effect": "User's stats cannot be changed for a period of time.",
+      "name": "Mist",
+      "reason": "classic_structured_effect",
+      "slug": "mist"
+    },
+    {
+      "classification": "supported",
+      "effect": "Inflicts damage equal to user's level.",
+      "name": "Night Shade",
+      "reason": "classic_structured_effect",
+      "slug": "night-shade"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Peck",
+      "reason": "damage",
+      "slug": "peck"
+    },
+    {
+      "classification": "supported",
+      "effect": "User attacks for 2-3 turns but then becomes confused.",
+      "name": "Petal Dance",
+      "reason": "classic_structured_effect",
+      "slug": "petal-dance"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Pin Missile",
+      "reason": "classic_structured_effect",
+      "slug": "pin-missile"
+    },
+    {
+      "classification": "supported",
+      "effect": "Poisons opponent.",
+      "name": "Poison Gas",
+      "reason": "structured_effect",
+      "slug": "poison-gas"
+    },
+    {
+      "classification": "supported",
+      "effect": "Poisons opponent.",
+      "name": "Poison Powder",
+      "reason": "structured_effect",
+      "slug": "poison-powder"
+    },
+    {
+      "classification": "supported",
+      "effect": "May poison the opponent.",
+      "name": "Poison Sting",
+      "reason": "classic_structured_effect",
+      "slug": "poison-sting"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Pound",
+      "reason": "damage",
+      "slug": "pound"
+    },
+    {
+      "classification": "supported",
+      "effect": "May confuse opponent.",
+      "name": "Psybeam",
+      "reason": "structured_effect",
+      "slug": "psybeam"
+    },
+    {
+      "classification": "supported",
+      "effect": "May lower opponent's Special Defense.",
+      "name": "Psychic",
+      "reason": "structured_effect",
+      "slug": "psychic"
+    },
+    {
+      "classification": "supported",
+      "effect": "User attacks first.",
+      "name": "Quick Attack",
+      "reason": "structured_effect",
+      "slug": "quick-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Attack when hit.",
+      "name": "Rage",
+      "reason": "classic_structured_effect",
+      "slug": "rage"
+    },
+    {
+      "classification": "supported",
+      "effect": "High critical hit ratio.",
+      "name": "Razor Leaf",
+      "reason": "classic_structured_effect",
+      "slug": "razor-leaf"
+    },
+    {
+      "classification": "supported",
+      "effect": "User recovers half its max HP.",
+      "name": "Recover",
+      "reason": "structured_effect",
+      "slug": "recover"
+    },
+    {
+      "classification": "supported",
+      "effect": "Halves damage from Physical attacks for 5 turns.",
+      "name": "Reflect",
+      "reason": "classic_structured_effect",
+      "slug": "reflect"
+    },
+    {
+      "classification": "supported",
+      "effect": "User sleeps for 2 turns, but user is fully healed.",
+      "name": "Rest",
+      "reason": "classic_structured_effect",
+      "slug": "rest"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Rock Throw",
+      "reason": "damage",
+      "slug": "rock-throw"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Rolling Kick",
+      "reason": "structured_effect",
+      "slug": "rolling-kick"
+    },
+    {
+      "classification": "supported",
+      "effect": "Lowers opponent's Accuracy.",
+      "name": "Sand Attack",
+      "reason": "structured_effect",
+      "slug": "sand-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Scratch",
+      "reason": "damage",
+      "slug": "scratch"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply lowers opponent's Defense.",
+      "name": "Screech",
+      "reason": "structured_effect",
+      "slug": "screech"
+    },
+    {
+      "classification": "supported",
+      "effect": "Inflicts damage equal to user's level.",
+      "name": "Seismic Toss",
+      "reason": "classic_structured_effect",
+      "slug": "seismic-toss"
+    },
+    {
+      "classification": "supported",
+      "effect": "User faints.",
+      "name": "Self-Destruct",
+      "reason": "classic_structured_effect",
+      "slug": "self-destruct"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Attack.",
+      "name": "Sharpen",
+      "reason": "structured_effect",
+      "slug": "sharpen"
+    },
+    {
+      "classification": "supported",
+      "effect": "Puts opponent to sleep.",
+      "name": "Sing",
+      "reason": "structured_effect",
+      "slug": "sing"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises Defense on first turn, attacks on second.",
+      "name": "Skull Bash",
+      "reason": "classic_structured_effect",
+      "slug": "skull-bash"
+    },
+    {
+      "classification": "supported",
+      "effect": "Charges on first turn, attacks on second. May cause flinching. High critical hit ratio.",
+      "name": "Sky Attack",
+      "reason": "classic_structured_effect",
+      "slug": "sky-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Slam",
+      "reason": "damage",
+      "slug": "slam"
+    },
+    {
+      "classification": "supported",
+      "effect": "High critical hit ratio.",
+      "name": "Slash",
+      "reason": "classic_structured_effect",
+      "slug": "slash"
+    },
+    {
+      "classification": "supported",
+      "effect": "Puts opponent to sleep.",
+      "name": "Sleep Powder",
+      "reason": "structured_effect",
+      "slug": "sleep-powder"
+    },
+    {
+      "classification": "supported",
+      "effect": "May poison opponent.",
+      "name": "Sludge",
+      "reason": "structured_effect",
+      "slug": "sludge"
+    },
+    {
+      "classification": "supported",
+      "effect": "May poison opponent.",
+      "name": "Smog",
+      "reason": "structured_effect",
+      "slug": "smog"
+    },
+    {
+      "classification": "supported",
+      "effect": "Lowers opponent's Accuracy.",
+      "name": "Smokescreen",
+      "reason": "structured_effect",
+      "slug": "smokescreen"
+    },
+    {
+      "classification": "supported",
+      "effect": "Charges on first turn, attacks on second.",
+      "name": "Solar Beam",
+      "reason": "classic_structured_effect",
+      "slug": "solar-beam"
+    },
+    {
+      "classification": "supported",
+      "effect": "Always inflicts 20 HP.",
+      "name": "Sonic Boom",
+      "reason": "classic_structured_effect",
+      "slug": "sonic-boom"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits 2-5 times in one turn.",
+      "name": "Spike Cannon",
+      "reason": "classic_structured_effect",
+      "slug": "spike-cannon"
+    },
+    {
+      "classification": "supported",
+      "effect": "Doesn't do ANYTHING.",
+      "name": "Splash",
+      "reason": "classic_structured_effect",
+      "slug": "splash"
+    },
+    {
+      "classification": "supported",
+      "effect": "Puts opponent to sleep.",
+      "name": "Spore",
+      "reason": "structured_effect",
+      "slug": "spore"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Stomp",
+      "reason": "structured_effect",
+      "slug": "stomp"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply lowers opponent's Speed.",
+      "name": "String Shot",
+      "reason": "structured_effect",
+      "slug": "string-shot"
+    },
+    {
+      "classification": "supported",
+      "effect": "Paralyzes opponent.",
+      "name": "Stun Spore",
+      "reason": "structured_effect",
+      "slug": "stun-spore"
+    },
+    {
+      "classification": "supported",
+      "effect": "User receives recoil damage.",
+      "name": "Submission",
+      "reason": "structured_effect",
+      "slug": "submission"
+    },
+    {
+      "classification": "supported",
+      "effect": "Uses HP to creates a decoy that takes hits.",
+      "name": "Substitute",
+      "reason": "classic_structured_effect",
+      "slug": "substitute"
+    },
+    {
+      "classification": "supported",
+      "effect": "Always takes off half of the opponent's HP.",
+      "name": "Super Fang",
+      "reason": "classic_structured_effect",
+      "slug": "super-fang"
+    },
+    {
+      "classification": "supported",
+      "effect": "Confuses opponent.",
+      "name": "Supersonic",
+      "reason": "structured_effect",
+      "slug": "supersonic"
+    },
+    {
+      "classification": "supported",
+      "effect": "Ignores Accuracy and Evasiveness.",
+      "name": "Swift",
+      "reason": "classic_structured_effect",
+      "slug": "swift"
+    },
+    {
+      "classification": "supported",
+      "effect": "Sharply raises user's Attack.",
+      "name": "Swords Dance",
+      "reason": "structured_effect",
+      "slug": "swords-dance"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Tackle",
+      "reason": "damage",
+      "slug": "tackle"
+    },
+    {
+      "classification": "supported",
+      "effect": "Lowers opponent's Defense.",
+      "name": "Tail Whip",
+      "reason": "structured_effect",
+      "slug": "tail-whip"
+    },
+    {
+      "classification": "supported",
+      "effect": "User receives recoil damage.",
+      "name": "Take Down",
+      "reason": "structured_effect",
+      "slug": "take-down"
+    },
+    {
+      "classification": "supported",
+      "effect": "User attacks for 2-3 turns but then becomes confused.",
+      "name": "Thrash",
+      "reason": "classic_structured_effect",
+      "slug": "thrash"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze opponent.",
+      "name": "Thunder",
+      "reason": "structured_effect",
+      "slug": "thunder"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze opponent.",
+      "name": "Thunder Punch",
+      "reason": "structured_effect",
+      "slug": "thunder-punch"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze opponent.",
+      "name": "Thunder Shock",
+      "reason": "structured_effect",
+      "slug": "thunder-shock"
+    },
+    {
+      "classification": "supported",
+      "effect": "Paralyzes opponent.",
+      "name": "Thunder Wave",
+      "reason": "structured_effect",
+      "slug": "thunder-wave"
+    },
+    {
+      "classification": "supported",
+      "effect": "User takes on the form and attacks of the opponent.",
+      "name": "Transform",
+      "reason": "classic_structured_effect",
+      "slug": "transform"
+    },
+    {
+      "classification": "supported",
+      "effect": "May paralyze, burn or freeze opponent.",
+      "name": "Tri Attack",
+      "reason": "classic_structured_effect",
+      "slug": "tri-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "Hits twice in one turn. May poison opponent.",
+      "name": "Twineedle",
+      "reason": "classic_structured_effect",
+      "slug": "twineedle"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Vine Whip",
+      "reason": "damage",
+      "slug": "vine-whip"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Vise Grip",
+      "reason": "damage",
+      "slug": "vise-grip"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Water Gun",
+      "reason": "damage",
+      "slug": "water-gun"
+    },
+    {
+      "classification": "supported",
+      "effect": "May cause flinching.",
+      "name": "Waterfall",
+      "reason": "structured_effect",
+      "slug": "waterfall"
+    },
+    {
+      "classification": "supported",
+      "effect": "",
+      "name": "Wing Attack",
+      "reason": "damage",
+      "slug": "wing-attack"
+    },
+    {
+      "classification": "supported",
+      "effect": "Raises user's Defense.",
+      "name": "Withdraw",
+      "reason": "structured_effect",
+      "slug": "withdraw"
+    },
+    {
+      "classification": "supported",
+      "effect": "Traps opponent, damaging them for 4-5 turns.",
+      "name": "Wrap",
+      "reason": "structured_effect",
+      "slug": "wrap"
+    }
+  ]
+}

@@ -8,20 +8,21 @@ import {
   toggleHuntingLocationsModal,
   useModalStore,
 } from '../model/modal-store';
+import { useHuntingLocations } from '../model/use-hunting-locations';
 
 type HuntingLocationsDialogProps = {
-  locations: Array<HuntingLocation>;
   onStart: (locationId: number) => boolean;
 };
 
 const COUNTDOWN_SECONDS = 5;
 
 export function HuntingLocationsDialog(props: HuntingLocationsDialogProps): React.ReactElement {
-  const { locations, onStart } = props;
+  const { onStart } = props;
+  const { data = [] } = useHuntingLocations();
   const open = useModalStore(selectHuntingLocationsModalState);
   const [selectedLocationId, setSelectedLocationId] = React.useState<number | null>(null);
   const [countdown, setCountdown] = React.useState<number | null>(null);
-  const selectedLocation = locations.find(function findLocation(location): boolean {
+  const selectedLocation = data.find(function findLocation(location): boolean {
     return location.id === selectedLocationId;
   });
 
@@ -80,7 +81,7 @@ export function HuntingLocationsDialog(props: HuntingLocationsDialogProps): Reac
           </Dialog.Header>
           <Dialog.Body overflowY="auto">
             <Grid gap="3" templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}>
-              {locations.map(function renderLocation(location): React.ReactElement {
+              {data.map(function renderLocation(location): React.ReactElement {
                 const selected = location.id === selectedLocationId;
                 return (
                   <Button

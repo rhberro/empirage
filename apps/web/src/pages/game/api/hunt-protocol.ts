@@ -154,40 +154,45 @@ export type PartyCreatureConfiguration = Pick<
 >;
 export type PartyCreatureConfigurations = Record<string, PartyCreatureConfiguration>;
 export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
-export type HuntDeltaPatch = Partial<
-  Pick<
-    HuntState,
-    | 'activeCreatureAvailableAt'
-    | 'activeCreatureElements'
-    | 'activeCreatureExperience'
-    | 'activeCreatureExperienceLevelStart'
-    | 'activeCreatureExperienceNextLevel'
-    | 'activeCreatureAbilities'
-    | 'activeCreatureAvailableAbilities'
-    | 'activeCreatureHealth'
-    | 'activeCreatureId'
-    | 'activeCreatureLevel'
-    | 'activeCreatureMaximumHealth'
-    | 'activeCreatureName'
-    | 'activeCreatureSpeciesId'
-    | 'activeCreatureSwitchCompletesAt'
-    | 'activeCreatureSwitchCooldownEndsAt'
-    | 'partyHealth'
-    | 'captureAttempts'
-    | 'captureConfiguration'
-    | 'captureItems'
-    | 'enemies'
-    | 'gold'
-    | 'healingConfiguration'
-    | 'healingItemCooldownEndsAt'
-    | 'healingItems'
-    | 'nextEventAt'
-    | 'playerPosition'
-    | 'serverTime'
-    | 'wave'
-    | 'waveRange'
-  >
+export type HuntDeltaPatch = Omit<
+  Partial<
+    Pick<
+      HuntState,
+      | 'activeCreatureAvailableAt'
+      | 'activeCreatureElements'
+      | 'activeCreatureExperience'
+      | 'activeCreatureExperienceLevelStart'
+      | 'activeCreatureExperienceNextLevel'
+      | 'activeCreatureAbilities'
+      | 'activeCreatureAvailableAbilities'
+      | 'activeCreatureHealth'
+      | 'activeCreatureId'
+      | 'activeCreatureLevel'
+      | 'activeCreatureMaximumHealth'
+      | 'activeCreatureName'
+      | 'activeCreatureSpeciesId'
+      | 'activeCreatureSwitchCompletesAt'
+      | 'activeCreatureSwitchCooldownEndsAt'
+      | 'partyHealth'
+      | 'captureAttempts'
+      | 'captureConfiguration'
+      | 'captureItems'
+      | 'enemies'
+      | 'gold'
+      | 'healingConfiguration'
+      | 'healingItemCooldownEndsAt'
+      | 'healingItems'
+      | 'nextEventAt'
+      | 'playerPosition'
+      | 'serverTime'
+      | 'wave'
+      | 'waveRange'
+    >
+  >,
+  'activeCreatureSwitchCompletesAt'
 > & {
+  activeCreatureSwitchCompletesAt?: number | null;
+} & {
   enemyPatches?: HuntEnemyPatches;
   enemySpawns?: HuntEnemySpawns;
   removedEnemyCombatIds?: RemovedEnemyCombatIds;
@@ -1017,6 +1022,12 @@ function applyHuntDeltaField(
   value: unknown,
 ): boolean {
   switch (field) {
+    case 'activeCreatureSwitchCompletesAt':
+      if (value !== null && !isCount(value)) {
+        return false;
+      }
+      patch.activeCreatureSwitchCompletesAt = value;
+      return true;
     case 'activeCreatureAvailableAt':
     case 'activeCreatureHealth':
     case 'activeCreatureLevel':
@@ -1079,12 +1090,6 @@ function applyHuntDeltaField(
         return false;
       }
       patch.activeCreatureSpeciesId = value;
-      return true;
-    case 'activeCreatureSwitchCompletesAt':
-      if (!isCount(value)) {
-        return false;
-      }
-      patch.activeCreatureSwitchCompletesAt = value;
       return true;
     case 'partyHealth': {
       const partyHealth = readPartyHealth(value);
@@ -1214,12 +1219,27 @@ export function applyHuntDelta(
   patch: HuntDeltaPatch,
   revision: number,
 ): HuntState {
-  const { enemyPatches, enemySpawns, removedEnemyCombatIds, ...statePatch } = patch;
+  const {
+    activeCreatureSwitchCompletesAt,
+    enemyPatches,
+    enemySpawns,
+    removedEnemyCombatIds,
+    ...statePatch
+  } = patch;
   const enemies =
     enemyPatches !== undefined || enemySpawns !== undefined || removedEnemyCombatIds !== undefined
       ? mergeHuntEnemies(current.enemies, enemyPatches, enemySpawns, removedEnemyCombatIds)
       : current.enemies;
-  return { ...current, ...statePatch, enemies, revision };
+  return {
+    ...current,
+    ...statePatch,
+    activeCreatureSwitchCompletesAt:
+      activeCreatureSwitchCompletesAt === null
+        ? undefined
+        : (activeCreatureSwitchCompletesAt ?? current.activeCreatureSwitchCompletesAt),
+    enemies,
+    revision,
+  };
 }
 
 function mergeHuntEnemies(

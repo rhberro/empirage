@@ -158,7 +158,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Absorb",
@@ -857,6 +858,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -1060,6 +1066,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -1454,6 +1465,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -1869,6 +1885,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -2026,7 +2047,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Acid Spray",
@@ -3174,6 +3196,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -4792,6 +4819,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -5138,6 +5170,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -7417,6 +7454,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -7621,6 +7663,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -8022,6 +8069,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -11064,6 +11116,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -12118,6 +12175,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -13609,6 +13671,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -13766,7 +13833,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Alluring Voice",
@@ -14454,6 +14522,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -14859,6 +14932,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -16346,6 +16424,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -16535,6 +16618,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -17472,6 +17560,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -17656,6 +17749,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -17929,6 +18027,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -18597,6 +18700,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -19091,6 +19199,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -19268,6 +19381,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -19962,6 +20080,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -20284,6 +20407,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -20470,6 +20598,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -20677,6 +20810,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -20985,6 +21123,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -21432,6 +21575,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -22082,6 +22230,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -23210,6 +23363,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -23401,6 +23559,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -23596,6 +23759,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -23941,6 +24109,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -24616,6 +24789,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -24808,6 +24986,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -25137,6 +25320,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -25440,6 +25628,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -25860,6 +26053,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -26819,6 +27017,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -27025,6 +27228,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -27499,6 +27707,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -27695,6 +27908,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -27889,6 +28107,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -28115,6 +28338,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -28384,6 +28612,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -28960,6 +29193,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -30749,6 +30987,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -30935,6 +31178,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -31342,6 +31590,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -31499,6 +31752,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -31656,6 +31914,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -32240,6 +32503,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -32709,6 +32977,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -33170,6 +33443,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -35191,6 +35469,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -35464,6 +35747,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -37079,6 +37367,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -37261,6 +37554,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -37465,6 +37763,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -37622,7 +37925,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Blast Burn",
@@ -37894,6 +38198,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -38131,6 +38440,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -38281,6 +38595,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -38496,6 +38815,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -40514,6 +40838,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -41002,6 +41331,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -41165,6 +41499,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -41322,7 +41661,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Blue Flare",
@@ -41517,6 +41857,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -42798,6 +43143,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -47300,6 +47650,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -47492,6 +47847,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -47687,6 +48047,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -47917,6 +48282,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -48192,6 +48562,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -48429,6 +48804,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -48739,6 +49119,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -49229,6 +49614,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -49425,6 +49815,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 100,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -49641,6 +50036,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -50499,6 +50899,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -33,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -51372,6 +51777,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -51529,7 +51939,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Brick Break",
@@ -54224,6 +54635,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -54550,6 +54966,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -54827,6 +55248,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -55485,6 +55911,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -56054,6 +56485,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -56994,6 +57430,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -57761,6 +58202,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -59096,6 +59542,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -61868,6 +62319,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -62200,6 +62656,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -63655,6 +64116,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -63891,6 +64357,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -64054,6 +64525,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -64633,6 +65109,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -64829,6 +65310,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -66828,6 +67314,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -67284,6 +67775,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -71259,6 +71755,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -71416,6 +71917,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -71601,6 +72107,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -71764,6 +72275,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -73007,6 +73523,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -74334,6 +74855,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -76741,6 +77267,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -76955,6 +77486,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -78848,6 +79384,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -79052,6 +79593,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -79657,6 +80203,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -79843,6 +80394,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -80081,6 +80637,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -80316,6 +80877,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -80515,6 +81081,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -80699,6 +81270,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": -33
     }
   },
   {
@@ -80871,6 +81447,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -81320,6 +81901,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -82808,6 +83394,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -83408,6 +83999,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -83733,6 +84329,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -83915,6 +84516,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -84065,6 +84671,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -84440,6 +85051,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -84701,6 +85317,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -84914,6 +85535,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -86921,6 +87547,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -87693,6 +88324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -88070,6 +88706,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -88227,7 +88868,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Conversion",
@@ -88451,6 +89093,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -88673,6 +89320,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -89291,6 +89943,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -89487,6 +90144,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -89644,7 +90306,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Corrosive Gas",
@@ -89959,6 +90622,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -90293,6 +90961,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -90578,6 +91251,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -90861,6 +91539,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -91986,6 +92669,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -92219,6 +92907,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -92913,6 +93606,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -93192,6 +93890,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -93442,6 +94145,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -93791,6 +94499,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -94055,6 +94768,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -96762,6 +97480,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -97110,6 +97833,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -97305,6 +98033,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -100774,6 +101507,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -100999,6 +101737,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -102664,6 +103407,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -102883,6 +103631,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -103073,6 +103826,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -104437,6 +105195,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -104616,6 +105379,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -104812,6 +105580,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -105543,6 +106316,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -106112,6 +106890,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -106709,6 +107492,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -107362,6 +108150,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -107519,7 +108312,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Diamond Storm",
@@ -107728,6 +108522,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -110780,6 +111579,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -110970,6 +111774,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -111720,6 +112529,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -112884,6 +113698,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -113642,6 +114461,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -113968,6 +114792,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -114316,6 +115145,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -114493,6 +115327,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -114697,6 +115536,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -115259,6 +116103,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -115444,6 +116293,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -116177,6 +117031,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -116359,6 +117218,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -116997,6 +117861,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -117688,6 +118557,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -122328,6 +123202,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -33,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -123072,6 +123951,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -123265,6 +124149,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -123950,6 +124839,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -124582,6 +125476,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -125601,6 +126500,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -126529,6 +127433,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -126712,6 +127621,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -126903,6 +127817,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -127113,6 +128032,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -128547,6 +129471,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -129107,6 +130036,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -129611,6 +130545,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -130773,6 +131712,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -131933,6 +132877,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -132884,6 +133833,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 75,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -133223,6 +134177,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -133588,6 +134547,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -134110,6 +135074,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -134289,6 +135258,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -134594,6 +135568,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -135543,6 +136522,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -135727,6 +136711,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -136132,6 +137121,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -137915,6 +138909,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -140454,6 +141453,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -140798,6 +141802,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -141554,6 +142563,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -141733,6 +142747,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -141988,6 +143007,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -143009,6 +144033,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -143215,6 +144244,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -144251,6 +145285,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -144433,6 +145472,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -144548,6 +145592,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -145459,6 +146508,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -146622,6 +147676,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -147354,6 +148413,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -149156,6 +150220,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -152061,6 +153130,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -158963,6 +160037,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -160938,6 +162017,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -161335,6 +162419,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -161595,6 +162684,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -161785,6 +162879,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -161969,6 +163068,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -162771,6 +163875,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -163323,6 +164432,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -163892,6 +165006,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -164053,6 +165172,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -164385,6 +165509,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -170944,6 +172073,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -171183,6 +172317,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -171527,6 +172666,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -172242,6 +173386,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 100,
+      "healing_percentage": 0
     }
   },
   {
@@ -173578,6 +174727,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -173784,6 +174938,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -174792,6 +175951,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -175724,6 +176888,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -176454,6 +177623,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -177676,6 +178850,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -177993,6 +179172,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -178151,6 +179335,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -178354,6 +179543,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -178545,6 +179739,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -178727,6 +179926,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -179080,6 +180284,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -180675,6 +181884,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -181899,6 +183113,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -182083,6 +183302,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -182513,6 +183737,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -183990,6 +185219,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -185101,6 +186335,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -185385,6 +186624,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -185577,6 +186821,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -186051,6 +187300,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -187146,6 +188400,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -187634,6 +188893,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -188812,6 +190076,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -189164,6 +190433,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -191166,6 +192440,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -192258,6 +193537,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -33,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -194253,6 +195537,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -195516,6 +196805,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -196040,6 +197334,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -196233,6 +197532,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -199148,6 +200452,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -199877,6 +201186,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -200065,6 +201379,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -200254,6 +201573,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -200539,6 +201863,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -200716,6 +202045,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -201771,6 +203105,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -202009,6 +203348,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -203735,6 +205079,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -204566,6 +205915,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -206412,6 +207766,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -206704,6 +208063,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -206979,6 +208343,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -207807,6 +209176,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -208009,6 +209383,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -209563,6 +210942,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -209758,6 +211142,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -210140,6 +211529,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -210324,6 +211718,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -210520,6 +211919,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -210792,6 +212196,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -211062,6 +212471,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -217858,6 +219272,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -218335,6 +219754,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -218815,6 +220239,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -219488,6 +220917,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -219687,6 +221121,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -219890,6 +221329,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -221097,6 +222541,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -221256,7 +222705,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Cannonade",
@@ -221406,7 +222856,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Centiferno",
@@ -221565,7 +223016,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Chi Strike",
@@ -221724,7 +223176,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Cuddle",
@@ -221883,7 +223336,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Depletion",
@@ -222042,7 +223496,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Drum Solo",
@@ -222192,7 +223647,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Finale",
@@ -222351,7 +223807,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Fireball",
@@ -222501,7 +223958,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Foam Burst",
@@ -222660,7 +224118,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Gold Rush",
@@ -222819,7 +224278,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Gravitas",
@@ -222978,7 +224438,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Hydrosnipe",
@@ -223128,7 +224589,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Malodor",
@@ -223287,7 +224749,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Meltdown",
@@ -223446,7 +224909,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max One Blow",
@@ -223596,7 +225060,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Rapid Flow",
@@ -223746,7 +225211,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Replenish",
@@ -223905,7 +225371,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Resonance",
@@ -224064,7 +225531,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Sandblast",
@@ -224223,7 +225691,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Smite",
@@ -224382,7 +225851,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Snooze",
@@ -224541,7 +226011,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Steelsurge",
@@ -224700,7 +226171,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Stonesurge",
@@ -224859,7 +226331,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Stun Shock",
@@ -225018,7 +226491,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Sweetness",
@@ -225177,7 +226651,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Tartness",
@@ -225336,7 +226811,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Terror",
@@ -225495,7 +226971,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Vine Lash",
@@ -225645,7 +227122,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Volcalith",
@@ -225804,7 +227282,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Volt Crash",
@@ -225963,7 +227442,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Wildfire",
@@ -226122,7 +227602,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "G-Max Wind Rage",
@@ -226281,7 +227762,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Gastro Acid",
@@ -226627,6 +228109,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -226853,6 +228340,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -227064,6 +228556,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -227221,6 +228718,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -227419,6 +228921,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -229398,6 +230905,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -233575,6 +235087,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -233752,6 +235269,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -233909,7 +235431,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Glacial Lance",
@@ -234106,6 +235629,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -234308,6 +235836,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -234485,6 +236018,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -234767,6 +236305,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -234963,6 +236506,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -237339,6 +238887,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -237769,6 +239322,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -238320,6 +239878,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -239202,6 +240765,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -240575,6 +242143,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -240759,6 +242332,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -241952,6 +243530,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -243365,6 +244948,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -244095,6 +245683,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -244532,6 +246125,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -244801,6 +246399,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -245085,6 +246688,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -245246,6 +246854,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -245529,6 +247142,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -246743,6 +248361,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -247226,6 +248849,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -248337,6 +249965,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -249993,6 +251626,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -250539,6 +252177,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -250755,6 +252398,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -251283,6 +252931,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -251820,6 +253473,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -253304,6 +254962,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -253495,6 +255158,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -25,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -253882,6 +255550,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -254898,6 +256571,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -255139,6 +256817,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -255390,6 +257073,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -255850,6 +257538,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -256041,6 +257734,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -256498,6 +258196,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -256876,6 +258579,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -257129,6 +258837,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -257320,6 +259033,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -257900,6 +259618,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -259155,6 +260878,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -260541,6 +262269,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -265549,6 +267282,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -266983,6 +268721,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -267229,6 +268972,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -268276,6 +270024,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -268614,6 +270367,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -268777,6 +270535,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -268967,6 +270730,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -269520,6 +271288,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -269778,6 +271551,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -270070,6 +271848,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -270311,6 +272094,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -270843,6 +272631,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -271887,6 +273680,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -272167,6 +273965,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -274076,6 +275879,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -274249,6 +276057,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -274406,7 +276219,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Hyper Beam",
@@ -278567,6 +280381,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -278757,6 +280576,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -279036,6 +280860,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -280822,6 +282651,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -281020,6 +282854,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -281214,6 +283053,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -281837,6 +283681,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -282175,6 +284024,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -284215,6 +286069,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -284410,6 +286269,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -285537,6 +287401,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -285769,6 +287638,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -287301,6 +289175,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -287757,6 +289636,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -288515,6 +290399,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -288892,6 +290781,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -289561,6 +291455,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -291968,6 +293867,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -293556,6 +295460,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -293959,6 +295868,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -294140,6 +296054,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -294473,6 +296392,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -294630,7 +296554,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Infestation",
@@ -294958,6 +296883,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -295374,6 +297304,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -295563,6 +297498,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -295894,6 +297834,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -297975,6 +299920,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -299910,6 +301860,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -300281,6 +302236,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -300455,6 +302415,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -300663,6 +302628,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -300847,6 +302817,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -301038,6 +303013,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -301340,6 +303320,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -301537,6 +303522,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 25
     }
   },
   {
@@ -301884,6 +303874,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -302091,6 +304086,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -302329,6 +304329,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -304895,6 +306900,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -305072,6 +307082,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -305269,6 +307284,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -305657,6 +307677,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -306833,6 +308858,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -307493,6 +309523,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -307713,6 +309748,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -308082,6 +310122,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -308509,6 +310554,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -309756,6 +311806,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -310021,6 +312076,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -310329,6 +312389,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -311012,6 +313077,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -311834,6 +313904,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -313523,6 +315598,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -313680,6 +315760,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -314135,6 +316220,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -314599,6 +316689,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 25
     }
   },
   {
@@ -314762,6 +316857,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -317312,6 +319412,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -317473,6 +319578,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -318865,6 +320975,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -319177,6 +321292,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -319376,6 +321496,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -321350,6 +323475,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -322626,6 +324756,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -323243,6 +325378,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -323420,6 +325560,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -323625,6 +325770,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -323816,6 +325966,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -324748,6 +326903,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -324951,6 +327111,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -325262,6 +327427,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -325588,6 +327758,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -325772,6 +327947,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -326102,6 +328282,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -327561,6 +329746,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -327711,6 +329901,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -327917,6 +330112,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -328150,6 +330350,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -328480,6 +330685,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -328739,6 +330949,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -329261,6 +331476,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -329450,6 +331670,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -329611,6 +331836,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -329774,6 +332004,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -329992,6 +332227,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -330157,6 +332397,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -330426,6 +332671,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -330715,6 +332965,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -331049,6 +333304,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -331313,6 +333573,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -331622,6 +333887,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -331785,6 +334055,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -332049,6 +334324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -332418,6 +334698,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -332707,6 +334992,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -332986,6 +335276,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -333230,6 +335525,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -333554,6 +335854,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -333798,6 +336103,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -334067,6 +336377,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -334301,6 +336616,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -334525,6 +336845,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -334799,6 +337124,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -335403,6 +337733,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -335667,6 +338002,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -336297,6 +338637,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -336774,6 +339119,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -337175,6 +339525,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -337795,6 +340150,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -338049,6 +340409,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -338358,6 +340723,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -338704,6 +341074,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -339458,6 +341833,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -339619,6 +341999,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -339950,6 +342335,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -341300,6 +343690,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -342258,6 +344653,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -342442,6 +344842,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -343020,6 +345425,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -343266,6 +345676,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -344609,6 +347024,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -344772,6 +347192,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -345012,6 +347437,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -345302,6 +347732,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -345509,6 +347944,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -345880,6 +348320,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -346208,6 +348653,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -346547,6 +348997,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -347043,6 +349498,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -347528,6 +349988,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -347865,6 +350330,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -348500,6 +350970,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -348703,6 +351178,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -349039,6 +351519,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -349819,6 +352304,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -350283,6 +352773,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -350471,6 +352966,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -350786,6 +353286,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -351119,6 +353624,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -351303,6 +353813,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -351498,6 +354013,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -353177,6 +355697,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -355376,6 +357901,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -356313,6 +358843,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -358880,6 +361415,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -359943,6 +362483,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -360160,6 +362705,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -360500,6 +363050,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -360710,6 +363265,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -362575,6 +365135,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -367046,6 +369611,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -367906,6 +370476,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -368123,6 +370698,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -368383,6 +370963,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -368540,7 +371125,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Night Daze",
@@ -368751,6 +371337,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -370003,6 +372594,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -370803,6 +373399,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -371497,6 +374098,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -371681,6 +374287,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -372010,6 +374621,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -372160,6 +374776,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -372484,6 +375105,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -372678,6 +375304,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 75,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -372890,6 +375521,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -373047,6 +375683,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -373340,6 +375981,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -373550,6 +376196,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -374216,6 +376867,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -375288,6 +377944,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -375484,6 +378145,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -375684,6 +378350,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -377376,6 +380047,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -377575,6 +380251,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -378666,6 +381347,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -380019,6 +382705,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -380272,6 +382963,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 50,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -380596,6 +383292,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -380838,6 +383539,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -381433,6 +384139,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -382038,6 +384749,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -382477,6 +385193,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -383100,6 +385821,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -383459,6 +386185,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -384198,6 +386929,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -384391,6 +387127,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -384574,6 +387315,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -384978,6 +387724,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -385167,6 +387918,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -385552,6 +388308,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -387316,6 +390077,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -387764,6 +390530,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -388082,6 +390853,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -388441,6 +391217,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -390108,6 +392889,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -390579,6 +393365,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -390956,6 +393747,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -391514,6 +394310,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -391964,6 +394765,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -392548,6 +395354,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -392746,6 +395557,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -393589,6 +396405,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -394303,6 +397124,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -394538,6 +397364,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -394919,6 +397750,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -395944,6 +398780,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -396107,6 +398948,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -396392,6 +399238,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -396652,6 +399503,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -396886,6 +399742,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -397190,6 +400051,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -397522,6 +400388,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -397890,6 +400761,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -398090,6 +400966,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -398431,6 +401312,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -398620,6 +401506,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -405724,6 +408615,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -407283,6 +410179,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -407456,6 +410357,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -409543,6 +412449,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -411891,6 +414802,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -412588,6 +415504,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -413301,6 +416222,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -414121,6 +417047,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -414343,6 +417274,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -414703,6 +417639,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -415038,6 +417979,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -415262,6 +418208,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -416618,6 +419569,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -416808,6 +419764,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -417510,6 +420471,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -417667,6 +420633,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -418177,6 +421148,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -418366,6 +421342,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -419901,6 +422882,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -420080,6 +423066,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -420387,6 +423378,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -421478,6 +424474,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -422075,6 +425076,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -422404,6 +425410,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -424124,6 +427135,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -424314,6 +427330,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -424679,6 +427700,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -424885,6 +427911,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -425136,6 +428167,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -430372,6 +433408,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -430933,6 +433974,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -431548,6 +434594,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -431808,6 +434859,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -432583,6 +435639,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -433205,6 +436266,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -433582,6 +436648,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -435606,6 +438677,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -435871,6 +438947,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -436475,6 +439556,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -436673,6 +439759,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -443621,6 +446712,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -444004,6 +447100,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -450828,6 +453929,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -451052,6 +454158,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -452199,6 +455310,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -454028,6 +457144,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -454213,6 +457334,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -454400,6 +457526,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -456547,6 +459678,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -456746,6 +459882,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -457752,6 +460893,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -458687,6 +461833,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -459087,6 +462238,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -461938,6 +465094,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -462455,6 +465616,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -462935,6 +466101,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -465648,6 +468819,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -465839,6 +469015,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -466143,6 +469324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -466461,6 +469647,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -467212,6 +470403,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -467886,6 +471082,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -468339,6 +471540,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -468609,6 +471815,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -468815,6 +472026,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -469023,6 +472239,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -469347,6 +472568,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -469854,6 +473080,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -470058,6 +473289,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -470860,6 +474096,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -471870,6 +475111,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -472085,6 +475331,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -474288,6 +477539,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -474484,6 +477740,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -474641,7 +477902,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Scald",
@@ -475069,6 +478331,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -475799,6 +479066,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -479670,6 +482942,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -480400,6 +483677,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -481250,6 +484532,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -482349,6 +485636,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -482558,6 +485850,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -482719,6 +486016,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -488920,6 +492222,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -489111,6 +492418,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -490891,6 +494203,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -491094,6 +494411,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -491439,6 +494761,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -491875,6 +495202,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -494339,6 +497671,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -494523,6 +497860,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -496080,6 +499422,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -496296,6 +499643,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -496594,6 +499946,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -497074,6 +500431,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -497312,6 +500674,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -497469,7 +500836,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Shed Tail",
@@ -497659,6 +501027,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -497988,6 +501361,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -498166,6 +501544,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -498495,6 +501878,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -498693,6 +502081,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -498909,6 +502302,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -499142,6 +502540,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -499520,6 +502923,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -499723,6 +503131,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -502242,6 +505655,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -502421,6 +505839,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -503080,6 +506503,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -503329,6 +506757,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -503732,6 +507165,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -503889,6 +507327,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -504085,6 +507528,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -504280,6 +507728,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -505545,6 +508998,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -506677,6 +510135,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -507100,6 +510563,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -507482,6 +510950,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -507904,6 +511377,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -508248,6 +511726,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -508586,6 +512069,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -509243,6 +512731,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -510268,6 +513761,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -510637,6 +514135,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -517309,6 +520812,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -517620,6 +521128,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -518948,6 +522461,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -519900,6 +523418,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -521317,6 +524840,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -521869,6 +525397,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -522322,6 +525855,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -522780,6 +526318,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -523243,6 +526786,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -523427,6 +526975,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -524739,6 +528292,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -526617,6 +530175,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -526796,6 +530359,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -527162,6 +530730,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -528345,6 +531918,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -528818,6 +532396,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -529037,6 +532620,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -531394,6 +534982,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -531903,6 +535496,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -532254,6 +535852,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -532411,6 +536014,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -532610,6 +536218,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -533189,6 +536802,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -533418,6 +537036,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -533614,6 +537237,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -533807,6 +537435,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -533998,6 +537631,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -534175,6 +537813,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -534417,6 +538060,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -534757,6 +538405,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -535679,6 +539332,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -535916,6 +539574,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -536106,6 +539769,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -536312,6 +539980,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -536500,6 +540173,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -537086,6 +540764,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -538873,6 +542556,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -539270,6 +542958,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -539431,6 +543124,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -539626,6 +543324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -539864,6 +543567,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -540121,6 +543829,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -540331,6 +544044,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -542120,6 +545838,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -542314,6 +546037,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -542558,6 +546286,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -543181,6 +546914,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -543368,6 +547106,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -543659,6 +547402,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -544009,6 +547757,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -544622,6 +548375,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -544783,6 +548541,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -545421,6 +549184,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -547387,6 +551155,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -547572,6 +551345,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -549597,6 +553375,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -550917,6 +554700,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -551165,6 +554953,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -551349,6 +555142,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -551633,6 +555431,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -551936,6 +555739,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -552259,6 +556067,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -552432,6 +556245,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": -25
     }
   },
   {
@@ -553268,6 +557086,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -553519,6 +557342,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -554016,6 +557844,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -554345,6 +558178,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -25,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -561077,6 +564915,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -561234,7 +565077,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Sucker Punch",
@@ -562220,6 +566064,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -567268,6 +571117,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -567456,6 +571310,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -568275,6 +572134,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -568787,6 +572651,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -569299,6 +573168,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -569868,6 +573742,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -570025,7 +573904,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Surf",
@@ -571714,6 +575594,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -571892,6 +575777,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -572724,6 +576614,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -573288,6 +577183,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 25
     }
   },
   {
@@ -573735,6 +577635,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -574386,6 +578291,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -578476,6 +582386,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -578982,6 +582897,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -581446,6 +585366,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -581966,6 +585891,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -582643,6 +586573,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 50
     }
   },
   {
@@ -582814,6 +586749,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -582930,6 +586870,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -585302,6 +589247,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -585513,6 +589463,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -585787,6 +589742,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -586691,6 +590651,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -588018,6 +591983,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -594575,6 +598545,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -25,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -594777,6 +598752,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -594956,6 +598936,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -598023,6 +602008,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -598334,6 +602324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -598562,6 +602557,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -598774,6 +602774,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -598931,7 +602936,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Teeter Dance",
@@ -599297,6 +603303,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -600844,6 +604855,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -601139,6 +605155,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -601883,6 +605904,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -608498,6 +612524,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -608661,6 +612692,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -608864,6 +612900,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -612073,6 +616114,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -612274,6 +616320,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -612471,6 +616522,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -613451,6 +617507,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -614953,6 +619014,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -616879,6 +620945,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -617063,6 +621134,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -618095,6 +622171,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 10,
+      "healing_percentage": 0
     }
   },
   {
@@ -619894,6 +623975,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -620504,6 +624590,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -622790,6 +626881,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -624786,6 +628882,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -624951,6 +629052,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -625135,6 +629241,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -625727,6 +629838,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -625952,6 +630068,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -626160,6 +630281,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -626337,6 +630463,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -626851,6 +630982,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -628279,6 +632415,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -629161,6 +633302,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -629361,6 +633507,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -632038,6 +636189,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -632240,6 +636396,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -632562,6 +636723,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -634070,6 +638236,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -635300,6 +639471,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -635550,6 +639726,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -635741,6 +639922,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -636223,6 +640409,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -636405,6 +640596,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -636627,6 +640823,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -636815,6 +641016,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -637161,6 +641367,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -637351,6 +641562,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -637716,6 +641932,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -637873,7 +642094,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Twister",
@@ -638302,6 +642524,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -640109,6 +644336,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -640759,6 +644991,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -642589,6 +646826,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -642784,6 +647026,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -643472,6 +647719,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -643655,6 +647907,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -644355,6 +648612,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -645354,6 +649616,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -645543,6 +649810,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -645919,6 +650191,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -646170,7 +650447,8 @@
         }
       },
       "_missing": []
-    }
+    },
+    "combat_metadata": null
   },
   {
     "name": "Vital Throw",
@@ -646465,6 +650743,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -647339,6 +651622,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -647565,6 +651853,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -33,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -648061,6 +652354,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -649103,6 +653401,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -649541,6 +653844,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -651915,6 +656223,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -652173,6 +656486,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -653030,6 +657348,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -653261,6 +657584,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -654419,6 +658747,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -654727,6 +659060,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -656244,6 +660582,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -657462,6 +661805,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -657976,6 +662324,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -658160,6 +662513,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -658310,6 +662668,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -658835,6 +663198,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -660091,6 +664459,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -25,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -660306,6 +664679,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -661661,6 +666039,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -662140,6 +666523,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -662680,6 +667068,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -663046,6 +667439,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -663376,6 +667774,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -663695,6 +668098,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": -33,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -664139,6 +668547,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -664705,6 +669118,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -665146,6 +669564,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -665656,6 +670079,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -666687,6 +671115,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -667463,6 +671896,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -667888,6 +672326,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   },
   {
@@ -670590,6 +675033,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 20,
+      "healing_percentage": 0
     }
   },
   {
@@ -670779,6 +675227,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 30,
+      "healing_percentage": 0
     }
   },
   {
@@ -670977,6 +675430,11 @@
         }
       },
       "_missing": []
+    },
+    "combat_metadata": {
+      "drain_percentage": 0,
+      "flinch_chance": 0,
+      "healing_percentage": 0
     }
   }
 ]

@@ -501,7 +501,7 @@ export class HuntView {
       direction: ALLY_DIRECTION,
       faceTargetUntil: Number.POSITIVE_INFINITY,
       health: state.activeCreatureHealth,
-      key: `${CREATURE_ALLY_KEY}-${state.activeCreatureId}`,
+      key: CREATURE_ALLY_KEY,
       maximumHealth: state.activeCreatureMaximumHealth,
       movement: null,
       speciesId: state.activeCreatureSpeciesId,

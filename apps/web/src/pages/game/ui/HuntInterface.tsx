@@ -5,7 +5,6 @@ import * as React from 'react';
 import { Icon } from '~/shared/ui/Icon';
 
 import type { HuntCommand } from '../api/hunt-protocol';
-import type { HuntingLocation } from '../api/hunting-locations';
 import { selectIsHunting, useGameStore } from '../model/game-store';
 import { toggleHuntingLocationsModal, toggleStorageModal } from '../model/modal-store';
 import { BottomBar } from './BottomBar';
@@ -17,13 +16,12 @@ import { HuntWaveCountdown } from './HuntWaveCountdown';
 import { WaveRangeDialog } from './WaveRangeDialog';
 
 type HuntInterfaceProps = {
-  locations: Array<HuntingLocation>;
   sendHuntCommand: (command: HuntCommand) => boolean;
 };
 type LeaveHuntButtonProps = { onCommand: (command: HuntCommand) => boolean };
 
 export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
-  const { locations, sendHuntCommand } = props;
+  const { sendHuntCommand } = props;
   return (
     <>
       <HuntStatusPanels onCommand={sendHuntCommand} />
@@ -31,11 +29,8 @@ export function HuntInterface(props: HuntInterfaceProps): React.ReactElement {
       <BottomBar />
       <HuntWaveCountdown />
       <CreatureStorageDialog onCommand={sendHuntCommand} />
-      <HuntingLocationsDialog
-        locations={locations}
-        onStart={startHunt.bind(null, sendHuntCommand)}
-      />
-      <WaveRangeDialog locations={locations} onCommand={sendHuntCommand} />
+      <HuntingLocationsDialog onStart={startHunt.bind(null, sendHuntCommand)} />
+      <WaveRangeDialog onCommand={sendHuntCommand} />
       <HuntControls onCommand={sendHuntCommand} />
     </>
   );

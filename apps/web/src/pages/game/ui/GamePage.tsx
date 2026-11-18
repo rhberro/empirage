@@ -39,6 +39,10 @@ export function GamePage(): React.ReactElement {
     setTransitionMessage(null);
   }
   function sendHuntCommand(command: HuntCommand): boolean {
+    const current = gameStore.getState();
+    if (current.hunt && isPartyManagementCommand(command)) {
+      return false;
+    }
     const sender = commandSenderRef.current;
     const identifiedCommand = commandWithId(command);
     if (!sender || !sender(identifiedCommand)) {
@@ -46,7 +50,6 @@ export function GamePage(): React.ReactElement {
     }
     const updateCollection = collectionUpdater(identifiedCommand);
     const updateHunt = huntUpdater(identifiedCommand);
-    const current = gameStore.getState();
     current.setCollection(updateCollection(selectCollection(current)));
     current.setHunt(updateHunt(current.hunt));
     return true;
@@ -59,9 +62,7 @@ export function GamePage(): React.ReactElement {
         onGameReady={handleGameReady}
         onTransitionChange={handleTransitionChange}
       />
-      {gameReady && !transitionMessage ? (
-        <HuntInterface locations={huntingLocations.data ?? []} sendHuntCommand={sendHuntCommand} />
-      ) : null}
+      {gameReady && !transitionMessage ? <HuntInterface sendHuntCommand={sendHuntCommand} /> : null}
       {transitionMessage ? <TransitionLoadingScreen message={transitionMessage} /> : null}
     </main>
   );
@@ -102,5 +103,14 @@ function isConfigurationCommand(command: HuntCommand): boolean {
     command.type === 'configure_capture' ||
     command.type === 'configure_healing_item' ||
     command.type === 'configure_wave_range'
+  );
+}
+
+function isPartyManagementCommand(command: HuntCommand): boolean {
+  return (
+    command.type === 'move_creature_to_party' ||
+    command.type === 'move_creature_to_storage' ||
+    command.type === 'release_creature' ||
+    command.type === 'reorder_party_creature'
   );
 }

@@ -7,6 +7,7 @@ export type HuntCombatEvent = {
   abilityName: string;
   damages: Array<HuntDamage>;
   element: string;
+  evolution?: { fromSpeciesId: number; toSpeciesId: number };
   feedback: Array<HuntCombatFeedback>;
   from: Tile;
   id: string;
@@ -77,6 +78,13 @@ function readFeedback(value: unknown): HuntCombatFeedbacks {
   return feedback;
 }
 
+function readEvolution(value: unknown): HuntCombatEvent['evolution'] {
+  if (!isRecord(value) || !isCount(value.fromSpeciesId) || !isCount(value.toSpeciesId)) {
+    return undefined;
+  }
+  return { fromSpeciesId: value.fromSpeciesId, toSpeciesId: value.toSpeciesId };
+}
+
 export function readCombatEvents(value: unknown): CombatEvents {
   const events: CombatEvents = [];
   if (!Array.isArray(value)) {
@@ -112,6 +120,7 @@ export function readCombatEvents(value: unknown): CombatEvents {
       abilityName: item.abilityName,
       damages: readDamages(item.damages),
       element: typeof item.element === 'string' ? item.element : 'normal',
+      evolution: readEvolution(item.evolution),
       feedback: readFeedback(item.feedback),
       from,
       id: item.id,

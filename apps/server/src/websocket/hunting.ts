@@ -249,39 +249,43 @@ export type HuntState = {
   waveRange: HuntWaveRange;
   waveSize: number;
 };
-export type HuntDeltaPatch = Partial<
-  Pick<
-    HuntState,
-    | 'activeCreatureAvailableAt'
-    | 'activeCreatureElements'
-    | 'activeCreatureExperience'
-    | 'activeCreatureExperienceLevelStart'
-    | 'activeCreatureExperienceNextLevel'
-    | 'activeCreatureAbilities'
-    | 'activeCreatureAvailableAbilities'
-    | 'activeCreatureHealth'
-    | 'activeCreatureId'
-    | 'activeCreatureLevel'
-    | 'activeCreatureMaximumHealth'
-    | 'activeCreatureName'
-    | 'activeCreatureSpeciesId'
-    | 'activeCreatureSwitchCompletesAt'
-    | 'activeCreatureSwitchCooldownEndsAt'
-    | 'partyHealth'
-    | 'captureAttempts'
-    | 'captureConfiguration'
-    | 'enemies'
-    | 'gold'
-    | 'healingConfiguration'
-    | 'healingItemCooldownEndsAt'
-    | 'nextEventAt'
-    | 'playerPosition'
-    | 'serverTime'
-    | 'wave'
-    | 'waveRange'
-  >
-> &
-  PublicEnemyDelta;
+export type HuntDeltaPatch = Omit<
+  Partial<
+    Pick<
+      HuntState,
+      | 'activeCreatureAvailableAt'
+      | 'activeCreatureElements'
+      | 'activeCreatureExperience'
+      | 'activeCreatureExperienceLevelStart'
+      | 'activeCreatureExperienceNextLevel'
+      | 'activeCreatureAbilities'
+      | 'activeCreatureAvailableAbilities'
+      | 'activeCreatureHealth'
+      | 'activeCreatureId'
+      | 'activeCreatureLevel'
+      | 'activeCreatureMaximumHealth'
+      | 'activeCreatureName'
+      | 'activeCreatureSpeciesId'
+      | 'activeCreatureSwitchCompletesAt'
+      | 'activeCreatureSwitchCooldownEndsAt'
+      | 'partyHealth'
+      | 'captureAttempts'
+      | 'captureConfiguration'
+      | 'enemies'
+      | 'gold'
+      | 'healingConfiguration'
+      | 'healingItemCooldownEndsAt'
+      | 'nextEventAt'
+      | 'playerPosition'
+      | 'serverTime'
+      | 'wave'
+      | 'waveRange'
+    >
+  >,
+  'activeCreatureSwitchCompletesAt'
+> & {
+  activeCreatureSwitchCompletesAt?: number | null;
+} & PublicEnemyDelta;
 export type HuntStateUpdate = {
   combatEvents: Array<HuntCombatEvent>;
   huntId: string;
@@ -817,6 +821,13 @@ function assignHuntPatchField(
   active: PublicActiveCreatureState | undefined,
   enemyDelta: EngineEnemyDelta | undefined,
 ): void {
+  if (field === 'activeCreatureSwitchCompletesAt') {
+    if (!active) {
+      throw new Error('active_creature_patch_requires_projection');
+    }
+    patch.activeCreatureSwitchCompletesAt = active.activeCreatureSwitchCompletesAt ?? null;
+    return;
+  }
   if (isActiveCreatureField(field)) {
     if (!active) {
       throw new Error('active_creature_patch_requires_projection');
@@ -1037,7 +1048,7 @@ async function performCheckpoint(runtime: Runtime, pending: PendingCheckpoint): 
         runtime.finalizeResolve(true);
       }
       if (notifier && runtime.notifyOnFinish) {
-        notifier(runtime.characterId, undefined, runtime.engine.huntId);
+        notifier(runtime.characterId, undefined, runtime.engine.huntId, true);
       }
       return;
     }

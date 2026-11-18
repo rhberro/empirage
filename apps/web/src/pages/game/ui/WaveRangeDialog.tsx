@@ -1,42 +1,32 @@
 /* eslint-disable oxsome/no-inline-functions-objects-arrays, oxsome/no-jsx-inline-computation */
-import { Badge, Button, Dialog, HStack, Stack, Text } from '@chakra-ui/react';
+import { AspectRatio, Box, CloseButton, Dialog, HStack, Text, VStack } from '@chakra-ui/react';
 import * as React from 'react';
 
 import type { HuntCommand } from '../api/hunt-protocol';
-import type { HuntingLocation } from '../api/hunting-locations';
-import {
-  selectHuntWaveRange,
-  selectHuntingLocationId,
-  selectIsHunting,
-  useGameStore,
-} from '../model/game-store';
+import { HuntingLocation, HuntingLocationWaveRange } from '../api/hunting-locations';
+import { selectHuntingLocationId, selectHuntWaveRange, useGameStore } from '../model/game-store';
 import {
   selectWaveRangeModalState,
   toggleWaveRangeModal,
   useModalStore,
 } from '../model/modal-store';
+import { useHuntingLocations } from '../model/use-hunting-locations';
+import { Slot } from './BottomBar/Slot';
 
 type WaveRangeDialogProps = {
-  locations: Array<HuntingLocation>;
   onCommand: (command: HuntCommand) => boolean;
 };
 
-function closeDialog(): void {
-  toggleWaveRangeModal();
-}
-
 export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement | null {
-  const { locations, onCommand } = props;
-  const isHunting = useGameStore(selectIsHunting);
+  const { onCommand } = props;
+  const open = useModalStore(selectWaveRangeModalState);
+  const { data = [] } = useHuntingLocations();
   const huntingLocationId = useGameStore(selectHuntingLocationId);
   const waveRange = useGameStore(selectHuntWaveRange);
-  const open = useModalStore(selectWaveRangeModalState);
-  if (!isHunting || !huntingLocationId || !waveRange) {
-    return null;
-  }
-  const location = locations.find(function findLocation(candidate): boolean {
+  function findLocation(candidate: HuntingLocation): boolean {
     return candidate.id === huntingLocationId;
-  });
+  }
+  const location = data.find(findLocation);
   if (!location) {
     return null;
   }
@@ -47,55 +37,43 @@ export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement
       waveRangeMaximumSize: maximumSize,
       waveRangeMinimumSize: minimumSize,
     };
-    if (onCommand(command)) {
-      toggleWaveRangeModal();
-    }
+    onCommand(command);
   }
+  function renderRange(range: HuntingLocationWaveRange): React.ReactElement {
+    const { maximumSize, minimumSize } = range;
+    const onClick = selectRange.bind(null, minimumSize, maximumSize);
+    const label = minimumSize === maximumSize ? maximumSize : minimumSize + ' - ' + maximumSize;
+    return (
+      <VStack>
+        <Slot content={<Text textStyle="2xl">{maximumSize}</Text>} onClick={onClick} />
+        <Text>{label}</Text>
+      </VStack>
+    );
+  }
+  const renderedRanges = location.waveRanges.map(renderRange);
   return (
-    <Dialog.Root lazyMount onOpenChange={closeDialog} open={open} unmountOnExit>
+    <Dialog.Root lazyMount onOpenChange={toggleWaveRangeModal} open={open} unmountOnExit>
       <Dialog.Backdrop />
       <Dialog.Positioner>
         <Dialog.Content>
-          <Dialog.Header>
-            <Text color="brand.solid" fontSize="xs" fontWeight="bold" letterSpacing="widest">
-              PRÓXIMA ONDA
-            </Text>
-            <Dialog.Title>Quantidade de criaturas</Dialog.Title>
+          <Dialog.CloseTrigger>
+            <CloseButton size="md" />
+          </Dialog.CloseTrigger>
+          <Dialog.Header justifyContent="center">
+            <Dialog.Title textStyle="2xl">Configuração de Caçada</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
-            <Stack gap="3">
-              <Text color="fg.muted" fontSize="sm">
-                A escolha passa a valer quando a próxima onda começar.
-              </Text>
-              {location.waveRanges.map(function renderRange(range): React.ReactElement {
-                const selected =
-                  waveRange.minimumSize === range.minimumSize &&
-                  waveRange.maximumSize === range.maximumSize;
-                const onClick = selectRange.bind(null, range.minimumSize, range.maximumSize);
-                return (
-                  <Button
-                    aria-pressed={selected}
-                    justifyContent="space-between"
-                    key={`${range.minimumSize}-${range.maximumSize}`}
-                    onClick={onClick}
-                    variant={selected ? 'solid' : 'outline'}
-                  >
-                    <span>
-                      {range.minimumSize}–{range.maximumSize} criaturas
-                    </span>
-                    {selected ? <Badge>Selecionada</Badge> : null}
-                  </Button>
-                );
-              })}
-            </Stack>
+            <VStack gap="4">
+              <Dialog.Description>Quantas criaturas nascem a cada leva.</Dialog.Description>
+              <AspectRatio ratio={1} w="full">
+                <Box shadow="panel">Preview</Box>
+              </AspectRatio>
+              <HStack>{renderedRanges}</HStack>
+              <Dialog.Description textAlign="center">
+                A configuração passa a valer quando a próxima onda começar.
+              </Dialog.Description>
+            </VStack>
           </Dialog.Body>
-          <Dialog.Footer>
-            <HStack justify="end" w="full">
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Fechar</Button>
-              </Dialog.ActionTrigger>
-            </HStack>
-          </Dialog.Footer>
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
