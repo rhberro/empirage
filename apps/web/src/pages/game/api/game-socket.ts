@@ -1,6 +1,6 @@
 import { getAccessToken } from '~/shared/auth';
 
-import { gameStore } from '../model/game-store';
+import { clearPendingCommands, gameStore } from '../model/game-store';
 import { connectionErrorMessage, createSocketUrl } from './connection-errors';
 import { GAME_PROTOCOL_VERSION, parseGameEvent } from './game-protocol';
 import type { GameEvent, HuntClockCommand, InputCommand } from './game-protocol';
@@ -68,6 +68,7 @@ export class GameSession {
   }
 
   public stop(): void {
+    clearPendingCommands();
     this.stopped = true;
     this.authenticated = false;
     this.clearAuthenticationTimer();
@@ -194,6 +195,7 @@ export class GameSession {
     if (this.stopped) {
       return;
     }
+    clearPendingCommands();
     this.authenticated = false;
     this.clearAuthenticationTimer();
     const socket = this.socket;

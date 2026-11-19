@@ -15,7 +15,6 @@ import type {
 } from './hunt-resources.ts';
 
 const ALLY_POSITION: Position = { x: 6, y: 3 };
-const PLAYER_POSITION: Position = { x: 2, y: 3 };
 const GRID_HEIGHT = 8;
 const GRID_WIDTH = 12;
 const MOVEMENT_MS = 694;
@@ -399,18 +398,20 @@ function buildAllies(
     const statStages = persistedStages
       ? (persistedStages[creature.id] ?? emptyStatStages())
       : emptyStatStages();
-    const legacyHealth = creature.teamPosition < activeCreature.teamPosition ? 0 : maximumHealth;
     allies.push({
       ...creature,
       condition,
       health:
         creature.id === checkpoint.activeCreatureId
           ? checkpoint.activeCreatureHealth
-          : (persistedHealth ?? legacyHealth),
+          : (persistedHealth ?? maximumHealth),
       maximumHealth,
       statStages,
     });
   }
+  allies.sort(function bySlot(first: HuntEngineAlly, second: HuntEngineAlly): number {
+    return first.teamPosition - second.teamPosition;
+  });
   return allies;
 }
 
@@ -825,14 +826,36 @@ function completeActiveCreatureSwitch(engine: HuntEngine, nowEpoch: number): boo
   return true;
 }
 
+function creaturePosition(engine: HuntEngine): Position {
+  const mapData = engine.resources.mapData;
+  const creatureSpawn =
+    mapData && mapData.specialTiles
+      ? mapData.specialTiles.find(function isCreature(t) {
+          return t.kind === 'creature_spawn';
+        })
+      : undefined;
+  return creatureSpawn ? { x: creatureSpawn.x, y: creatureSpawn.y } : ALLY_POSITION;
+}
+
 function blockedTiles(engine: HuntEngine): Set<string> {
   const blocked = new Set<string>();
-  blocked.add(positionKey(ALLY_POSITION));
-  blocked.add(positionKey(PLAYER_POSITION));
-  for (let x = 2; x < GRID_WIDTH - 2; x += 2) {
-    if (x !== ALLY_POSITION.x) {
-      const y = 1 + ((x * 3 + engine.resources.locationId) % (GRID_HEIGHT - 2));
-      blocked.add(positionKey({ x, y }));
+  const allyPos = creaturePosition(engine);
+  blocked.add(positionKey(allyPos));
+  blocked.add(positionKey(engine.playerPosition));
+
+  const mapData = engine.resources.mapData;
+  if (mapData && Array.isArray(mapData.specialTiles)) {
+    for (const tile of mapData.specialTiles) {
+      if (tile.kind === 'blocked') {
+        blocked.add(positionKey({ x: tile.x, y: tile.y }));
+      }
+    }
+  } else {
+    for (let x = 2; x < GRID_WIDTH - 2; x += 2) {
+      if (x !== allyPos.x) {
+        const y = 1 + ((x * 3 + engine.resources.locationId) % (GRID_HEIGHT - 2));
+        blocked.add(positionKey({ x, y }));
+      }
     }
   }
   for (const enemy of engine.enemies) {
@@ -906,16 +929,41 @@ function randomEncounter(resources: HuntResources): HuntSpeciesResource & { leve
 }
 
 function spawnPosition(engine: HuntEngine, blocked: Set<string>): Position {
+  const mapData = engine.resources.mapData;
+  const enemySpawns =
+    mapData && mapData.specialTiles
+      ? mapData.specialTiles.filter(function isEnemySpawn(t) {
+          return t.kind === 'enemy_spawn';
+        })
+      : undefined;
+
+  if (enemySpawns && enemySpawns.length > 0) {
+    const available = enemySpawns.filter(function notOccupied(s) {
+      return !blocked.has(positionKey({ x: s.x, y: s.y }));
+    });
+    const pool = available.length > 0 ? available : enemySpawns;
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    return { x: selected.x, y: selected.y };
+  }
+
+  const allyPos = creaturePosition(engine);
   const candidates: Array<Position> = [];
-  for (let x = 0; x < GRID_WIDTH; x += 1) {
-    for (let y = 0; y < GRID_HEIGHT; y += 1) {
+  const width = mapData && mapData.width ? mapData.width : GRID_WIDTH;
+  const height = mapData && mapData.height ? mapData.height : GRID_HEIGHT;
+  for (let x = 0; x < width; x += 1) {
+    for (let y = 0; y < height; y += 1) {
       const candidate = { x, y };
-      if (!blocked.has(positionKey(candidate)) && areaDistance(candidate, ALLY_POSITION) >= 5) {
+      if (!blocked.has(positionKey(candidate)) && areaDistance(candidate, allyPos) >= 5) {
         candidates.push(candidate);
       }
     }
   }
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? { x: 9, y: 3 };
+  return (
+    candidates[Math.floor(Math.random() * candidates.length)] ?? {
+      x: width - 3,
+      y: Math.floor(height / 2),
+    }
+  );
 }
 
 function spawnWave(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
@@ -1099,11 +1147,12 @@ function startCooldown(
 
 function settleMovements(engine: HuntEngine, nowEpoch: number): Array<HuntEngineEnemy> {
   const settled: Array<HuntEngineEnemy> = [];
+  const allyPos = creaturePosition(engine);
   for (const enemy of engine.enemies) {
     if (enemy.movement && enemy.movement.startTime + MOVEMENT_MS <= nowEpoch) {
       enemy.position = enemy.movement.toTile;
       enemy.movement = undefined;
-      if (areaDistance(enemy.position, ALLY_POSITION) <= 1) {
+      if (areaDistance(enemy.position, allyPos) <= 1) {
         enemy.nextMovementAt = nextAdjacentWanderAt(nowEpoch);
       }
       settled.push(enemy);
@@ -1418,6 +1467,7 @@ function enemyAttack(
   nowEpoch: number,
   events: Array<HuntCombatEvent>,
 ): EnemyAttackResult {
+  const allyPos = creaturePosition(engine);
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
   const blocked = actionBlockFeedback(acting.enemy.condition, nowEpoch);
@@ -1446,7 +1496,7 @@ function enemyAttack(
       kind: attackKind(acting.policy),
       occurredAt: nowEpoch,
       tiles: [],
-      to: ALLY_POSITION,
+      to: allyPos,
     });
     return { damagedAlly: false, enemyHealthChanged: acting.enemy.health !== healthBeforeAction };
   }
@@ -1517,25 +1567,19 @@ function enemyAttack(
   if (hit) {
     ally.health = Math.max(0, ally.health - result.amount);
     if (result.critical) {
-      feedback.push({ text: 'Critical hit', tile: ALLY_POSITION });
+      feedback.push({ text: 'Critical hit', tile: allyPos });
     }
     applyEffects(
       acting.policy.moveEffects,
       acting.enemy.statStages ?? emptyStatStages(),
       ally.statStages,
-      ALLY_POSITION,
+      allyPos,
       feedback,
     );
-    applyStatusEffects(
-      acting.policy.moveEffects,
-      ally.condition,
-      nowEpoch,
-      ALLY_POSITION,
-      feedback,
-    );
+    applyStatusEffects(acting.policy.moveEffects, ally.condition, nowEpoch, allyPos, feedback);
     applyRecurringEffect(acting.policy.moveEffects, ally.condition, nowEpoch);
     if (result.amount > 0) {
-      applyFlinch(acting.policy.moveEffects, ally.condition, ALLY_POSITION, feedback);
+      applyFlinch(acting.policy.moveEffects, ally.condition, allyPos, feedback);
     }
     acting.enemy.health = applyHealthEffect(
       acting.policy.moveEffects,
@@ -1567,7 +1611,7 @@ function enemyAttack(
       text: requirementsMet(acting.policy.moveEffects, ally.condition)
         ? 'Miss'
         : 'Requirement not met',
-      tile: ALLY_POSITION,
+      tile: allyPos,
     });
   }
   startCooldown(engine, acting.enemy.combatId, acting.policy, nowEpoch);
@@ -1575,7 +1619,7 @@ function enemyAttack(
   events.push({
     abilityName: acting.policy.abilityName,
     damages: hit
-      ? [{ amount: result.amount, effectiveness: result.effectiveness, tile: ALLY_POSITION }]
+      ? [{ amount: result.amount, effectiveness: result.effectiveness, tile: allyPos }]
       : [],
     element: acting.policy.element,
     feedback,
@@ -1583,8 +1627,8 @@ function enemyAttack(
     id: randomUUID(),
     kind: attackKind(acting.policy),
     occurredAt: nowEpoch,
-    tiles: acting.policy.areaRadius > 0 ? [ALLY_POSITION] : [],
-    to: ALLY_POSITION,
+    tiles: acting.policy.areaRadius > 0 ? [allyPos] : [],
+    to: allyPos,
   });
   return {
     damagedAlly: hit && result.amount > 0,
@@ -1600,6 +1644,7 @@ function allyAttack(
   nowEpoch: number,
   events: Array<HuntCombatEvent>,
 ): Set<string> {
+  const allyPos = creaturePosition(engine);
   const species = engine.resources.species[String(ally.speciesId)];
   const damages: Array<{ amount: number; effectiveness: CombatEffectiveness; tile: Position }> = [];
   const feedback: Array<{ text: string; tile: Position }> = [];
@@ -1616,38 +1661,36 @@ function allyAttack(
     events.push({
       abilityName: policy.abilityName,
       damages:
-        selfDamage > 0
-          ? [{ amount: selfDamage, effectiveness: 'normal', tile: ALLY_POSITION }]
-          : damages,
+        selfDamage > 0 ? [{ amount: selfDamage, effectiveness: 'normal', tile: allyPos }] : damages,
       element: policy.element,
-      feedback: [{ text: blocked, tile: ALLY_POSITION }],
-      from: ALLY_POSITION,
+      feedback: [{ text: blocked, tile: allyPos }],
+      from: allyPos,
       id: randomUUID(),
       kind: attackKind(policy),
       occurredAt: nowEpoch,
       tiles,
-      to: target ? target.position : ALLY_POSITION,
+      to: target ? target.position : allyPos,
     });
     return new Set<string>();
   }
   if (isAllyTarget(policy.target)) {
-    applyEffects(policy.moveEffects, ally.statStages, ally.statStages, ALLY_POSITION, feedback);
+    applyEffects(policy.moveEffects, ally.statStages, ally.statStages, allyPos, feedback);
     ally.health = applyHealthEffect(
       policy.moveEffects,
       ally.health,
       ally.maximumHealth,
       0,
       feedback,
-      ALLY_POSITION,
+      allyPos,
     );
-    applyDamageScreen(policy.moveEffects, ally.condition, nowEpoch, ALLY_POSITION, feedback);
+    applyDamageScreen(policy.moveEffects, ally.condition, nowEpoch, allyPos, feedback);
     ally.health = applySelfEffects(
       policy.moveEffects,
       ally.condition,
       ally.health,
       ally.maximumHealth,
       nowEpoch,
-      ALLY_POSITION,
+      allyPos,
       feedback,
     );
     startCooldown(engine, ally.id, policy, nowEpoch);
@@ -1656,12 +1699,12 @@ function allyAttack(
       damages,
       element: policy.element,
       feedback,
-      from: ALLY_POSITION,
+      from: allyPos,
       id: randomUUID(),
       kind: attackKind(policy),
       occurredAt: nowEpoch,
       tiles,
-      to: ALLY_POSITION,
+      to: allyPos,
     });
     return new Set<string>();
   }
@@ -1671,7 +1714,7 @@ function allyAttack(
   const damagedEnemyCombatIds = new Set<string>();
   const affectedEnemies = targetsAllEnemies(policy.target)
     ? engine.enemies.filter(function eligibleEnemy(enemy): boolean {
-        return areaDistance(ALLY_POSITION, enemy.position) <= policy.range;
+        return areaDistance(allyPos, enemy.position) <= policy.range;
       })
     : engine.enemies.filter(function insideTargetArea(enemy): boolean {
         return areaDistance(enemy.position, target.position) <= policy.areaRadius;
@@ -1724,7 +1767,7 @@ function allyAttack(
         policy.moveEffects,
         ally.health,
         ally.maximumHealth,
-        ALLY_POSITION,
+        allyPos,
         feedback,
       );
       feedback.push({
@@ -1745,7 +1788,7 @@ function allyAttack(
     ally.maximumHealth,
     inflictedDamage,
     feedback,
-    ALLY_POSITION,
+    allyPos,
   );
   ally.health = applySelfEffects(
     policy.moveEffects,
@@ -1753,7 +1796,7 @@ function allyAttack(
     ally.health,
     ally.maximumHealth,
     nowEpoch,
-    ALLY_POSITION,
+    allyPos,
     feedback,
   );
   startCooldown(engine, ally.id, policy, nowEpoch);
@@ -1762,7 +1805,7 @@ function allyAttack(
     damages,
     element: policy.element,
     feedback,
-    from: ALLY_POSITION,
+    from: allyPos,
     id: randomUUID(),
     kind: attackKind(policy),
     occurredAt: nowEpoch,
@@ -1794,6 +1837,7 @@ function processAttacks(
   if (!activeCreatureAvailable(engine, nowEpoch)) {
     return { blockedMovers, changes, damagedEnemyCombatIds };
   }
+  const allyPos = creaturePosition(engine);
   const ally = engine.allies[engine.activeAllyIndex];
   const allySpecies = engine.resources.species[String(ally.speciesId)];
   let allyPolicy: AttackPolicy | undefined;
@@ -1804,15 +1848,14 @@ function processAttacks(
       ally.level,
       cooldowns(engine, ally.id),
       nowEpoch,
-      areaDistance(ALLY_POSITION, enemy.position),
+      areaDistance(allyPos, enemy.position),
       false,
       ally.statStages,
       enemy.statStages,
     );
     if (
       candidate &&
-      (!target ||
-        areaDistance(ALLY_POSITION, enemy.position) < areaDistance(ALLY_POSITION, target.position))
+      (!target || areaDistance(allyPos, enemy.position) < areaDistance(allyPos, target.position))
     ) {
       allyPolicy = candidate;
       target = enemy;
@@ -1837,7 +1880,7 @@ function processAttacks(
       continue;
     }
     if (
-      areaDistance(enemy.position, ALLY_POSITION) <= 1 &&
+      areaDistance(enemy.position, allyPos) <= 1 &&
       (enemy.nextMovementAt ?? nowEpoch) <= nowEpoch
     ) {
       continue;
@@ -1847,7 +1890,7 @@ function processAttacks(
       enemy.level,
       cooldowns(engine, enemy.combatId),
       nowEpoch,
-      areaDistance(enemy.position, ALLY_POSITION),
+      areaDistance(enemy.position, allyPos),
       true,
       enemy.statStages,
       ally.statStages,
@@ -1968,8 +2011,11 @@ function processAttacks(
   return { blockedMovers, changes, damagedEnemyCombatIds };
 }
 
-function isInsideGrid(position: Position): boolean {
-  return position.x >= 0 && position.y >= 0 && position.x < GRID_WIDTH && position.y < GRID_HEIGHT;
+function isInsideGrid(position: Position, engine: HuntEngine): boolean {
+  const mapData = engine.resources.mapData;
+  const width = mapData && mapData.width ? mapData.width : GRID_WIDTH;
+  const height = mapData && mapData.height ? mapData.height : GRID_HEIGHT;
+  return position.x >= 0 && position.y >= 0 && position.x < width && position.y < height;
 }
 
 function neighbors(position: Position): Array<Position> {
@@ -1991,20 +2037,25 @@ function directionTo(from: Position, to: Position): Movement['direction'] {
   return to.y < from.y ? 'up' : 'down';
 }
 
-function nextPathStep(from: Position, occupied: Set<string>): Position | undefined {
+function nextPathStep(
+  from: Position,
+  occupied: Set<string>,
+  engine: HuntEngine,
+): Position | undefined {
+  const allyPos = creaturePosition(engine);
   const queue: Array<PathNode> = [{ position: from }];
   const visited = new Set<string>([positionKey(from)]);
   for (let index = 0; index < queue.length; index += 1) {
     const node = queue[index];
     if (
-      areaDistance(node.position, ALLY_POSITION) <= 1 &&
-      (node.position.x !== ALLY_POSITION.x || node.position.y !== ALLY_POSITION.y)
+      areaDistance(node.position, allyPos) <= 1 &&
+      (node.position.x !== allyPos.x || node.position.y !== allyPos.y)
     ) {
       return node.firstStep;
     }
     for (const candidate of neighbors(node.position)) {
       const key = positionKey(candidate);
-      if (!isInsideGrid(candidate) || occupied.has(key) || visited.has(key)) {
+      if (!isInsideGrid(candidate, engine) || occupied.has(key) || visited.has(key)) {
         continue;
       }
       visited.add(key);
@@ -2020,13 +2071,15 @@ function nextPathStep(from: Position, occupied: Set<string>): Position | undefin
 function adjacentWanderDestination(
   enemy: HuntEngineEnemy,
   occupied: Set<string>,
+  engine: HuntEngine,
 ): Position | undefined {
+  const allyPos = creaturePosition(engine);
   const destinations: Array<Position> = [];
   for (const candidate of neighbors(enemy.position)) {
     if (
-      isInsideGrid(candidate) &&
+      isInsideGrid(candidate, engine) &&
       !occupied.has(positionKey(candidate)) &&
-      areaDistance(candidate, ALLY_POSITION) <= 1
+      areaDistance(candidate, allyPos) <= 1
     ) {
       destinations.push(candidate);
     }
@@ -2034,10 +2087,14 @@ function adjacentWanderDestination(
   return destinations[Math.floor(Math.random() * destinations.length)];
 }
 
-function wanderingDestination(enemy: HuntEngineEnemy, occupied: Set<string>): Position | undefined {
+function wanderingDestination(
+  enemy: HuntEngineEnemy,
+  occupied: Set<string>,
+  engine: HuntEngine,
+): Position | undefined {
   const destinations: Array<Position> = [];
   for (const candidate of neighbors(enemy.position)) {
-    if (isInsideGrid(candidate) && !occupied.has(positionKey(candidate))) {
+    if (isInsideGrid(candidate, engine) && !occupied.has(positionKey(candidate))) {
       destinations.push(candidate);
     }
   }
@@ -2075,6 +2132,7 @@ function beginMovements(
   blockedMovers: Set<string>,
 ): Array<HuntEngineEnemy> {
   const occupied = blockedTiles(engine);
+  const allyPos = creaturePosition(engine);
   const moving: Array<HuntEngineEnemy> = [];
   for (const enemy of engine.enemies) {
     if (
@@ -2087,7 +2145,7 @@ function beginMovements(
     }
     occupied.delete(positionKey(enemy.position));
     const hasTarget = activeCreatureAvailable(engine, nowEpoch);
-    const adjacent = hasTarget && areaDistance(enemy.position, ALLY_POSITION) <= 1;
+    const adjacent = hasTarget && areaDistance(enemy.position, allyPos) <= 1;
     if (adjacent && (enemy.nextMovementAt ?? nowEpoch) > nowEpoch) {
       occupied.add(positionKey(enemy.position));
       continue;
@@ -2095,10 +2153,10 @@ function beginMovements(
     let destination: Position | undefined;
     if (hasTarget) {
       destination = adjacent
-        ? adjacentWanderDestination(enemy, occupied)
-        : nextPathStep(enemy.position, occupied);
+        ? adjacentWanderDestination(enemy, occupied, engine)
+        : nextPathStep(enemy.position, occupied, engine);
     } else {
-      destination = wanderingDestination(enemy, occupied);
+      destination = wanderingDestination(enemy, occupied, engine);
     }
     if (!destination) {
       enemy.nextMovementAt = nextAdjacentWanderAt(nowEpoch);
@@ -2136,25 +2194,26 @@ function resolveDefeats(
     engine.xpPending[ally.id] = pendingExperience;
     ally.experience = (BigInt(ally.experience) + BigInt(gain)).toString();
     ally.level = levelFromExperience(BigInt(ally.experience));
+    const allyPos = creaturePosition(engine);
     for (const evolution of evolveAlly(engine, ally)) {
       events.push({
         abilityName: 'Evolution',
         damages: [],
         element: 'normal',
         evolution,
-        feedback: [{ text: 'Evolved', tile: ALLY_POSITION }],
-        from: ALLY_POSITION,
+        feedback: [{ text: 'Evolved', tile: allyPos }],
+        from: allyPos,
         id: randomUUID(),
         kind: 'area',
         occurredAt: nowEpoch,
-        tiles: [ALLY_POSITION],
-        to: ALLY_POSITION,
+        tiles: [allyPos],
+        to: allyPos,
       });
     }
   }
   engine.enemies = surviving;
   const ally = engine.allies[engine.activeAllyIndex];
-  if (ally.health === 0) {
+  if (ally && ally.health === 0) {
     ally.statStages = emptyStatStages();
     const nextIndex = engine.allies.findIndex(function nextAvailable(candidate): boolean {
       return candidate.health > 0;
@@ -2163,7 +2222,14 @@ function resolveDefeats(
       engine.finished = true;
     } else {
       engine.activeAllyIndex = nextIndex;
-      engine.allies[nextIndex].statStages = emptyStatStages();
+      engine.activeCreatureSwitchCompletesAt = undefined;
+      engine.activeCreatureSwitchTargetId = undefined;
+      const nextAlly = engine.allies[nextIndex];
+      nextAlly.statStages = emptyStatStages();
+      const cooldownsForNext = cooldowns(engine, nextAlly.id);
+      for (const ability of nextAlly.abilities) {
+        cooldownsForNext[String(ability.id)] = nowEpoch + ability.cooldownMs;
+      }
       engine.activeCreatureAvailableAt = nowEpoch + ACTIVE_CREATURE_ARRIVAL_MS;
       engine.enemyActionNotBefore = engine.activeCreatureAvailableAt;
     }
@@ -2230,7 +2296,7 @@ function calculateNextEvent(engine: HuntEngine, nowEpoch: number): number {
         enemy.level,
         cooldowns(engine, enemy.combatId),
         nowEpoch,
-        areaDistance(enemy.position, ALLY_POSITION),
+        areaDistance(enemy.position, creaturePosition(engine)),
         true,
         enemy.statStages,
         targetStages,

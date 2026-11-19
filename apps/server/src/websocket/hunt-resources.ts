@@ -2,6 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { loadCatalog } from '../game/catalog-cache.ts';
+import type { HuntingLocationMap } from '../services/hunting-locations.ts';
 import {
   CAPTURE_RARITIES,
   loadCaptureItems,
@@ -164,6 +165,7 @@ export type HuntResources = {
   healingConfiguration: HealingConfigurationResource | undefined;
   healingItems: Array<HealingItemResource>;
   locationId: number;
+  mapData?: HuntingLocationMap;
   species: Record<string, HuntSpeciesResource>;
   typeEffectiveness: Record<string, number>;
 };
@@ -590,6 +592,7 @@ export async function loadHuntResources(
   client: SupabaseClient,
   characterId: string,
   locationId: number,
+  mapData?: HuntingLocationMap,
 ): Promise<HuntResources> {
   const queries = [
     loadHuntBootstrap(client, characterId),
@@ -672,6 +675,7 @@ export async function loadHuntResources(
     healingConfiguration: healingConfiguration(bootstrap.healing_configuration, healingItems),
     healingItems,
     locationId,
+    mapData,
     species: catalog.species,
     typeEffectiveness: catalog.typeEffectiveness,
   };

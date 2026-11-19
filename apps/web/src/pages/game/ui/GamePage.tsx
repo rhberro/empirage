@@ -2,14 +2,8 @@
 import './game.css';
 import * as React from 'react';
 
-import type { CollectionStateEvent } from '../api/game-protocol';
-import type { HuntCommand, HuntState } from '../api/hunt-protocol';
-import { gameStore, selectCollection } from '../model/game-store';
-import {
-  optimisticCollectionConfiguration,
-  optimisticHuntConfiguration,
-} from '../model/optimistic-configuration';
-import { optimisticPartyState } from '../model/optimistic-party';
+import type { HuntCommand } from '../api/hunt-protocol';
+import { dispatchOptimisticCommand, gameStore } from '../model/game-store';
 import { useHuntingLocations } from '../model/use-hunting-locations';
 import { GameCanvas } from './GameCanvas';
 import { HuntInterface } from './HuntInterface';
@@ -48,10 +42,7 @@ export function GamePage(): React.ReactElement {
     if (!sender || !sender(identifiedCommand)) {
       return false;
     }
-    const updateCollection = collectionUpdater(identifiedCommand);
-    const updateHunt = huntUpdater(identifiedCommand);
-    current.setCollection(updateCollection(selectCollection(current)));
-    current.setHunt(updateHunt(current.hunt));
+    dispatchOptimisticCommand(identifiedCommand);
     return true;
   }
   return (
@@ -69,41 +60,12 @@ export function GamePage(): React.ReactElement {
 }
 
 type HuntCommandSender = (command: HuntCommand) => boolean;
-type Collection = CollectionStateEvent['collection'] | null;
-type Hunt = HuntState | null;
-type CollectionUpdater = (current: Collection) => Collection;
-type HuntUpdater = (current: Hunt) => Hunt;
-
-function collectionUpdater(command: HuntCommand): CollectionUpdater {
-  return function updateCollection(current: Collection): Collection {
-    if (!current) {
-      return current;
-    }
-    const configured = optimisticCollectionConfiguration(current, command);
-    return optimisticPartyState(configured, command);
-  };
-}
-
-function huntUpdater(command: HuntCommand): HuntUpdater {
-  return function updateHunt(current: Hunt): Hunt {
-    return current ? optimisticHuntConfiguration(current, command) : current;
-  };
-}
 
 function commandWithId(command: HuntCommand): HuntCommand {
-  if (!isConfigurationCommand(command) || command.commandId) {
+  if (command.commandId) {
     return command;
   }
   return { ...command, commandId: globalThis.crypto.randomUUID() };
-}
-
-function isConfigurationCommand(command: HuntCommand): boolean {
-  return (
-    command.type === 'configure_ability' ||
-    command.type === 'configure_capture' ||
-    command.type === 'configure_healing_item' ||
-    command.type === 'configure_wave_range'
-  );
 }
 
 function isPartyManagementCommand(command: HuntCommand): boolean {

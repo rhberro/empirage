@@ -8,6 +8,7 @@
     "generate:character-atlas": "python3 scripts/generate-character-atlas.py",
     "generate:creature-atlases": "python3 scripts/generate-creature-atlases.py",
     "generate:move-atlas": "python3 scripts/generate-move-atlas.py",
+    "generate:tileset-atlas": "python3 scripts/generate-tileset-atlas.py",
     "preview": "vite preview",
     "steiger": "steiger src/"
   },

@@ -139,6 +139,7 @@ export type CollectionStateEvent = {
     storagePageCount: number;
     storageTotal: number;
   };
+  commandId?: string;
   type: 'collection_state';
 };
 export type CollectionConfigurationPatch = {
@@ -426,6 +427,7 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
   if (party.some(isNull) || storage.some(isNull) || partyConfigurations === null) {
     return null;
   }
+  const commandId = typeof value.commandId === 'string' ? value.commandId : undefined;
   return {
     collection: {
       activeCreatureId: value.collection.activeCreatureId,
@@ -438,6 +440,7 @@ function readCollectionState(value: UnknownRecord): CollectionStateEvent | null 
       storagePageCount: value.collection.storagePageCount,
       storageTotal: value.collection.storageTotal,
     },
+    commandId,
     type: 'collection_state',
   };
 }
@@ -697,7 +700,8 @@ export function parseGameEvent(value: unknown): GameEvent | null {
     return readAuthenticated(value);
   }
   if (value.type === 'hunt_state') {
-    return readHuntState(value.hunt, value.huntId);
+    const commandId = typeof value.commandId === 'string' ? value.commandId : undefined;
+    return readHuntState(value.hunt, value.huntId, commandId);
   }
   if (value.type === 'hunt_delta') {
     return readHuntDelta(value);

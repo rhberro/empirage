@@ -13,27 +13,6 @@ import {
   useGameStore,
 } from '../model/game-store';
 
-type IntervalCleanup = () => void;
-
-function currentTime(): number {
-  return Date.now();
-}
-
-function useCurrentTime(): number {
-  const [now, setNow] = React.useState(currentTime);
-  function refresh(): IntervalCleanup {
-    const timer = globalThis.setInterval(function updateTime(): void {
-      setNow(Date.now());
-    }, 100);
-    function clearTimer(): void {
-      globalThis.clearInterval(timer);
-    }
-    return clearTimer;
-  }
-  React.useEffect(refresh, []);
-  return now;
-}
-
 export function HuntWaveCountdown(): React.ReactElement | null {
   const enemyCount = useGameStore(selectHuntEnemyCount);
   const huntId = useGameStore(selectHuntId);
@@ -48,22 +27,41 @@ export function HuntWaveCountdown(): React.ReactElement | null {
 }
 
 type WaveCountdownProps = { nextEventAt: string; serverTime: number | undefined };
+type CountdownClock = { startedAt: number; totalMs: number };
 
 function WaveCountdown(props: WaveCountdownProps): React.ReactElement {
   const { nextEventAt, serverTime } = props;
-  const now = useCurrentTime();
+  const endsAt = new Date(nextEventAt).getTime();
   const [clock] = React.useState(function createClock(): CountdownClock {
-    const startedAt = serverTime ?? currentTime();
-    const endsAt = new Date(nextEventAt).getTime();
+    const startedAt = serverTime ?? Date.now();
     return { startedAt, totalMs: Math.max(1, endsAt - startedAt) };
   });
-  const nextEventAtMs = new Date(nextEventAt).getTime();
-  const elapsedMs = Math.max(0, now - clock.startedAt);
-  const serverNow = clock.startedAt + elapsedMs;
-  const delayMs = Math.max(0, nextEventAtMs - serverNow);
-  const seconds = Math.ceil(delayMs / 1_000);
-  const progress = Math.min(100, Math.max(0, ((clock.totalMs - delayMs) / clock.totalMs) * 100));
+
+  const [seconds, setSeconds] = React.useState(function initSeconds(): number {
+    return Math.max(0, Math.ceil((endsAt - Date.now()) / 1_000));
+  });
+
+  React.useEffect(
+    function startInterval(): (() => void) | undefined {
+      function updateSeconds(): void {
+        const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1_000));
+        setSeconds(remaining);
+      }
+      const timer = globalThis.setInterval(updateSeconds, 1_000);
+      return function clearTimer(): void {
+        globalThis.clearInterval(timer);
+      };
+    },
+    [endsAt],
+  );
+
+  const remainingMs = Math.min(clock.totalMs, seconds * 1_000);
+  const progress = Math.min(
+    100,
+    Math.max(0, ((clock.totalMs - remainingMs) / clock.totalMs) * 100),
+  );
   const progressWidth = `${progress}%`;
+
   return (
     <Box bottom="28" left="50%" minW="xs" position="fixed" transform="translateX(-50%)" zIndex="2">
       <HStack bg="bg.muted" borderRadius="sm" boxShadow="panel" gap="3" p="3">
@@ -76,12 +74,10 @@ function WaveCountdown(props: WaveCountdownProps): React.ReactElement {
             </Text>
           </HStack>
           <Box bg="bg.subtle" borderRadius="full" h="2" overflow="hidden">
-            <Box bg="brand.solid" h="full" transition="width 100ms linear" w={progressWidth} />
+            <Box bg="brand.solid" h="full" transition="width 1s linear" w={progressWidth} />
           </Box>
         </Box>
       </HStack>
     </Box>
   );
 }
-
-type CountdownClock = { startedAt: number; totalMs: number };

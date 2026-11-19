@@ -153,7 +153,12 @@ export type PartyCreatureConfiguration = Pick<
   'activeCreatureAbilities' | 'activeCreatureAvailableAbilities' | 'activeCreatureLevel'
 >;
 export type PartyCreatureConfigurations = Record<string, PartyCreatureConfiguration>;
-export type HuntStateEvent = { hunt: HuntState | null; huntId?: string; type: 'hunt_state' };
+export type HuntStateEvent = {
+  commandId?: string;
+  hunt: HuntState | null;
+  huntId?: string;
+  type: 'hunt_state';
+};
 export type HuntDeltaPatch = Omit<
   Partial<
     Pick<
@@ -198,6 +203,7 @@ export type HuntDeltaPatch = Omit<
   removedEnemyCombatIds?: RemovedEnemyCombatIds;
 };
 export type HuntDeltaEvent = {
+  commandId?: string;
   huntId: string;
   patch: HuntDeltaPatch | null;
   previousRevision: number;
@@ -967,7 +973,11 @@ function readHunt(value: UnknownRecord): HuntState | null {
   };
 }
 
-export function readHuntState(value: unknown, envelopeHuntId?: unknown): HuntStateEvent | null {
+export function readHuntState(
+  value: unknown,
+  envelopeHuntId?: unknown,
+  commandId?: string,
+): HuntStateEvent | null {
   if (value === null) {
     if (
       envelopeHuntId !== undefined &&
@@ -977,6 +987,7 @@ export function readHuntState(value: unknown, envelopeHuntId?: unknown): HuntSta
     }
     return {
       ...(typeof envelopeHuntId === 'string' ? { huntId: envelopeHuntId } : {}),
+      commandId,
       hunt: null,
       type: 'hunt_state',
     };
@@ -988,7 +999,7 @@ export function readHuntState(value: unknown, envelopeHuntId?: unknown): HuntSta
   if (!hunt) {
     return null;
   }
-  return { hunt, huntId: hunt.huntId, type: 'hunt_state' };
+  return { commandId, hunt, huntId: hunt.huntId, type: 'hunt_state' };
 }
 
 function isHuntDeltaField(value: string): value is HuntDeltaField {
@@ -1200,12 +1211,15 @@ export function readHuntDelta(value: unknown): HuntDeltaEvent | null {
     !UUID_PATTERN.test(value.huntId) ||
     !isCount(value.previousRevision) ||
     !isCount(value.revision) ||
-    value.revision !== value.previousRevision + 1
+    value.revision !== value.previousRevision + 1 ||
+    (value.commandId !== undefined && typeof value.commandId !== 'string')
   ) {
     return null;
   }
   const patch = readHuntDeltaPatch(value.patch);
+  const commandId = typeof value.commandId === 'string' ? value.commandId : undefined;
   return {
+    commandId,
     huntId: value.huntId,
     patch,
     previousRevision: value.previousRevision,

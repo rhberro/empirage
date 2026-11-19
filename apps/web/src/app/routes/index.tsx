@@ -41,6 +41,10 @@ const ROUTES: Route = [
     path: '/game',
   },
   {
+    Component: lazy(loadMapEditorPage),
+    path: '/map-editor',
+  },
+  {
     Component: null,
     loader() {
       throw redirect('/');
@@ -77,4 +81,8 @@ function loadGamePage(): Promise<typeof import('~/pages/game')> {
 
 function loadDesignSystemPage(): Promise<typeof import('~/pages/design-system')> {
   return import('~/pages/design-system');
+}
+
+function loadMapEditorPage(): Promise<typeof import('~/pages/map-editor')> {
+  return import('~/pages/map-editor');
 }

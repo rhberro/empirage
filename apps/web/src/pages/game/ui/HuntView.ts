@@ -2,6 +2,8 @@
 import type { GameObjects, Scene } from 'phaser';
 /* eslint-disable max-lines */
 
+import type { HuntingLocation, HuntingLocationAnimation } from '~/entities/hunting-location';
+
 import type { Tile } from '../api/game-protocol';
 import { applyHuntDelta } from '../api/hunt-protocol';
 import type {
@@ -11,8 +13,7 @@ import type {
   HuntGrid,
   HuntState,
 } from '../api/hunt-protocol';
-import type { HuntingLocation } from '../api/hunting-locations';
-import { CREATURE_ALLY_KEY, HuntCreatures } from './hunt-creatures';
+import { CREATURE_ALLY_KEY, directionTowards, HuntCreatures } from './hunt-creatures';
 import type { CreatureSpec } from './hunt-creatures';
 import { HuntEffects } from './hunt-effects';
 
@@ -23,7 +24,6 @@ type AssetsReadyHandler = () => void;
 type HuntRenderField = keyof HuntDeltaPatch;
 
 const PLAYER_ATLAS_KEY = 'male-walking-running';
-const PLAYER_FRAME = 'idle/east/frame_1';
 const ALLY_DIRECTION = 'east';
 const ENEMY_DIRECTION = 'west';
 const ENEMY_KEY_PREFIX = 'enemy-';
@@ -339,10 +339,8 @@ export class HuntView {
     }
     const locationKey = `hunting-location-${location.id}`;
     if (!this.scene.textures.exists(locationKey)) {
-      this.scene.load.spritesheet(locationKey, location.tilesetUrl, {
-        frameHeight: location.map.tileSize,
-        frameWidth: location.map.tileSize,
-      });
+      const atlasUrl = location.tilesetUrl.replace(/\.png$/u, '.json');
+      this.scene.load.atlas(locationKey, location.tilesetUrl, atlasUrl);
     }
     for (const speciesId of speciesIds) {
       const creatureKey = `creature-${speciesId}`;
@@ -471,14 +469,14 @@ export class HuntView {
       return;
     }
     this.configureGrid(state);
-    this.creatures.configure(state.grid.width, state.grid.height, this.tileSize, width, height);
-    const backdropKey = `${width}:${height}:${JSON.stringify(state.grid)}`;
+    this.creatures.configure(this.gridOriginX, this.gridOriginY, this.tileSize);
+    const backdropKey = `${width}:${height}:${this.gridOriginX}:${this.gridOriginY}:${JSON.stringify(state.grid)}`;
     if (this.backdropKey !== backdropKey) {
       this.backdrop.removeAll(true);
       this.drawBackdrop(width, height, state);
       this.backdropKey = backdropKey;
     }
-    this.addPlayer(state.playerPosition);
+    this.addPlayer(state.playerPosition, state.allyPosition);
     const now = this.serverNow(Date.now());
     this.addCreatures(state, now);
     this.creatures.finish(now);
@@ -537,9 +535,11 @@ export class HuntView {
   private configureGrid(state: HuntState): void {
     const { width, height } = this.scene.scale;
     this.tileSize = state.grid.tileSize;
-    this.gridOriginX = (width - state.grid.width * this.tileSize) / 2;
-    this.gridOriginY = (height - state.grid.height * this.tileSize) / 2;
-    this.effects.configure(this.gridOriginX, this.gridOriginY, this.tileSize);
+    const creatureCenterX = (state.allyPosition.x + 0.5) * this.tileSize;
+    const creatureCenterY = (state.allyPosition.y + 0.5) * this.tileSize;
+    this.gridOriginX = width / 2 - creatureCenterX;
+    this.gridOriginY = height / 2 - creatureCenterY;
+    this.effects.configure(this.gridOriginX, this.gridOriginY, this.tileSize, state.playerPosition);
   }
 
   private activeCreaturePosition(state: HuntState): Tile {
@@ -627,39 +627,87 @@ export class HuntView {
     this.backdrop.add(tiles);
   }
 
-  private drawTilesetBackdrop(location: HuntingLocation, tilesetKey: string, grid: HuntGrid): void {
-    const frames = new Map<string, number>();
-    for (const tile of location.map.tiles) {
-      frames.set(tileKey(tile), tile.frame);
+  private playTileAnimation(
+    tileSprite: GameObjects.Sprite,
+    locationId: number,
+    tilesetKey: string,
+    animConfig: HuntingLocationAnimation,
+  ): void {
+    if (animConfig.frames.length <= 1) {
+      return;
     }
+    const animKey = `tileset-${locationId}-anim-${animConfig.id}`;
+    if (!this.scene.anims.exists(animKey)) {
+      const frameObjects: Array<{ frame: string; key: string }> = [];
+      for (const frameNum of animConfig.frames) {
+        const frameObj = { frame: String(frameNum), key: tilesetKey };
+        frameObjects.push(frameObj);
+      }
+      const frameRate = Math.round(1000 / Math.max(16, animConfig.frameRateMs));
+      const animSettings = {
+        duration: undefined,
+        frameRate,
+        frames: frameObjects,
+        key: animKey,
+        repeat: animConfig.iterations === 0 ? -1 : animConfig.iterations,
+        yoyo: animConfig.mode === 'pingpong',
+      };
+      this.scene.anims.create(animSettings);
+    }
+    tileSprite.play(animKey);
+  }
+
+  private drawTilesetBackdrop(location: HuntingLocation, tilesetKey: string, grid: HuntGrid): void {
+    const tileMap = new Map<string, { animationId?: string | null; frame: number }>();
+    for (const tile of location.map.tiles) {
+      tileMap.set(tileKey(tile), { animationId: tile.animationId, frame: tile.frame });
+    }
+    const animationsById = new Map<string, HuntingLocationAnimation>();
+    if (location.map.animations) {
+      for (const anim of location.map.animations) {
+        animationsById.set(anim.id, anim);
+      }
+    }
+
     for (let row = 0; row < grid.height; row += 1) {
       for (let column = 0; column < grid.width; column += 1) {
         const position = { x: column, y: row };
-        const frame = frames.get(tileKey(position)) ?? location.map.defaultTileFrame;
-        const tile = this.scene.add.sprite(
+        const tileData = tileMap.get(tileKey(position));
+        const frame = tileData ? tileData.frame : location.map.defaultTileFrame;
+        const tileSprite = this.scene.add.sprite(
           this.gridOriginX + column * this.tileSize + this.tileSize / 2,
           this.gridOriginY + row * this.tileSize + this.tileSize / 2,
           tilesetKey,
-          frame,
+          String(frame),
         );
-        this.backdrop.add(tile);
+        this.backdrop.add(tileSprite);
+
+        if (tileData && tileData.animationId) {
+          const animConfig = animationsById.get(tileData.animationId);
+          if (animConfig) {
+            this.playTileAnimation(tileSprite, location.id, tilesetKey, animConfig);
+          }
+        }
       }
     }
   }
 
-  private addPlayer(position: Tile): void {
+  private addPlayer(position: Tile, allyPosition: Tile): void {
+    const direction = directionTowards(position, allyPosition, 'east');
+    const playerFrame = `idle/${direction}/frame_1`;
     if (this.player) {
       this.player.setPosition(
         this.gridOriginX + position.x * this.tileSize + this.tileSize / 2,
         this.gridOriginY + position.y * this.tileSize + this.tileSize / 2,
       );
+      this.player.setFrame(playerFrame);
       return;
     }
     const sprite = this.scene.add.sprite(
       this.gridOriginX + position.x * this.tileSize + this.tileSize / 2,
       this.gridOriginY + position.y * this.tileSize + this.tileSize / 2,
       PLAYER_ATLAS_KEY,
-      PLAYER_FRAME,
+      playerFrame,
     );
     sprite.setOrigin(0.5, 0.75);
     this.player = sprite;
@@ -795,5 +843,6 @@ export class HuntView {
 
   private destroy(): void {
     this.scene.scale.off('resize', this.redraw, this);
+    this.creatures.destroy();
   }
 }

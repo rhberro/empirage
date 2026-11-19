@@ -1,10 +1,11 @@
 /* eslint-disable oxsome/no-inline-functions-objects-arrays, oxsome/no-jsx-inline-computation */
-import { AspectRatio, Box, CloseButton, Dialog, HStack, Text, VStack } from '@chakra-ui/react';
+import { AspectRatio, Box, CloseButton, Dialog, For, HStack, Text, VStack } from '@chakra-ui/react';
 import * as React from 'react';
 
+import type { HuntingLocation, HuntingLocationWaveRange } from '~/entities/hunting-location';
+
 import type { HuntCommand } from '../api/hunt-protocol';
-import { HuntingLocation, HuntingLocationWaveRange } from '../api/hunting-locations';
-import { selectHuntingLocationId, selectHuntWaveRange, useGameStore } from '../model/game-store';
+import { selectHuntingLocationId, useGameStore } from '../model/game-store';
 import {
   selectWaveRangeModalState,
   toggleWaveRangeModal,
@@ -13,16 +14,14 @@ import {
 import { useHuntingLocations } from '../model/use-hunting-locations';
 import { Slot } from './BottomBar/Slot';
 
-type WaveRangeDialogProps = {
-  onCommand: (command: HuntCommand) => boolean;
-};
+type WaveRangeDialogProps = { onCommand: (command: HuntCommand) => boolean };
 
 export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement | null {
   const { onCommand } = props;
   const open = useModalStore(selectWaveRangeModalState);
   const { data = [] } = useHuntingLocations();
   const huntingLocationId = useGameStore(selectHuntingLocationId);
-  const waveRange = useGameStore(selectHuntWaveRange);
+  // const waveRange = useGameStore(selectHuntWaveRange);
   function findLocation(candidate: HuntingLocation): boolean {
     return candidate.id === huntingLocationId;
   }
@@ -45,12 +44,11 @@ export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement
     const label = minimumSize === maximumSize ? maximumSize : minimumSize + ' - ' + maximumSize;
     return (
       <VStack>
-        <Slot content={<Text textStyle="2xl">{maximumSize}</Text>} onClick={onClick} />
+        <Slot content={<Text textStyle="xl">{maximumSize}</Text>} onClick={onClick} />
         <Text>{label}</Text>
       </VStack>
     );
   }
-  const renderedRanges = location.waveRanges.map(renderRange);
   return (
     <Dialog.Root lazyMount onOpenChange={toggleWaveRangeModal} open={open} unmountOnExit>
       <Dialog.Backdrop />
@@ -64,11 +62,12 @@ export function WaveRangeDialog(props: WaveRangeDialogProps): React.ReactElement
           </Dialog.Header>
           <Dialog.Body>
             <VStack gap="4">
-              <Dialog.Description>Quantas criaturas nascem a cada leva.</Dialog.Description>
               <AspectRatio ratio={1} w="full">
                 <Box shadow="panel">Preview</Box>
               </AspectRatio>
-              <HStack>{renderedRanges}</HStack>
+              <HStack>
+                <For each={location.waveRanges}>{renderRange}</For>
+              </HStack>
               <Dialog.Description textAlign="center">
                 A configuração passa a valer quando a próxima onda começar.
               </Dialog.Description>

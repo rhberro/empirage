@@ -45,17 +45,20 @@ function SlotComponent(props: SlotProps): React.ReactElement {
   const hasCooldown = cooldown && cooldownStyle;
   const disabled = !label;
   const cursor = onClick ? 'pointer' : undefined;
+  // const hover = { border: 'solid 2px', transform: 'translateY(-5%)' };
   return (
     <Tooltip disabled={disabled} content={label}>
       <Square
+        // _hover={hover}
         aspectRatio="square"
         // border="sm"
         borderRadius="sm"
-        boxShadow="panel"
+        boxShadow="inset"
         cursor={cursor}
         onClick={onClick}
         overflow="hidden"
         position="relative"
+        // transition="all 150ms ease-in-out"
         w="16"
       >
         <Show when={hasCooldown}>

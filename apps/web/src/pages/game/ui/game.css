@@ -255,21 +255,41 @@
 }
 
 .hunt-feedback--ability {
-  padding: 3px 6px;
+  padding: 1px 2px;
   border-radius: 999px;
   color: #ffffff;
   background-color: var(--feedback-color);
-  font-size: 12px;
+  font-size: 2px;
+  letter-spacing: 0.15px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 40%);
 }
 
 .hunt-feedback--damage {
   color: var(--feedback-color, #fff1d4);
-  font-size: 15px;
+  font-size: 4px;
+  font-weight: 700;
   text-shadow:
-    0 1px 0 #171922,
-    1px 0 0 #171922,
-    0 -1px 0 #171922,
-    -1px 0 0 #171922;
+    -0.5px -0.5px 0 #171922,
+    0 -0.5px 0 #171922,
+    0.5px -0.5px 0 #171922,
+    -0.5px 0 0 #171922,
+    0.5px 0 0 #171922,
+    -0.5px 0.5px 0 #171922,
+    0 0.5px 0 #171922,
+    0.5px 0.5px 0 #171922;
+  filter: drop-shadow(0 0.8px 0.6px rgb(0 0 0 / 85%));
+}
+
+.hunt-feedback--status {
+  padding: 1px 2px;
+  border-radius: 3px;
+  background-color: rgb(23 25 35 / 85%);
+  border: 0.5px solid rgb(253 216 53 / 50%);
+  color: #fdd835;
+  font-size: 2px;
+  font-weight: 700;
+  letter-spacing: 0.15px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 40%);
 }
 
 .hunt-feedback--super-effective {

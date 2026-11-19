@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import type { CityBattleConfigurations } from './city-battle-configuration.ts';
+
 export type CardinalDirection = 'down' | 'left' | 'right' | 'up';
 export type Direction = CardinalDirection | 'down-left' | 'down-right' | 'up-left' | 'up-right';
 export type MovementMode = 'running' | 'walking';
@@ -35,6 +37,8 @@ export type AuthenticatedState = {
   storagePage: number;
   hunting: boolean;
   huntTransitioning: boolean;
+  cityBattleConfigurations?: CityBattleConfigurations;
+  cityBattleConfigurationsActiveId?: string | null;
   supabase: SupabaseClient;
 };
 export type SocketData = {

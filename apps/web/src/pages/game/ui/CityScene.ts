@@ -1,10 +1,11 @@
 /* eslint-disable import/max-dependencies, max-lines, oxc/no-optional-chaining, oxsome/no-inline-functions-objects-arrays, oxsome/no-inline-structural-types */
 import { Scene } from 'phaser';
 
+import type { HuntingLocation } from '~/entities/hunting-location';
+
 import type { GameEvent, Tile } from '../api/game-protocol';
 import { GameSession } from '../api/game-socket';
 import type { HuntCommand } from '../api/hunt-protocol';
-import type { HuntingLocation } from '../api/hunting-locations';
 import { configureCameraViewport } from '../lib/camera-viewport';
 import { PlayerInput } from '../lib/player-input';
 import { gameStore, selectCollection, selectParty } from '../model/game-store';
@@ -316,18 +317,31 @@ export class CityScene extends Scene {
 
   private configureCameraViewport(): void {
     const camera = this.cameras.main;
+    if (this.huntView && this.huntView.active) {
+      camera.setViewport(0, 0, this.scale.width, this.scale.height);
+      camera.setScroll(0, 0);
+      return;
+    }
     configureCameraViewport(camera, this.scale);
     camera.setBounds(0, 0, MAP_COLUMNS * CELL_SIZE, MAP_ROWS * CELL_SIZE);
   }
 
   private focusHuntCamera(target: Tile | null): void {
     const camera = this.cameras.main;
+    if (this.huntView && this.huntView.active) {
+      camera.stopFollow();
+      camera.setViewport(0, 0, this.scale.width, this.scale.height);
+      camera.setScroll(0, 0);
+      return;
+    }
     if (target) {
       camera.stopFollow().centerOn(target.x, target.y);
       return;
     }
     const player = this.visuals.get(this.characterId);
     if (player) {
+      this.configureCameraViewport();
+      camera.centerOn(player.sprite.x, player.sprite.y);
       camera.startFollow(player.sprite, true, 0.15, 0.15);
     }
   }

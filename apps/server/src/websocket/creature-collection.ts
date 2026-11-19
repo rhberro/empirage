@@ -169,6 +169,64 @@ export async function loadCreatureCollectionProgress(
   });
 }
 
+const cachedSpeciesById = new Map<number, SpeciesRow>();
+const cachedElementsBySpecies = new Map<number, Array<string>>();
+
+function isSpeciesMissing(id: number): boolean {
+  return !cachedSpeciesById.has(id);
+}
+
+async function ensureSpeciesMetadata(
+  client: SupabaseClient,
+  speciesIds: Array<number>,
+): Promise<void> {
+  const missingSpeciesIds = speciesIds.filter(isSpeciesMissing);
+  if (missingSpeciesIds.length === 0) {
+    return;
+  }
+  const [speciesResult, speciesTypesResult] = await Promise.all([
+    client
+      .from('species')
+      .select(
+        'id, name, description, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed',
+      )
+      .in('id', missingSpeciesIds),
+    client.from('species_types').select('species_id, type_id').in('species_id', missingSpeciesIds),
+  ]);
+  if (speciesResult.error) {
+    throw speciesResult.error;
+  }
+  if (speciesTypesResult.error) {
+    throw speciesTypesResult.error;
+  }
+  const speciesRows = speciesResult.data as SpeciesRows;
+  const speciesTypeRows = speciesTypesResult.data as SpeciesTypeRows;
+  const typeIds = [...new Set(speciesTypeRows.map(typeIdForSpecies))];
+  const typesResult =
+    typeIds.length > 0
+      ? await client.from('types').select('id, name').in('id', typeIds)
+      : { data: [], error: null };
+  if (typesResult.error) {
+    throw typesResult.error;
+  }
+  const types = typesResult.data as TypeRows;
+  const typeNames = new Map<number, string>();
+  for (const type of types) {
+    typeNames.set(type.id, type.name);
+  }
+  for (const relation of speciesTypeRows) {
+    const elements = cachedElementsBySpecies.get(relation.species_id) ?? [];
+    const name = typeNames.get(relation.type_id);
+    if (name) {
+      elements.push(name);
+    }
+    cachedElementsBySpecies.set(relation.species_id, elements);
+  }
+  for (const species of speciesRows) {
+    cachedSpeciesById.set(species.id, species);
+  }
+}
+
 export async function loadCreatureCollection(
   client: SupabaseClient,
   characterId: string,
@@ -240,57 +298,15 @@ export async function loadCreatureCollection(
       storageTotal,
     };
   }
-  const [speciesResult, speciesTypesResult] = await Promise.all([
-    client
-      .from('species')
-      .select(
-        'id, name, description, base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed',
-      )
-      .in('id', speciesIds),
-    client.from('species_types').select('species_id, type_id').in('species_id', speciesIds),
-  ]);
-  if (speciesResult.error) {
-    throw speciesResult.error;
-  }
-  if (speciesTypesResult.error) {
-    throw speciesTypesResult.error;
-  }
-  const speciesRows = speciesResult.data as SpeciesRows;
-  const speciesTypeRows = speciesTypesResult.data as SpeciesTypeRows;
-  const typeIds = [...new Set(speciesTypeRows.map(typeIdForSpecies))];
-  const typesResult =
-    typeIds.length > 0
-      ? await client.from('types').select('id, name').in('id', typeIds)
-      : { data: [], error: null };
-  if (typesResult.error) {
-    throw typesResult.error;
-  }
-  const types = typesResult.data as TypeRows;
-  const typeNames = new Map<number, string>();
-  for (const type of types) {
-    typeNames.set(type.id, type.name);
-  }
-  const elementsBySpecies = new Map<number, Array<string>>();
-  for (const relation of speciesTypeRows) {
-    const elements = elementsBySpecies.get(relation.species_id) ?? [];
-    const name = typeNames.get(relation.type_id);
-    if (name) {
-      elements.push(name);
-    }
-    elementsBySpecies.set(relation.species_id, elements);
-  }
-  const speciesById = new Map<number, SpeciesRow>();
-  for (const species of speciesRows) {
-    speciesById.set(species.id, species);
-  }
+  await ensureSpeciesMetadata(client, speciesIds);
   const party: CreatureCollectionItems = [];
   const storage: CreatureCollectionItems = [];
   for (const row of creatureRows) {
-    const species = speciesById.get(row.species_id);
+    const species = cachedSpeciesById.get(row.species_id);
     if (!species) {
       continue;
     }
-    const item = collectionItem(row, species, elementsBySpecies);
+    const item = collectionItem(row, species, cachedElementsBySpecies);
     if (item.partySlot === null) {
       storage.push(item);
     } else {

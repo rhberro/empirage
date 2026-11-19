@@ -1,9 +1,15 @@
-import type { CollectionCreature, CollectionStateEvent } from '../api/game-protocol';
+import type {
+  CollectionCreature,
+  CollectionCreatureProgress,
+  CollectionPatchEvent,
+  CollectionStateEvent,
+} from '../api/game-protocol';
 
 type Collection = CollectionStateEvent['collection'] | null;
 type CollectionMetadata = Omit<NonNullable<Collection>, 'party' | 'storage'>;
 type CreatureIds = Array<string>;
 type Creatures = Array<CollectionCreature>;
+type CreatureProgressEntry = [string, CollectionCreatureProgress];
 type ElementComparator = (element: string, index: number) => boolean;
 export type CreatureEntities = Record<string, CollectionCreature>;
 export type NormalizedCollection = CollectionMetadata & {
@@ -139,4 +145,100 @@ function sameSpecies(
     first.id === second.id &&
     first.name === second.name
   );
+}
+
+export type CreatureHuntProgressSync = {
+  collection: NormalizedCollection | null;
+  creaturesById: CreatureEntities;
+  updatedCreature: CollectionCreature | null;
+};
+
+export function updateCreatureInList(creatures: Creatures, updated: CollectionCreature): Creatures {
+  function replaceCreature(candidate: CollectionCreature): CollectionCreature {
+    return candidate.id === updated.id ? updated : candidate;
+  }
+  return creatures.map(replaceCreature);
+}
+
+export function syncCreatureHuntProgress(
+  entities: CreatureEntities,
+  collection: NormalizedCollection | null,
+  activeCreatureId?: string,
+  level?: number,
+  experience?: string,
+  experienceLevelStart?: string,
+  experienceNextLevel?: string,
+): CreatureHuntProgressSync {
+  if (!activeCreatureId || level === undefined || experience === undefined) {
+    return { collection, creaturesById: entities, updatedCreature: null };
+  }
+  const current = entities[activeCreatureId];
+  if (!current) {
+    return { collection, creaturesById: entities, updatedCreature: null };
+  }
+  const hasChanged =
+    current.level !== level ||
+    current.experience !== experience ||
+    (experienceLevelStart !== undefined && current.experienceLevelStart !== experienceLevelStart) ||
+    (experienceNextLevel !== undefined && current.experienceNextLevel !== experienceNextLevel);
+  if (!hasChanged) {
+    return { collection, creaturesById: entities, updatedCreature: null };
+  }
+  const updatedCreature: CollectionCreature = {
+    ...current,
+    experience,
+    experienceLevelStart: experienceLevelStart ?? current.experienceLevelStart,
+    experienceNextLevel: experienceNextLevel ?? current.experienceNextLevel,
+    level,
+  };
+  const creaturesById: CreatureEntities = {
+    ...entities,
+    [activeCreatureId]: updatedCreature,
+  };
+  if (!collection) {
+    return { collection: null, creaturesById, updatedCreature };
+  }
+  const party = updateCreatureInList(collection.party, updatedCreature);
+  const nextCollection: NormalizedCollection = {
+    ...collection,
+    party,
+  };
+  return { collection: nextCollection, creaturesById, updatedCreature };
+}
+
+function progressEntry(entry: CollectionCreatureProgress): CreatureProgressEntry {
+  return [entry.id, entry];
+}
+
+function missingCreature(creature: CollectionCreature | null): boolean {
+  return creature === null;
+}
+
+export function applyCreatureProgress(
+  creatures: Creatures,
+  progress: CollectionPatchEvent['creatures'],
+): Creatures | null {
+  if (!progress) {
+    return creatures;
+  }
+  const progressEntries = progress.map(progressEntry);
+  const progressById = new Map(progressEntries);
+  function updateCreature(creature: CollectionCreature): CollectionCreature | null {
+    const update = progressById.get(creature.id);
+    if (!update) {
+      return creature;
+    }
+    if (update.speciesId !== creature.species.id) {
+      return null;
+    }
+    return {
+      ...creature,
+      experience: update.experience,
+      experienceLevelStart: update.experienceLevelStart,
+      experienceNextLevel: update.experienceNextLevel,
+      level: update.level,
+    };
+  }
+  const next = creatures.map(updateCreature);
+  return next.some(missingCreature) ? null : (next as Creatures);
 }

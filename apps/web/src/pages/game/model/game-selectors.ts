@@ -1,16 +1,49 @@
 import type { CollectionCreature, CollectionStateEvent } from '../api/game-protocol';
-import type { HuntWaveRange, PartyCreatureHealth } from '../api/hunt-protocol';
-import { HuntingLocation } from '../api/hunting-locations';
+import type {
+  BattleConfiguration,
+  HuntAbility,
+  HuntAvailableAbility,
+  HuntWaveRange,
+  PartyCreatureHealth,
+} from '../api/hunt-protocol';
 import type { GameStoreState } from './game-store';
 
 type Party = CollectionStateEvent['collection']['party'];
 type Storage = CollectionStateEvent['collection']['storage'];
 type CreatureIds = Array<string>;
 type CreatureSelector = (state: GameStoreState) => CollectionCreature | undefined;
+type BattleConfigurationKey = keyof BattleConfiguration;
+type HuntAbilities = Array<HuntAbility>;
+type HuntAvailableAbilities = Array<HuntAvailableAbility>;
 
 const EMPTY_PARTY: Party = [];
 const EMPTY_STORAGE: Storage = [];
 const EMPTY_CREATURE_IDS: CreatureIds = [];
+const EMPTY_ABILITIES: HuntAbilities = [];
+const EMPTY_AVAILABLE_ABILITIES: HuntAvailableAbilities = [];
+const EMPTY_CAPTURE_ITEMS: BattleConfiguration['captureItems'] = [];
+const EMPTY_HEALING_ITEMS: BattleConfiguration['healingItems'] = [];
+
+export function selectCollection(state: GameStoreState): CollectionStateEvent['collection'] | null {
+  const collection = state.collection;
+  if (!collection) {
+    return null;
+  }
+  const { partyIds: _partyIds, storageIds: _storageIds, ...snapshot } = collection;
+  return snapshot;
+}
+
+export function selectHunt(state: GameStoreState): GameStoreState['hunt'] {
+  return state.hunt;
+}
+
+export function selectProfile(state: GameStoreState): GameStoreState['profile'] {
+  return state.profile;
+}
+
+export function selectIsHunting(state: GameStoreState): boolean {
+  return state.hunt !== null;
+}
 
 export function selectPartyIds(state: GameStoreState): CreatureIds {
   return state.collection ? state.collection.partyIds : EMPTY_CREATURE_IDS;
@@ -175,4 +208,73 @@ function partyCreatureHealth(
     return candidate.creatureId === creatureId;
   }
   return hunt.partyHealth.find(findHealth);
+}
+
+export function selectHuntActiveCreatureAbilities(state: GameStoreState): HuntAbilities {
+  return battleConfigurationValue(state, 'activeCreatureAbilities', EMPTY_ABILITIES);
+}
+
+export function selectHuntActiveCreatureAbilityBySlot(
+  slot: number,
+  state: GameStoreState,
+): HuntAbility | undefined {
+  const abilities = battleConfigurationValue(state, 'activeCreatureAbilities', EMPTY_ABILITIES);
+  for (const ability of abilities) {
+    if (ability.slot === slot) {
+      return ability;
+    }
+  }
+  return undefined;
+}
+
+export function selectHuntAvailableAbilities(state: GameStoreState): HuntAvailableAbilities {
+  return battleConfigurationValue(
+    state,
+    'activeCreatureAvailableAbilities',
+    EMPTY_AVAILABLE_ABILITIES,
+  );
+}
+
+export function selectHuntActiveCreatureLevel(state: GameStoreState): number | undefined {
+  return battleConfigurationValue(state, 'activeCreatureLevel');
+}
+
+export function selectCaptureConfiguration(
+  state: GameStoreState,
+): BattleConfiguration['captureConfiguration'] {
+  return battleConfigurationValue(state, 'captureConfiguration');
+}
+
+export function selectCaptureItems(state: GameStoreState): BattleConfiguration['captureItems'] {
+  return battleConfigurationValue(state, 'captureItems', EMPTY_CAPTURE_ITEMS);
+}
+
+export function selectHealingConfiguration(
+  state: GameStoreState,
+): BattleConfiguration['healingConfiguration'] {
+  return battleConfigurationValue(state, 'healingConfiguration');
+}
+
+export function selectHealingItemCooldownEndsAt(state: GameStoreState): number | undefined {
+  return battleConfigurationValue(state, 'healingItemCooldownEndsAt');
+}
+
+export function selectHealingItems(state: GameStoreState): BattleConfiguration['healingItems'] {
+  return battleConfigurationValue(state, 'healingItems', EMPTY_HEALING_ITEMS);
+}
+
+function battleConfiguration(state: GameStoreState): BattleConfiguration | undefined {
+  if (state.hunt) {
+    return state.hunt;
+  }
+  return state.collection ? state.collection.configuration : undefined;
+}
+
+function battleConfigurationValue<Key extends BattleConfigurationKey>(
+  state: GameStoreState,
+  key: Key,
+  fallback?: BattleConfiguration[Key],
+): BattleConfiguration[Key] {
+  const configuration = battleConfiguration(state);
+  return (configuration ? configuration[key] : fallback) as BattleConfiguration[Key];
 }

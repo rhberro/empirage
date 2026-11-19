@@ -2,7 +2,8 @@
 import { Badge, Box, Button, Dialog, Grid, HStack, Image, Stack, Text } from '@chakra-ui/react';
 import * as React from 'react';
 
-import type { HuntingLocation } from '../api/hunting-locations';
+import type { HuntingLocation } from '~/entities/hunting-location';
+
 import {
   selectHuntingLocationsModalState,
   toggleHuntingLocationsModal,

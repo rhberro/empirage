@@ -17,3 +17,7 @@ export function loadCatalog<T>(key: string, loader: CatalogLoader<T>): Promise<T
   pending.catch(removeRejectedEntry);
   return pending;
 }
+
+export function invalidateCatalog(key: string): void {
+  entries.delete(key);
+}

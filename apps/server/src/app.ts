@@ -18,7 +18,7 @@ function corsOrigin(origin: string): string | undefined {
 
 const corsOptions = {
   allowHeaders: ['Authorization', 'Content-Type'],
-  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   origin: corsOrigin,
 };
 const corsMiddleware = cors(corsOptions);

@@ -1,5 +1,6 @@
 import type { GameObjects, Scene } from 'phaser';
 
+import type { Tile } from '../api/game-protocol';
 import type { CaptureAttempt, HuntCombatEvent, HuntState } from '../api/hunt-protocol';
 import { huntElementBackgroundColor } from '../lib/hunt-element-colors';
 
@@ -38,15 +39,24 @@ export class HuntEffects {
   private gridOriginX = 0;
   private gridOriginY = 0;
   private tileSize = 16;
+  private playerPosition: Tile = { x: 2, y: 3 };
 
   public constructor(scene: Scene) {
     this.effects = scene.add.graphics().setDepth(10_001).setScrollFactor(0);
   }
 
-  public configure(gridOriginX: number, gridOriginY: number, tileSize: number): void {
+  public configure(
+    gridOriginX: number,
+    gridOriginY: number,
+    tileSize: number,
+    playerPosition?: Tile,
+  ): void {
     this.gridOriginX = gridOriginX;
     this.gridOriginY = gridOriginY;
     this.tileSize = tileSize;
+    if (playerPosition) {
+      this.playerPosition = playerPosition;
+    }
   }
 
   public apply(state: HuntState, now: number): void {
@@ -137,7 +147,7 @@ export class HuntEffects {
       const totalDuration = Math.max(1, visual.attempt.completesAt - visual.startedAt);
       const progress = Math.max(0, Math.min(1, (now - visual.startedAt) / totalDuration));
       const flightProgress = Math.min(1, progress * 5);
-      const from = { x: 2, y: 3 };
+      const from = this.playerPosition;
       const target = visual.attempt.position;
       const x = from.x + (target.x - from.x) * flightProgress;
       const y = from.y + (target.y - from.y) * flightProgress;
@@ -253,8 +263,7 @@ export class HuntEffects {
       const fadeAlpha = progress <= 0.75 ? 1 : 1 - (progress - 0.75) / 0.25;
       for (const feedback of visual.labels) {
         const x = this.screenX(feedback.tile.x);
-        const y =
-          this.screenY(feedback.tile.y) - progress * (feedback.type === 'ability' ? 24 : 28);
+        const y = this.screenY(feedback.tile.y) - progress * (feedback.type === 'ability' ? 6 : 7);
         const offsetX = feedback.type === 'damage' ? this.tileSize * 0.45 : 0;
         const offsetY = feedback.type === 'ability' ? this.tileSize / 2 : 0;
         const resisted = feedback.effectiveness === 'resisted';

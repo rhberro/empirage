@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 
 import { loadCatalog } from '../game/catalog-cache.ts';
 import { logger } from '../logger.ts';
+import type { HuntingLocationMap } from '../services/hunting-locations.ts';
 import {
   CAPTURE_RARITIES,
   type CaptureConfigurationResource,
@@ -288,6 +289,7 @@ export type HuntDeltaPatch = Omit<
 } & PublicEnemyDelta;
 export type HuntStateUpdate = {
   combatEvents: Array<HuntCombatEvent>;
+  commandId?: string;
   huntId: string;
   patch: HuntDeltaPatch;
   previousRevision?: number;
@@ -470,7 +472,23 @@ async function captureCommandTimeout(): Promise<never> {
   throw new Error('capture_completion_timeout');
 }
 
-function huntGrid(locationId: number): HuntGrid {
+function huntGrid(engine: HuntEngine): HuntGrid {
+  const mapData = engine.resources.mapData;
+  if (mapData && Array.isArray(mapData.specialTiles)) {
+    const blocked: Array<Position> = [];
+    for (const tile of mapData.specialTiles) {
+      if (tile.kind === 'blocked') {
+        blocked.push({ x: tile.x, y: tile.y });
+      }
+    }
+    return {
+      blocked,
+      height: mapData.height ?? GRID_HEIGHT,
+      tileSize: mapData.tileSize ?? 16,
+      width: mapData.width ?? GRID_WIDTH,
+    };
+  }
+  const locationId = engine.resources.locationId;
   const blocked: Array<Position> = [];
   for (let x = 2; x < GRID_WIDTH - 2; x += 2) {
     if (x !== ALLY_POSITION.x) {
@@ -628,13 +646,21 @@ function publicStaticState(runtime: Runtime): HuntStaticState {
     return runtime.staticState;
   }
   const { engine } = runtime;
+  const mapData = engine.resources.mapData;
+  const creatureSpawn =
+    mapData && mapData.specialTiles
+      ? mapData.specialTiles.find(function isCreature(t) {
+          return t.kind === 'creature_spawn';
+        })
+      : undefined;
+  const allyPosition = creatureSpawn ? { x: creatureSpawn.x, y: creatureSpawn.y } : ALLY_POSITION;
   const staticState = {
-    allyPosition: ALLY_POSITION,
+    allyPosition,
     captureItems: engine.resources.captureItems.map(publicCaptureItem),
     characterAvatarUrl: engine.resources.character.avatarUrl,
     characterLevel: engine.resources.character.level,
     characterName: engine.resources.character.name,
-    grid: huntGrid(engine.resources.locationId),
+    grid: huntGrid(engine),
     healingItems: engine.resources.healingItems.map(publicHealingItem),
     huntingLocationId: engine.resources.locationId,
     huntId: engine.huntId,
@@ -659,6 +685,7 @@ export async function switchHuntActiveCreature(
   characterId: string,
   userId: string,
   creatureId: string,
+  commandId?: string,
 ): Promise<boolean> {
   const runtime = await runtimeForCharacter(characterId);
   if (!runtime || runtime.accountId !== userId) {
@@ -668,7 +695,7 @@ export async function switchHuntActiveCreature(
     return true;
   }
   launchCheckpoint(runtime, false);
-  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS);
+  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS, undefined, commandId);
   return true;
 }
 
@@ -685,6 +712,7 @@ export async function configureHuntWaveRange(
   userId: string,
   minimumSize: number,
   maximumSize: number,
+  commandId?: string,
 ): Promise<boolean> {
   if (
     !Number.isSafeInteger(minimumSize) ||
@@ -712,7 +740,7 @@ export async function configureHuntWaveRange(
   runtime.engine.waveRange = selectedWaveRange;
   runtime.engine.revision += 1;
   launchCheckpoint(runtime, false);
-  notifyRuntime(runtime, [], false, HUNT_WAVE_RANGE_FIELDS);
+  notifyRuntime(runtime, [], false, HUNT_WAVE_RANGE_FIELDS, undefined, commandId);
   return true;
 }
 
@@ -748,9 +776,10 @@ function notifyRuntime(
   collectionChanged = false,
   fields: HuntDeltaFields = HUNT_SIMULATION_FIELDS,
   enemyDelta?: EngineEnemyDelta,
+  commandId?: string,
 ): void {
   if (notifier) {
-    const update = publicStateUpdate(runtime, events, fields, enemyDelta);
+    const update = publicStateUpdate(runtime, events, fields, enemyDelta, commandId);
     notifier(runtime.characterId, update, undefined, collectionChanged);
   }
 }
@@ -760,12 +789,14 @@ function publicStateUpdate(
   combatEvents: Array<HuntCombatEvent>,
   fields: HuntDeltaFields,
   enemyDelta?: EngineEnemyDelta,
+  commandId?: string,
 ): HuntStateUpdate {
   const previousRevision = runtime.lastPublishedRevision;
   const revision = runtime.engine.revision;
   runtime.lastPublishedRevision = revision;
   return {
     combatEvents,
+    commandId,
     huntId: runtime.engine.huntId,
     patch: publicHuntPatch(runtime, fields, enemyDelta),
     previousRevision,
@@ -1303,6 +1334,7 @@ export async function configureHuntHealingItem(
   userId: string,
   itemId: number,
   thresholdPercentage: number,
+  commandId?: string,
 ): Promise<boolean> {
   if (
     !Number.isSafeInteger(itemId) ||
@@ -1330,7 +1362,7 @@ export async function configureHuntHealingItem(
     }
     runtime.engine.resources.healingConfiguration = undefined;
     runtime.engine.revision += 1;
-    notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS);
+    notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS, undefined, commandId);
     return true;
   }
   const item = runtime.engine.resources.healingItems.find(function configuredItem(
@@ -1361,7 +1393,7 @@ export async function configureHuntHealingItem(
   }
   runtime.engine.resources.healingConfiguration = { itemId, thresholdPercentage };
   runtime.engine.revision += 1;
-  notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS);
+  notifyRuntime(runtime, [], false, HUNT_HEALING_CONFIGURATION_FIELDS, undefined, commandId);
   return true;
 }
 
@@ -1382,6 +1414,7 @@ export async function configureHuntCapture(
   userId: string,
   itemId: number,
   rarities: Array<CaptureRarity>,
+  commandId?: string,
 ): Promise<boolean> {
   if (
     !Number.isSafeInteger(itemId) ||
@@ -1409,7 +1442,7 @@ export async function configureHuntCapture(
     }
     runtime.engine.resources.captureConfiguration = undefined;
     runtime.engine.revision += 1;
-    notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS);
+    notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS, undefined, commandId);
     return true;
   }
   const item = runtime.engine.resources.captureItems.find(function configuredItem(
@@ -1430,7 +1463,7 @@ export async function configureHuntCapture(
   }
   runtime.engine.resources.captureConfiguration = { itemId, rarities };
   runtime.engine.revision += 1;
-  notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS);
+  notifyRuntime(runtime, [], false, HUNT_CAPTURE_CONFIGURATION_FIELDS, undefined, commandId);
   return true;
 }
 
@@ -1456,6 +1489,7 @@ export async function configureHuntAbility(
   userId: string,
   slot: number,
   abilityId: number | null,
+  commandId?: string,
 ): Promise<boolean> {
   if (!Number.isSafeInteger(slot) || slot < 1 || slot > 4) {
     throw new TypeError('invalid_ability_slot');
@@ -1525,7 +1559,7 @@ export async function configureHuntAbility(
     resourceCreature.abilities = abilities;
   }
   runtime.engine.revision += 1;
-  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS);
+  notifyRuntime(runtime, [], false, HUNT_ACTIVE_CREATURE_FIELDS, undefined, commandId);
   return true;
 }
 
@@ -1863,7 +1897,13 @@ async function recoverRuntime(characterId: string): Promise<Runtime | undefined>
   if (!row) {
     return undefined;
   }
-  const resources = await loadHuntResources(serverClient, characterId, row.hunting_location_id);
+  const location = await locationById(row.hunting_location_id);
+  const resources = await loadHuntResources(
+    serverClient,
+    characterId,
+    row.hunting_location_id,
+    location.map_data,
+  );
   const now = epochNow();
   const recoveredDuringLoad =
     runtimesByCharacter.get(characterId) ?? runtimesByHunt.get(row.hunt_id);
@@ -1968,6 +2008,7 @@ type LocationWaveRangeRow = { maximum_size: number; minimum_size: number };
 type HuntingLocationRow = {
   id: number;
   hunting_location_wave_ranges: Array<LocationWaveRangeRow>;
+  map_data?: HuntingLocationMap;
   wave_delay_seconds: number;
 };
 
@@ -2001,7 +2042,9 @@ function locationById(locationId: number): Promise<HuntingLocationRow> {
   function load(): Promise<HuntingLocationRow> {
     return serverClient
       .from('hunting_locations')
-      .select('id, wave_delay_seconds, hunting_location_wave_ranges(minimum_size, maximum_size)')
+      .select(
+        'id, wave_delay_seconds, map_data, hunting_location_wave_ranges(minimum_size, maximum_size)',
+      )
       .eq('id', locationId)
       .order('minimum_size', { referencedTable: 'hunting_location_wave_ranges' })
       .order('maximum_size', { referencedTable: 'hunting_location_wave_ranges' })
@@ -2033,7 +2076,12 @@ async function startHuntExclusive(
     throw new Error('another_character_is_hunting');
   }
   const location = await locationById(locationId);
-  const resources = await loadHuntResources(serverClient, characterId, location.id);
+  const resources = await loadHuntResources(
+    serverClient,
+    characterId,
+    location.id,
+    location.map_data,
+  );
   const recoveredDuringLoad = runtimesByCharacter.get(characterId);
   if (recoveredDuringLoad) {
     return publicState(recoveredDuringLoad, []);
@@ -2058,6 +2106,16 @@ async function startHuntExclusive(
   const huntId = randomUUID();
   const selectedWaveRange = lowestWaveRange(location.hunting_location_wave_ranges);
   const waveSize = selectedWaveRange.minimumSize;
+  const locationMap = location.map_data;
+  const trainerSpawn =
+    locationMap && locationMap.specialTiles
+      ? locationMap.specialTiles.find(function isTrainer(t) {
+          return t.kind === 'trainer_spawn';
+        })
+      : undefined;
+  const initialPlayerPosition = trainerSpawn
+    ? { x: trainerSpawn.x, y: trainerSpawn.y }
+    : PLAYER_POSITION;
   const checkpoint: HuntEngineCheckpoint = {
     activeCreatureHealth: maximumHealthForCreature(species, active),
     activeCreatureId: active.id,
@@ -2066,7 +2124,7 @@ async function startHuntExclusive(
     enemies: [],
     huntId,
     nextEventAt: now + location.wave_delay_seconds * 1_000,
-    playerPosition: PLAYER_POSITION,
+    playerPosition: initialPlayerPosition,
     revision: 1,
     wave: 1,
     waveDelayMs: location.wave_delay_seconds * 1_000,

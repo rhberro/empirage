@@ -3,11 +3,11 @@ import { AUTO, Game, Scale } from 'phaser';
 import type { ReactElement } from 'react';
 import { useEffect, useRef } from 'react';
 
+import type { HuntingLocation } from '~/entities/hunting-location';
 import { authStore } from '~/shared/auth';
 import { getSelectedCharacter } from '~/shared/session';
 
 import type { HuntCommand } from '../api/hunt-protocol';
-import type { HuntingLocation } from '../api/hunting-locations';
 import { CityScene } from './CityScene';
 
 const GAME_WIDTH = 480;

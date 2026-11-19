@@ -255,9 +255,111 @@ Ou `null` quando não há caça. O servidor valida o token e filtra a busca pelo
 ]
 ```
 
-Valida o token e retorna a configuração disponível no banco. `tilesetUrl` referencia o spritesheet do cenário; `map` contém o tamanho, tiles por coordenada e objetos posicionados. O cliente usa esses dados para pré-carregar e, futuramente, pré-visualizar o mapa antes da transição.
+Valida o token e retorna a configuração disponível no banco. `tilesetUrl` referencia o spritesheet do cenário; `map` contém o tamanho, tiles por coordenada, animações (`animations`) e tiles especiais de scripts (`specialTiles`). O cliente usa esses dados para pré-carregar e, futuramente, pré-visualizar o mapa antes da transição.
 
 `waveRanges` lista, em ordem crescente, as únicas faixas de criaturas por onda que o jogador pode selecionar naquele local.
+
+### `GET /hunting-locations/species`
+
+| Objetivo | listar o catálogo completo de espécies para configuração no editor |
+| --- | --- |
+| Autorização | opcional no momento (editor aberto para desenvolvimento) |
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Bulbasaur",
+    "description": "A strange seed was planted on its back at birth. The plant sprouts and grows with this POKéMON."
+  }
+]
+```
+
+### `POST /hunting-locations`
+
+| Objetivo | criar um novo local de caça com mapa inicial opcional, espécies e faixas de onda |
+| --- | --- |
+| Autorização | opcional no momento (editor aberto para desenvolvimento) |
+
+Corpo da requisição:
+
+```json
+{
+  "name": "Nova Rota",
+  "slug": "nova-rota",
+  "description": "Descrição do novo local.",
+  "tilesetUrl": "/assets/tilesets/exterior.png",
+  "map": {
+    "width": 16,
+    "height": 9,
+    "tileSize": 16,
+    "defaultTileFrame": 0,
+    "tiles": [],
+    "specialTiles": [
+      { "kind": "blocked", "x": 0, "y": 0 },
+      { "kind": "enemy_spawn", "x": 10, "y": 4 },
+      { "kind": "trainer_spawn", "x": 2, "y": 4 },
+      { "kind": "creature_spawn", "x": 5, "y": 4 }
+    ],
+    "animations": []
+  }
+}
+```
+
+Resposta (`201 Created`): Retorna a entidade completa `HuntingLocation` criada.
+
+### `PUT /hunting-locations/:id/map`
+
+| Objetivo | salvar estrutura do mapa, scripts, tileset, espécies e faixas de ondas de um local de caça |
+| --- | --- |
+| Autorização | opcional no momento (editor aberto para desenvolvimento) |
+
+Corpo da requisição:
+
+```json
+{
+  "map": {
+    "width": 12,
+    "height": 8,
+    "tileSize": 16,
+    "defaultTileFrame": 0,
+    "tiles": [
+      { "x": 0, "y": 0, "frame": 45, "animationId": null }
+    ],
+    "specialTiles": [
+      { "kind": "blocked", "x": 4, "y": 2 },
+      { "kind": "enemy_spawn", "x": 9, "y": 3 },
+      { "kind": "trainer_spawn", "x": 2, "y": 3 },
+      { "kind": "creature_spawn", "x": 6, "y": 3 }
+    ],
+    "animations": [
+      {
+        "id": "water_1",
+        "frames": [100, 101, 102],
+        "frameRateMs": 150,
+        "mode": "loop",
+        "iterations": 0
+      }
+    ]
+  },
+  "tilesetUrl": "/assets/tilesets/exterior.png",
+  "species": [
+    {
+      "slot": 1,
+      "speciesId": 16,
+      "minimumLevel": 2,
+      "maximumLevel": 7,
+      "encounterWeight": 80
+    }
+  ],
+  "waveRanges": [
+    { "minimumSize": 1, "maximumSize": 2 },
+    { "minimumSize": 2, "maximumSize": 4 }
+  ]
+}
+```
+
+O servidor valida se o payload possui ao menos 1 de cada tipo de tile especial (`blocked`, `enemy_spawn`, `trainer_spawn`, `creature_spawn`). Quando informados `species` e `waveRanges`, atualiza atomicamente as tabelas associadas (`hunting_location_species` e `hunting_location_wave_ranges`). Retorna o objeto atualizado do `hunting_location` e invalida os caches de catálogo em memória (`hunting-location:${locationId}` e `hunt-static-catalog`).
 
 ### `GET /ws` sem upgrade
 
@@ -350,7 +452,7 @@ mesmo se a revisão avançou desde o último evento emitido, e não altera o ban
 { "type": "leave_hunt", "version": 1 }
 ```
 
-`start_hunt` exige um identificador inteiro de local existente, personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. O servidor usa exclusivamente o local solicitado; não há seleção aleatória. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`; ao retornar à cidade, `leave_hunt` também emite um `collection_patch` incremental com a experiência e o nível persistidos da equipe.
+`start_hunt` exige um identificador inteiro de local existente, personagem e recursos válidos, evita corridas de criação e garante uma caça por conta. O servidor usa exclusivamente o local solicitado; não há seleção aleatória. `leave_hunt` exige checkpoint final confirmado antes de declarar a caça encerrada. Ambos respondem com `hunt_state`; ao retornar à cidade por `leave_hunt` ou finalização automática da caçada, o servidor emite primeiro o `collection_patch` (ou `collection_state`) com a experiência e o nível persistidos da equipe e, logo após, emite `hunt_state` com `hunt: null`. Essa ordem garante que a coleção autoritativa no cliente esteja reconciliada e atualizada antes que a interface conclua a transição para a cidade.
 
 ### `configure_healing_item`
 
@@ -422,7 +524,7 @@ Valida criatura ativa da equipe e propriedade. Na cidade, o cliente marca a cria
 { "type": "request_creature_storage", "version": 1, "storagePage": 2 }
 ```
 
-Exige página inteira maior ou igual a um e responde com `collection_state`. O servidor registra a página efetivamente retornada no estado da conexão; os `collection_patch` estruturais seguintes projetam essa mesma página, inclusive quando uma movimentação altera seus itens ou seus totais.
+Exige página inteira maior ou igual a um e responde com `collection_state`. O servidor registra a página efetivamente retornada no estado da conexão; os `collection_patch` estruturais seguintes projetam essa mesma página, inclusive quando uma movimentação altera seus itens ou seus totais. No cliente, a paginação adota cache indexado por página e revisão (`PaginatedEntityCache`), permitindo navegação instantânea (0ms) entre páginas já carregadas na mesma revisão; mutações estruturais invalidam o cache automaticamente. No servidor, metadados estáticos de espécies e configurações de batalha da cidade são preservados em cache na conexão, evitando consultas redundantes no banco de dados durante a paginação.
 
 ### `move_creature_to_party` e `move_creature_to_storage`
 
@@ -540,6 +642,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 {
   "type": "hunt_state",
   "version": 1,
+  "commandId": "command-uuid",
   "huntId": "hunt-uuid",
   "hunt": {
     "revision": 12,
@@ -572,7 +675,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-É o snapshot e a fonte de verdade visual da caça. É enviado no início, na reconexão, ao terminar a caça, quando não há uma revisão sequencial disponível ou em resposta a `request_hunt_state`; as demais mudanças podem usar `hunt_delta`. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. As listas `activeCreatureAvailableAbilities` e `activeCreatureAbilities` incluem somente moves de nível cuja exigência já foi alcançada; moves de evolução, TM e HM permanecem no catálogo até que seus fluxos explícitos de aprendizado sejam implementados. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. `combatEvents` permanece no snapshot para recuperação visual após reconexão, mas não integra `hunt_delta`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
+É o snapshot e a fonte de verdade visual da caça. Quando gerado em resposta direta a um comando identificado (`commandId`), inclui o identificador para confirmação da projeção otimista do cliente. É enviado no início, na reconexão, ao terminar a caça, quando não há uma revisão sequencial disponível ou em resposta a `request_hunt_state`; as demais mudanças podem usar `hunt_delta`. `revision` aumenta em toda mudança observável do estado, inclusive na criação, no resultado e na remoção de uma tentativa de captura; o cliente descarta somente estados com revisão anterior ou igual. `waveRange` é a faixa escolhida para a próxima onda; o payload completo também contém mapa, habilidades, cooldowns, itens, configurações, criatura ativa e experiência. As listas `activeCreatureAvailableAbilities` e `activeCreatureAbilities` incluem somente moves de nível cuja exigência já foi alcançada; moves de evolução, TM e HM permanecem no catálogo até que seus fluxos explícitos de aprendizado sejam implementados. `partyHealth` contém a vida atual e máxima de cada integrante da equipe, inclusive os inativos, e acompanha cada atualização de combate. `combatEvents` permanece no snapshot para recuperação visual após reconexão, mas não integra `hunt_delta`. Cada item em `captureAttempts` começa como `pending` durante a animação. Ao enfileirar a tentativa, o servidor decide o resultado da captura, reserva o custo da bola e inicia imediatamente a persistência atômica no banco. Exatamente em `completesAt`, ele envia `succeeded` ou `failed`, garantindo o feedback visual verde ou vermelho no prazo planejado. Se a persistência falhar ou expirar após 10 s, a tentativa permanece na fila interna do servidor e é repetida após 3 s com o mesmo `id`, usado como `command_id` idempotente; ela não volta a ficar amarela no cliente. Uma captura bem-sucedida cria a criatura diretamente no armazenamento, nunca na equipe; `collection_state` é atualizado somente depois dessa persistência. Quando a caça termina, `hunt` é `null`.
 
 ### `hunt_delta`
 
@@ -580,6 +683,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 {
   "type": "hunt_delta",
   "version": 1,
+  "commandId": "command-uuid",
   "huntId": "hunt-uuid",
   "previousRevision": 41,
   "revision": 42,
@@ -596,7 +700,7 @@ Confirma que a conexão está autorizada a operar o personagem.
 }
 ```
 
-Após o snapshot inicial, o servidor pode enviar somente os campos runtime alterados da caça. O runtime calcula essa projeção uma vez por atualização e a reutiliza para os sockets elegíveis, sem cada conexão comparar dois estados completos. No caminho sequencial, ele não constrói o `hunt_state` completo nem o retém por socket: cada conexão guarda apenas `huntId` e `revision`; o snapshot integral é projetado sob demanda somente para entrada, ressincronização ou quebra de sequência. A origem da mutação declara seu domínio — configuração de cura, configuração de captura, criatura ativa ou faixa de onda — e o runtime projeta diretamente os campos daquele domínio, sem comparação estrutural. Durante a simulação, o motor declara troca concluída, movimento de inimigos, nova onda, vida/equipe ativa, cooldowns da criatura ativa e experiência/evolução separadamente. Um ataque aliado publica seus cooldowns e, se acertar, os inimigos afetados; um ataque inimigo publica sua agenda e, se acertar, a vida e a equipe ativa. Inimigos não são repetidos em `enemies` durante uma atualização sequencial: `enemySpawns` contém a entidade completa somente ao nascer, `enemyPatches` identifica uma entidade por `combatId` e contém apenas `health`, `position` ou `movement` que mudaram, e `removedEnemyCombatIds` contém derrotas ou remoções. O snapshot inicial continua usando `enemies` completo e não inclui atributos-base ou agendas internas do motor sem consumidor no cliente. Um comando de caça que efetivamente muda o estado publica exatamente essa única atualização; o handler WebSocket não envia uma segunda resposta de estado. Toda alteração visual avança `revision`, enquanto um comando idempotente sem mudança não emite evento. O evento contém `huntId`, `previousRevision`, `revision` e `patch`; o cliente aplica o patch apenas quando a revisão local coincide exatamente com `previousRevision`. O parser valida exclusivamente os campos presentes no patch e a store preserva as referências dos domínios que não foram alterados; a validação integral permanece restrita a `hunt_state`. A projeção Phaser recebe o patch diretamente e só reconcilia criaturas ou capturas quando os respectivos campos estão presentes. `patch` admite somente vida, criatura ativa, habilidades, spawns, patches e remoções de inimigos, configurações de batalha, ouro, tentativas de captura, posições, onda, relógios e `serverTime`; `combatEvents`, revisão, identidade da caça, grade, posição do aliado, metadados do personagem, itens de catálogo, local, geração do runtime e tamanho da onda não entram no delta. Se qualquer um desses últimos campos mudar, ou não houver uma revisão anterior sequencial, o servidor envia um `hunt_state` completo em vez de tentar representar a mudança parcialmente. Se a revisão, a caça ou a validação do patch não coincidirem, o cliente não aplica o delta e envia `request_hunt_state` uma única vez até receber o `hunt_state` autoritativo.
+Após o snapshot inicial, o servidor pode enviar somente os campos runtime alterados da caça. O runtime calcula essa projeção uma vez por atualização e a reutiliza para os sockets elegíveis, sem cada conexão comparar dois estados completos. No caminho sequencial, ele não constrói o `hunt_state` completo nem o retém por socket: cada conexão guarda apenas `huntId` e `revision`; o snapshot integral é projetado sob demanda somente para entrada, ressincronização ou quebra de sequência. A origem da mutação declara seu domínio — configuração de cura, configuração de captura, criatura ativa ou faixa de onda — e o runtime projeta diretamente os campos daquele domínio, sem comparação estrutural. Durante a simulação, o motor declara troca concluída, movimento de inimigos, nova onda, vida/equipe ativa, cooldowns da criatura ativa e experiência/evolução separadamente. Um ataque aliado publica seus cooldowns e, se acertar, os inimigos afetados; um ataque inimigo publica sua agenda e, se acertar, a vida e a equipe ativa. Inimigos não são repetidos em `enemies` durante uma atualização sequencial: `enemySpawns` contém a entidade completa somente ao nascer, `enemyPatches` identifica uma entidade por `combatId` e contém apenas `health`, `position` ou `movement` que mudaram, e `removedEnemyCombatIds` contém derrotas ou remoções. O snapshot inicial continua usando `enemies` completo e não inclui atributos-base ou agendas internas do motor sem consumidor no cliente. Um comando de caça que efetivamente muda o estado publica exatamente essa única atualização; o handler WebSocket não envia uma segunda resposta de estado. Toda alteração visual avança `revision`, enquanto um comando idempotente sem mudança não emite evento. Quando acionado por um comando do jogador, o delta carrega `commandId` correspondente, permitindo reconciliação e descarte determinístico na fila de predição do cliente sem conflito ou rollback visual de ações posteriores. O evento contém `huntId`, `previousRevision`, `revision` e `patch`; o cliente aplica o patch apenas quando a revisão local coincide exatamente com `previousRevision`. O parser valida exclusivamente os campos presentes no patch e a store preserva as referências dos domínios que não foram alterados; a validação integral permanece restrita a `hunt_state`. A projeção Phaser recebe o patch diretamente e só reconcilia criaturas ou capturas quando os respectivos campos estão presentes. `patch` admite somente vida, criatura ativa, habilidades, spawns, patches e remoções de inimigos, configurações de batalha, ouro, tentativas de captura, posições, onda, relógios e `serverTime`; `combatEvents`, revisão, identidade da caça, grade, posição do aliado, metadados do personagem, itens de catálogo, local, geração do runtime e tamanho da onda não entram no delta. Se qualquer um desses últimos campos mudar, ou não houver uma revisão anterior sequencial, o servidor envia um `hunt_state` completo em vez de tentar representar a mudança parcialmente. Se a revisão, a caça ou a validação do patch não coincidirem, o cliente não aplica o delta e envia `request_hunt_state` uma única vez até receber o `hunt_state` autoritativo.
 
 Ao limpar `activeCreatureSwitchCompletesAt` em um `hunt_delta`, o servidor envia explicitamente `null`; o cliente o converte para ausência no estado local. Isso impede que o prazo concluído da troca permaneça no cliente.
 
@@ -631,6 +735,7 @@ Ao limpar `activeCreatureSwitchCompletesAt` em um `hunt_delta`, o servidor envia
 {
   "type": "collection_state",
   "version": 1,
+  "commandId": "command-uuid",
   "collection": {
     "activeCreatureId": "creature-uuid",
     "party": [],
@@ -667,7 +772,7 @@ Ao limpar `activeCreatureSwitchCompletesAt` em um `hunt_delta`, o servidor envia
 
 Confirma uma alteração incremental da coleção na cidade. O cliente aplica o patch somente quando a revisão é imediatamente posterior à sua coleção local; em qualquer lacuna, pede um `collection_state` completo. `commandId` correlaciona a confirmação com a projeção otimista. Alterações de cura e captura carregam a configuração canônica. Troca de criatura ativa e moves equipados podem incluir `partyConfigurations` completas; movimentação, reordenação e soltura as omitem. Nesses casos, o cliente preserva as configurações das criaturas ainda presentes e remove as das que saíram da equipe. `structure` traz criatura ativa, `partyIds`, `storageIds`, página corrente do armazenamento e totais. `creatureUpserts` inclui recursos completos somente das criaturas afetadas pela operação; as listas estruturais referenciam os recursos pelo ID. A projeção estrutural consulta somente IDs, slots, seleção e total da página corrente registrada para a conexão; ela não lê IVs, espécies, tipos ou configurações de combate para reenviar recursos que o cliente já possui. O patch não repete catálogos globais de itens e habilidades já presentes no último `collection_state`; o cliente recompõe a configuração da criatura ativa a partir de `partyConfigurations`. Internamente, o cliente indexa cada criatura por identificador e mantém projeções estáveis de equipe e da página de armazenamento; consumidores assinam apenas a projeção ou metadado que exibem. Se uma lista referenciar uma criatura que não exista na tabela local e não venha em `creatureUpserts`, o cliente descarta o patch e solicita o `collection_state` autoritativo.
 
-Após o checkpoint final de `leave_hunt`, o mesmo evento contém `creatures`, uma lista limitada à equipe com `id`, `speciesId`, `level`, `experience`, `experienceLevelStart` e `experienceNextLevel`. Assim, a cidade atualiza os cards com os valores efetivamente persistidos sem recarregar armazenamento, espécies, IVs ou configurações. Se uma espécie mudou por evolução durante a caça, o cliente detecta a divergência de `speciesId` e pede o `collection_state` completo para atualizar também seus metadados visuais.
+Após o checkpoint final de `leave_hunt` (e transmitido antes do `hunt_state` de encerramento), o mesmo evento contém `creatures`, uma lista limitada à equipe com `id`, `speciesId`, `level`, `experience`, `experienceLevelStart` e `experienceNextLevel`. Assim, a cidade atualiza os cards com os valores efetivamente persistidos sem recarregar armazenamento, espécies, IVs ou configurações e sem qualquer intervalo de dessincronização visual. Se uma espécie mudou por evolução durante a caça, o cliente detecta a divergência de `speciesId` e pede o `collection_state` completo para atualizar também seus metadados visuais.
 
 ### `error`, fechamento e heartbeat
 

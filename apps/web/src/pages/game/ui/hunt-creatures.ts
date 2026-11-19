@@ -80,7 +80,7 @@ function movementDirection(movement: HuntMovement): Direction {
   return west ? 'west' : east ? 'east' : north ? 'north' : 'south';
 }
 
-function directionTowards(from: Tile, target: Tile, fallback: Direction): Direction {
+export function directionTowards(from: Tile, target: Tile, fallback: Direction): Direction {
   const horizontalDistance = target.x - from.x;
   const verticalDistance = target.y - from.y;
   if (Math.abs(horizontalDistance) >= Math.abs(verticalDistance) && horizontalDistance !== 0) {
@@ -107,6 +107,7 @@ function movementFrame(movement: HuntMovement, now: number): number {
 }
 
 export class HuntCreatures {
+  private readonly healthBars: GameObjects.Container;
   private readonly overlay: GameObjects.Container;
   private readonly scene: Scene;
   private readonly creatures = new Map<string, CreatureVisual>();
@@ -127,19 +128,14 @@ export class HuntCreatures {
   ) {
     this.scene = scene;
     this.overlay = overlay;
+    this.healthBars = scene.add.container(0, 0).setDepth(10_000.5).setScrollFactor(0);
     this.onAtlasComplete = onAtlasComplete;
   }
 
-  public configure(
-    gridWidth: number,
-    gridHeight: number,
-    tileSize: number,
-    width: number,
-    height: number,
-  ): void {
+  public configure(gridOriginX: number, gridOriginY: number, tileSize: number): void {
     this.tileSize = tileSize;
-    this.gridOriginX = (width - gridWidth * tileSize) / 2;
-    this.gridOriginY = (height - gridHeight * tileSize) / 2;
+    this.gridOriginX = gridOriginX;
+    this.gridOriginY = gridOriginY;
   }
 
   public clear(): void {
@@ -153,6 +149,11 @@ export class HuntCreatures {
     }
     this.creatures.clear();
     this.feedback.clear();
+  }
+
+  public destroy(): void {
+    this.reset();
+    this.healthBars.destroy();
   }
 
   public remove(key: string, now: number): void {
@@ -208,7 +209,7 @@ export class HuntCreatures {
     const feedback = this.resolveFeedback(spec, now);
     const healthBar = this.scene.add.graphics();
     this.overlay.add(sprite);
-    this.overlay.add(healthBar);
+    this.healthBars.add(healthBar);
     this.creatures.set(spec.key, {
       animated,
       color,
@@ -378,8 +379,8 @@ export class HuntCreatures {
   }
 
   private renderHealthBar(visual: CreatureVisual, x: number, y: number, now: number): void {
-    const width = Math.max(12, this.tileSize);
-    const height = 2;
+    const width = 12;
+    const height = 1;
     const barX = Math.round(x - width / 2);
     const barY = Math.round(y - this.tileSize);
     const progress = this.reducedMotion
@@ -393,10 +394,10 @@ export class HuntCreatures {
     const healthRatio = Math.max(0, Math.min(1, shownHealth / visual.maximumHealth));
     const color = healthRatio > 0.5 ? 0x4caf50 : healthRatio > 0.2 ? 0xf0b429 : 0xd64545;
     visual.healthBar.clear();
-    visual.healthBar.fillStyle(0x111111, 0.9);
+    visual.healthBar.fillStyle(0x111111, 1);
     visual.healthBar.fillRect(barX - 1, barY - 1, width + 2, height + 2);
     visual.healthBar.fillStyle(color, 1);
-    visual.healthBar.fillRect(barX, barY, Math.round(width * healthRatio), height);
+    visual.healthBar.fillRect(barX, barY, Math.max(0, Math.round(width * healthRatio)), height);
     const departure =
       visual.feedback.defeatedAt === null
         ? 0
@@ -404,7 +405,6 @@ export class HuntCreatures {
     visual.healthBar.setAlpha(
       (1 - departure) * (1 - switchDepartureProgress(visual.switchesOutAt, now)),
     );
-    visual.healthBar.setDepth(y + visual.spriteOffsetY + 0.1);
   }
 
   private screenX(tileX: number): number {

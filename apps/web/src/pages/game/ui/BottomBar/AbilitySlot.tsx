@@ -25,7 +25,7 @@ export function AbilitySlot(props: AbilitySlotProps): React.ReactElement {
       />
     );
   }
-  const content = <Icon name="add" textStyle="2xl" />;
+  const content = <Icon name="add_2" textStyle="2xl" />;
   return (
     <Slot
       content={content}

@@ -2,56 +2,44 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 
 import { AppError } from '../errors.ts';
+import {
+  fetchMaxLocationId,
+  updateLocationSpecies,
+  updateLocationWaveRanges,
+} from './hunting-location-relations.ts';
+import type {
+  CreateHuntingLocationInput,
+  HuntingLocation,
+  HuntingLocationAnimation,
+  HuntingLocationMap,
+  HuntingLocationMapObject,
+  HuntingLocationMapTile,
+  HuntingLocationSpecialTile,
+  HuntingLocationSpecies,
+  HuntingLocationSpeciesList,
+  HuntingLocationWaveRange,
+  HuntingLocationWaveRangeList,
+  SpeciesCatalogItem,
+  UpdateHuntingLocationSpeciesInput,
+  UpdateHuntingLocationWaveRangeInput,
+} from './hunting-location-types.ts';
 
-export interface HuntingLocation {
-  description: string;
-  id: number;
-  map: HuntingLocationMap;
-  name: string;
-  positionX: number;
-  positionY: number;
-  slug: string;
-  species: HuntingLocationSpeciesList;
-  tilesetUrl: string;
-  waveRanges: HuntingLocationWaveRangeList;
-}
-
-interface HuntingLocationMapTile {
-  frame: number;
-  x: number;
-  y: number;
-}
-
-interface HuntingLocationMapObject {
-  kind: string;
-  x: number;
-  y: number;
-}
-
-interface HuntingLocationMap {
-  defaultTileFrame: number;
-  height: number;
-  objects: Array<HuntingLocationMapObject>;
-  tileSize: number;
-  tiles: Array<HuntingLocationMapTile>;
-  width: number;
-}
-
-interface HuntingLocationSpecies {
-  description: string;
-  encounterWeight: number;
-  id: number;
-  maximumLevel: number;
-  minimumLevel: number;
-  name: string;
-}
-
-type HuntingLocationSpeciesList = Array<HuntingLocationSpecies>;
-interface HuntingLocationWaveRange {
-  maximumSize: number;
-  minimumSize: number;
-}
-type HuntingLocationWaveRangeList = Array<HuntingLocationWaveRange>;
+export type {
+  CreateHuntingLocationInput,
+  HuntingLocation,
+  HuntingLocationAnimation,
+  HuntingLocationMap,
+  HuntingLocationMapObject,
+  HuntingLocationMapTile,
+  HuntingLocationSpecialTile,
+  HuntingLocationSpecies,
+  HuntingLocationSpeciesList,
+  HuntingLocationWaveRange,
+  HuntingLocationWaveRangeList,
+  SpeciesCatalogItem,
+  UpdateHuntingLocationSpeciesInput,
+  UpdateHuntingLocationWaveRangeInput,
+};
 
 interface SpeciesRow {
   description: string;
@@ -102,6 +90,7 @@ function mapSpecies(availability: HuntingLocationSpeciesRow): HuntingLocationSpe
     maximumLevel: availability.maximum_level,
     minimumLevel: availability.minimum_level,
     name: availability.species.name,
+    slot: availability.slot,
   };
   return species;
 }
@@ -146,4 +135,106 @@ export async function listHuntingLocations(supabase: SupabaseClient): Promise<Hu
   }
 
   return (data as HuntingLocationRowList).map(mapHuntingLocation);
+}
+
+export async function listSpeciesCatalog(
+  supabase: SupabaseClient,
+): Promise<Array<SpeciesCatalogItem>> {
+  const { data, error } = await supabase
+    .from('species')
+    .select('id, name, description')
+    .order('id');
+
+  if (error) {
+    throw databaseError(error);
+  }
+
+  return (data as Array<SpeciesCatalogItem>) ?? [];
+}
+
+export async function createHuntingLocation(
+  supabase: SupabaseClient,
+  input: CreateHuntingLocationInput,
+): Promise<HuntingLocation> {
+  const maxId = await fetchMaxLocationId(supabase);
+  const nextId = maxId + 1;
+  const insertPayload = {
+    description: input.description,
+    id: nextId,
+    map_data: input.mapData,
+    name: input.name,
+    position_x: 0,
+    position_y: 0,
+    slug: input.slug,
+    tileset_url: input.tilesetUrl ?? '/assets/tilesets/exterior.png',
+    wave_delay_seconds: 3,
+  };
+
+  const { error: insLocErr } = await supabase.from('hunting_locations').insert(insertPayload);
+  if (insLocErr) {
+    throw databaseError(insLocErr);
+  }
+
+  await updateLocationSpecies(supabase, nextId, input.speciesList);
+  await updateLocationWaveRanges(supabase, nextId, input.waveRangesList);
+
+  const { data, error } = await supabase
+    .from('hunting_locations')
+    .select(
+      'id, slug, name, description, position_x, position_y, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
+    )
+    .eq('id', nextId)
+    .maybeSingle();
+
+  if (error) {
+    throw databaseError(error);
+  }
+  if (!data) {
+    throw new AppError(500, 'hunting_location_create_failed');
+  }
+
+  return mapHuntingLocation(data as HuntingLocationRow);
+}
+
+export async function updateHuntingLocationMap(
+  supabase: SupabaseClient,
+  locationId: number,
+  mapData: HuntingLocationMap,
+  tilesetUrl?: string,
+  speciesList?: Array<UpdateHuntingLocationSpeciesInput>,
+  waveRangeList?: Array<UpdateHuntingLocationWaveRangeInput>,
+): Promise<HuntingLocation> {
+  const updatePayload: Record<string, unknown> = { map_data: mapData };
+  if (tilesetUrl) {
+    updatePayload.tileset_url = tilesetUrl;
+  }
+
+  const { error: locError } = await supabase
+    .from('hunting_locations')
+    .update(updatePayload)
+    .eq('id', locationId);
+
+  if (locError) {
+    throw databaseError(locError);
+  }
+
+  await updateLocationSpecies(supabase, locationId, speciesList);
+  await updateLocationWaveRanges(supabase, locationId, waveRangeList);
+
+  const { data, error } = await supabase
+    .from('hunting_locations')
+    .select(
+      'id, slug, name, description, position_x, position_y, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
+    )
+    .eq('id', locationId)
+    .maybeSingle();
+
+  if (error) {
+    throw databaseError(error);
+  }
+  if (!data) {
+    throw new AppError(404, 'hunting_location_not_found');
+  }
+
+  return mapHuntingLocation(data as HuntingLocationRow);
 }

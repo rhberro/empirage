@@ -1,9 +1,8 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { type UseQueryResult, queryOptions, useQuery } from '@tanstack/react-query';
 
+import { getHuntingLocations, type HuntingLocation } from '~/entities/hunting-location';
 import { selectAuthSession, useAuthStore } from '~/shared/auth';
-
-import { getHuntingLocations, type HuntingLocation } from '../api/hunting-locations';
 
 export function useHuntingLocations(): UseQueryResult<Array<HuntingLocation>, Error> {
   const session = useAuthStore(selectAuthSession);
