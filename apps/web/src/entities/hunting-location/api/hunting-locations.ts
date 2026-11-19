@@ -14,6 +14,7 @@ export type HuntingLocationSpecialTile = {
 };
 
 export type HuntingLocationAnimation = {
+  delayBetweenRunsMs?: number;
   frameRateMs: number;
   frames: Array<number>;
   id: string;
@@ -30,10 +31,20 @@ export type HuntingLocationMapTile = {
 
 export type HuntingLocationMapObject = { kind: string; x: number; y: number };
 
+export type HuntingLocationMapLayer = {
+  id: string;
+  name: string;
+  order: number;
+  placement: 'above_characters' | 'below_characters';
+  tiles: Array<HuntingLocationMapTile>;
+  visible?: boolean;
+};
+
 export type HuntingLocationMap = {
   animations?: Array<HuntingLocationAnimation>;
   defaultTileFrame: number;
   height: number;
+  layers?: Array<HuntingLocationMapLayer>;
   objects?: Array<HuntingLocationMapObject>;
   specialTiles?: Array<HuntingLocationSpecialTile>;
   tileSize: number;

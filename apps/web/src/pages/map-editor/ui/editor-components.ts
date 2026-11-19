@@ -13,3 +13,5 @@ export { MapEditorHeader } from './MapEditorHeader';
 export { MapEditorLoading } from './MapEditorStatus';
 export { TilePalette } from './TilePalette';
 export { EditorModals } from './EditorModals';
+export { LayersPanel } from './LayersPanel';
+export { useEditorModalsState } from './use-editor-modals-state';

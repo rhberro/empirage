@@ -12,6 +12,7 @@ import {
   type UpdateHuntingLocationWaveRangeInput,
   updateHuntingLocationMap,
 } from '../services/hunting-locations.ts';
+import { packMapTileset } from '../services/tileset-packer.ts';
 import type { AppVariables } from '../types.ts';
 import { createServerClient } from '../websocket/protocol.ts';
 
@@ -89,6 +90,66 @@ huntingLocations.post('/', async function postHuntingLocation(context) {
   return context.json(created, 201);
 });
 
+function collectTileFrames(tiles: Array<{ frame: number }>, frameSet: Set<number>): void {
+  for (const t of tiles) {
+    if (typeof t.frame === 'number') {
+      frameSet.add(t.frame);
+    }
+  }
+}
+
+function collectMapFrames(map: HuntingLocationMap): Array<number> {
+  const frameSet = new Set<number>();
+  if (typeof map.defaultTileFrame === 'number') {
+    frameSet.add(map.defaultTileFrame);
+  }
+  if (Array.isArray(map.tiles)) {
+    collectTileFrames(map.tiles, frameSet);
+  }
+  if (Array.isArray(map.layers)) {
+    for (const layer of map.layers) {
+      if (Array.isArray(layer.tiles)) {
+        collectTileFrames(layer.tiles, frameSet);
+      }
+    }
+  }
+  if (Array.isArray(map.animations)) {
+    for (const anim of map.animations) {
+      if (Array.isArray(anim.frames)) {
+        for (const f of anim.frames) {
+          frameSet.add(f);
+        }
+      }
+    }
+  }
+  return Array.from(frameSet);
+}
+
+async function resolveFinalTilesetUrl(
+  adminClient: ReturnType<typeof createServerClient>,
+  locationId: number,
+  map: HuntingLocationMap,
+  fallbackTilesetUrl?: string,
+): Promise<string | undefined> {
+  const { data: locRecord } = await adminClient
+    .from('hunting_locations')
+    .select('slug')
+    .eq('id', locationId)
+    .maybeSingle();
+
+  const slug = locRecord ? locRecord.slug : `location-${locationId}`;
+  const frames = collectMapFrames(map);
+
+  let finalTilesetUrl = fallbackTilesetUrl;
+  try {
+    const packResult = await packMapTileset(slug, frames);
+    finalTilesetUrl = packResult.tilesetUrl;
+  } catch {
+    // If packing fails in local/test environment, keep fallback
+  }
+  return finalTilesetUrl;
+}
+
 huntingLocations.put('/:id/map', async function putHuntingLocationMap(context) {
   const locationId = Number(context.req.param('id'));
   if (Number.isNaN(locationId) || locationId <= 0) {
@@ -117,11 +178,13 @@ huntingLocations.put('/:id/map', async function putHuntingLocationMap(context) {
   }
 
   const adminClient = createServerClient();
+  const finalTilesetUrl = await resolveFinalTilesetUrl(adminClient, locationId, map, tilesetUrl);
+
   const updated = await updateHuntingLocationMap(
     adminClient,
     locationId,
     map,
-    tilesetUrl,
+    finalTilesetUrl,
     species,
     waveRanges,
   );

@@ -1,0 +1,80 @@
+{
+  "frames": {
+    "0": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "1": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 16,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    },
+    "2": {
+      "frame": {
+        "h": 16,
+        "w": 16,
+        "x": 32,
+        "y": 0
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 16,
+        "w": 16
+      },
+      "spriteSourceSize": {
+        "h": 16,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "trimmed": false
+    }
+  },
+  "meta": {
+    "app": "empirage-map-tileset-packer",
+    "format": "RGBA8888",
+    "image": "route-1.png",
+    "scale": "1",
+    "size": {
+      "h": 16,
+      "w": 48
+    },
+    "version": "1.0"
+  },
+  "mapping": {
+    "0": 0,
+    "5": 1,
+    "12": 2
+  }
+}

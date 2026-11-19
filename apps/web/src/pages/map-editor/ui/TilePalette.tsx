@@ -23,7 +23,7 @@ interface TilePaletteProps {
   tilesetImage: HTMLImageElement | null;
 }
 
-const DEFAULT_TOTAL_TILES = 6072;
+const DEFAULT_TOTAL_TILES = 4792;
 const PAGE_SIZE = 120;
 
 function decrementPage(p: number): number {

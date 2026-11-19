@@ -12,6 +12,7 @@ import type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapObject,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
@@ -29,6 +30,7 @@ export type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapObject,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
@@ -99,13 +101,29 @@ function mapWaveRange(range: HuntingLocationWaveRangeRow): HuntingLocationWaveRa
   return { maximumSize: range.maximum_size, minimumSize: range.minimum_size };
 }
 
+function normalizeMapData(rawMap: HuntingLocationMap): HuntingLocationMap {
+  const mapData = { ...rawMap };
+  if (!mapData.layers || mapData.layers.length === 0) {
+    const defaultLayer: HuntingLocationMapLayer = {
+      id: 'layer-0',
+      name: 'Ground (Base)',
+      order: 0,
+      placement: 'below_characters',
+      tiles: mapData.tiles || [],
+      visible: true,
+    };
+    mapData.layers = [defaultLayer];
+  }
+  return mapData;
+}
+
 function mapHuntingLocation(location: HuntingLocationRow): HuntingLocation {
   const species = location.hunting_location_species.map(mapSpecies);
   const waveRanges = location.hunting_location_wave_ranges.map(mapWaveRange);
   const huntingLocation = {
     description: location.description,
     id: location.id,
-    map: location.map_data,
+    map: normalizeMapData(location.map_data),
     name: location.name,
     positionX: location.position_x,
     positionY: location.position_y,

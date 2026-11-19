@@ -7,7 +7,12 @@ import {
   popSnapshotFromStack,
   pushSnapshotToStack,
 } from './map-history-logic';
-import type { HuntingLocationMapTile, HuntingLocationSpecialTile, MapSnapshot } from './types';
+import type {
+  HuntingLocationMapLayer,
+  HuntingLocationMapTile,
+  HuntingLocationSpecialTile,
+  MapSnapshot,
+} from './types';
 import { useHistoryKeyboardShortcuts } from './use-history-keyboard';
 
 export interface EditorHistory {
@@ -20,6 +25,7 @@ export interface EditorHistory {
 }
 
 export interface HistorySetters {
+  setLayers?: (l: Array<HuntingLocationMapLayer>) => void;
   setMapHeight: (h: number) => void;
   setMapWidth: (w: number) => void;
   setSpecialTiles: (s: Array<HuntingLocationSpecialTile>) => void;
@@ -27,6 +33,7 @@ export interface HistorySetters {
 }
 
 export interface HistoryState {
+  layers?: Array<HuntingLocationMapLayer>;
   mapHeight: number;
   mapWidth: number;
   specialTiles: Array<HuntingLocationSpecialTile>;
@@ -38,6 +45,9 @@ function applySnapshot(snap: MapSnapshot, setters: HistorySetters): void {
   setters.setMapHeight(snap.height);
   setters.setTiles(snap.tiles);
   setters.setSpecialTiles(snap.specialTiles);
+  if (setters.setLayers && snap.layers) {
+    setters.setLayers(snap.layers);
+  }
 }
 
 function performUndo(
@@ -56,6 +66,7 @@ function performUndo(
     state.mapHeight,
     state.tiles,
     state.specialTiles,
+    state.layers,
   );
   function updateRedo(prev: Array<MapSnapshot>): Array<MapSnapshot> {
     return [...prev, currentSnap];
@@ -81,6 +92,7 @@ function performRedo(
     state.mapHeight,
     state.tiles,
     state.specialTiles,
+    state.layers,
   );
   function updateUndo(prev: Array<MapSnapshot>): Array<MapSnapshot> {
     return [...prev, currentSnap];
@@ -100,6 +112,7 @@ export function useEditorHistory(state: HistoryState, setters: HistorySetters): 
       state.mapHeight,
       state.tiles,
       state.specialTiles,
+      state.layers,
     );
     function updateUndo(prev: Array<MapSnapshot>): Array<MapSnapshot> {
       return pushSnapshotToStack(prev, snap);

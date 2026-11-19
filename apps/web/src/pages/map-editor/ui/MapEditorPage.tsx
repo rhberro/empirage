@@ -1,18 +1,18 @@
 /* eslint-disable oxsome/no-inline-structural-types */
-import { Box, HStack } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 
 import {
   EditorModals,
-  MapCanvas,
   MapEditorHeader,
   MapEditorLoading,
-  TilePalette,
+  useEditorModalsState,
   useEditorVisibilityToggles,
   useLocationsLoader,
   useSpeciesCatalog,
   useTilesetImage,
 } from './editor-components';
+import { EditorWorkspace } from './EditorWorkspace';
 import {
   computeSpecialCounts,
   DEFAULT_SPECIALS,
@@ -33,33 +33,21 @@ import {
   VIEWPORT_GRID_HEIGHT,
   VIEWPORT_GRID_WIDTH,
 } from './map-editor-logic';
-import type {
-  BrushType,
-  EditorTool,
-  HuntingLocation,
-  HuntingLocationAnimation,
-  HuntingLocationMap,
-  HuntingLocationMapTile,
-  HuntingLocationSpecialTile,
-  HuntingLocationSpecies,
-  HuntingLocationWaveRange,
-  SpecialCounts,
-  StatusMessage,
-} from './types';
+import type { HuntingLocation, HuntingLocationMap, StatusMessage } from './types';
 import { type UseCreateLocationParams, useCreateLocation } from './use-create-location';
 import { useEditorHistory } from './use-editor-history';
-import { useEditorModalsState } from './use-editor-modals-state';
 import { type UseExportSqlParams, useExportSql } from './use-export-sql';
+import {
+  createInitialLayers,
+  INITIAL_DEFAULT_LAYERS,
+  useLayersManager,
+} from './use-layers-manager';
 
 export function MapEditorPage(): React.ReactElement {
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [selectedTilesetUrl, setSelectedTilesetUrl] = useState('/assets/tilesets/exterior.png');
-  const [configuredSpecies, setConfiguredSpecies] = useState<Array<HuntingLocationSpecies>>(
-    INITIAL_CONFIGURED_SPECIES,
-  );
-  const [configuredWaveRanges, setConfiguredWaveRanges] = useState<Array<HuntingLocationWaveRange>>(
-    INITIAL_CONFIGURED_WAVE_RANGES,
-  );
+  const [selectedTilesetUrl, setSelectedTilesetUrl] = useState('/assets/tiles/editor-tileset.png');
+  const [configuredSpecies, setConfiguredSpecies] = useState(INITIAL_CONFIGURED_SPECIES);
+  const [configuredWaveRanges, setConfiguredWaveRanges] = useState(INITIAL_CONFIGURED_WAVE_RANGES);
   const modals = useEditorModalsState();
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(null);
@@ -67,21 +55,23 @@ export function MapEditorPage(): React.ReactElement {
   const [mapHeight, setMapHeight] = useState(VIEWPORT_GRID_HEIGHT);
   const [tileSize, setTileSize] = useState(16);
   const [defaultTileFrame, setDefaultTileFrame] = useState(0);
-  const [tiles, setTiles] = useState<Array<HuntingLocationMapTile>>(INITIAL_TILES);
-  const [specialTiles, setSpecialTiles] =
-    useState<Array<HuntingLocationSpecialTile>>(INITIAL_SPECIALS);
-  const [animations, setAnimations] = useState<Array<HuntingLocationAnimation>>(INITIAL_ANIMS);
+  const [tiles, setTiles] = useState(INITIAL_TILES);
+  const [specialTiles, setSpecialTiles] = useState(INITIAL_SPECIALS);
+  const [animations, setAnimations] = useState(INITIAL_ANIMS);
 
-  const [selectedTool, setSelectedTool] = useState<EditorTool>(INITIAL_TOOL);
-  const [selectedBrush, setSelectedBrush] = useState<BrushType>(INITIAL_BRUSH);
+  const [selectedTool, setSelectedTool] = useState(INITIAL_TOOL);
+  const [selectedBrush, setSelectedBrush] = useState(INITIAL_BRUSH);
   const toggles = useEditorVisibilityToggles();
 
   const tilesetImage = useTilesetImage(selectedTilesetUrl);
   const speciesCatalog = useSpeciesCatalog();
 
-  const historyState = { mapHeight, mapWidth, specialTiles, tiles };
-  const historySetters = { setMapHeight, setMapWidth, setSpecialTiles, setTiles };
+  const [layers, setLayers] = useState(INITIAL_DEFAULT_LAYERS);
+
+  const historyState = { layers, mapHeight, mapWidth, specialTiles, tiles };
+  const historySetters = { setLayers, setMapHeight, setMapWidth, setSpecialTiles, setTiles };
   const history = useEditorHistory(historyState, historySetters);
+  const layersManager = useLayersManager(history.pushHistorySnapshot, layers, setLayers);
 
   function applyLocationMap(location: HuntingLocation): void {
     const map = location.map;
@@ -89,9 +79,15 @@ export function MapEditorPage(): React.ReactElement {
     setMapHeight(map.height || VIEWPORT_GRID_HEIGHT);
     setTileSize(map.tileSize || 16);
     setDefaultTileFrame(map.defaultTileFrame || 0);
-    setTiles(map.tiles ? Array.from(map.tiles) : []);
+    const locTiles = map.tiles ? Array.from(map.tiles) : [];
+    setTiles(locTiles);
+
+    const initialLayers = createInitialLayers(map.layers, locTiles);
+    layersManager.setLayers(initialLayers);
+    layersManager.setActiveLayerId(initialLayers[0].id);
+
     setAnimations(map.animations ? Array.from(map.animations) : []);
-    setSelectedTilesetUrl(location.tilesetUrl || '/assets/tilesets/exterior.png');
+    setSelectedTilesetUrl(location.tilesetUrl || '/assets/tilesets/route-1.png');
     setConfiguredSpecies(location.species ? Array.from(location.species) : []);
     setConfiguredWaveRanges(location.waveRanges ? Array.from(location.waveRanges) : []);
     const hasSpecials = Boolean(map.specialTiles && map.specialTiles.length > 0);
@@ -117,6 +113,7 @@ export function MapEditorPage(): React.ReactElement {
     animations,
     defaultTileFrame,
     height: mapHeight,
+    layers: layersManager.layers,
     specialTiles,
     tileSize,
     tiles,
@@ -244,35 +241,27 @@ export function MapEditorPage(): React.ReactElement {
         specialCounts={specialCounts}
         statusMessage={statusMessage}
       />
-      <HStack flex="1" gap="0" overflow="hidden" w="full">
-        <TilePalette
-          animations={animations}
-          onOpenAnimationModal={modals.handleOpenAnimationModal}
-          onSelectBrush={setSelectedBrush}
-          onSelectTool={setSelectedTool}
-          selectedBrush={selectedBrush}
-          selectedTool={selectedTool}
-          tilesetImage={tilesetImage}
-        />
-        <MapCanvas
-          defaultTileFrame={defaultTileFrame}
-          height={mapHeight}
-          onRecordAction={history.pushHistorySnapshot}
-          onSelectBrush={setSelectedBrush}
-          onSelectTool={setSelectedTool}
-          onSpecialTilesChange={setSpecialTiles}
-          onTilesChange={setTiles}
-          selectedBrush={selectedBrush}
-          selectedTool={selectedTool}
-          showGridLines={toggles.showGridLines}
-          showSpecialTiles={toggles.showSpecialTiles}
-          showViewportOverlay={toggles.showViewportOverlay}
-          specialTiles={specialTiles}
-          tiles={tiles}
-          tilesetImage={tilesetImage}
-          width={mapWidth}
-        />
-      </HStack>
+      <EditorWorkspace
+        animations={animations}
+        defaultTileFrame={defaultTileFrame}
+        layersManager={layersManager}
+        mapHeight={mapHeight}
+        mapWidth={mapWidth}
+        onOpenAnimationModal={modals.handleOpenAnimationModal}
+        onRecordAction={history.pushHistorySnapshot}
+        onSelectBrush={setSelectedBrush}
+        onSelectTool={setSelectedTool}
+        onSpecialTilesChange={setSpecialTiles}
+        onTilesChange={setTiles}
+        selectedBrush={selectedBrush}
+        selectedTool={selectedTool}
+        showGridLines={toggles.showGridLines}
+        showSpecialTiles={toggles.showSpecialTiles}
+        showViewportOverlay={toggles.showViewportOverlay}
+        specialTiles={specialTiles}
+        tiles={tiles}
+        tilesetImage={tilesetImage}
+      />
       <EditorModals
         animations={animations}
         configuredSpecies={configuredSpecies}

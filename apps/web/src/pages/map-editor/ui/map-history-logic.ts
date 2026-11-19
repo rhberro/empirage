@@ -1,6 +1,7 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import {
   MAX_HISTORY_LENGTH,
+  type HuntingLocationMapLayer,
   type HuntingLocationMapTile,
   type HuntingLocationSpecialTile,
   type MapSnapshot,
@@ -8,14 +9,24 @@ import {
 
 export const EMPTY_SNAPSHOT_STACK: Array<MapSnapshot> = [];
 
+function cloneLayer(l: HuntingLocationMapLayer): HuntingLocationMapLayer {
+  return {
+    ...l,
+    tiles: Array.from(l.tiles),
+  };
+}
+
 export function captureMapSnapshot(
   width: number,
   height: number,
   tiles: Array<HuntingLocationMapTile>,
   specialTiles: Array<HuntingLocationSpecialTile>,
+  layers?: Array<HuntingLocationMapLayer>,
 ): MapSnapshot {
+  const clonedLayers = layers ? layers.map(cloneLayer) : undefined;
   return {
     height,
+    layers: clonedLayers,
     specialTiles: Array.from(specialTiles),
     tiles: Array.from(tiles),
     width,

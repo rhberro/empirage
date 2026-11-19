@@ -4,6 +4,7 @@ import type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
   HuntingLocationSpecies,
@@ -18,6 +19,7 @@ export type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
   HuntingLocationSpecies,
@@ -49,6 +51,7 @@ export interface StatusMessage {
 
 export interface MapSnapshot {
   height: number;
+  layers?: Array<HuntingLocationMapLayer>;
   specialTiles: Array<HuntingLocationSpecialTile>;
   tiles: Array<HuntingLocationMapTile>;
   width: number;
@@ -67,6 +70,7 @@ export interface SpecialCounts {
 export interface MapStateBundle {
   animations: Array<HuntingLocationAnimation>;
   defaultTileFrame: number;
+  layers?: Array<HuntingLocationMapLayer>;
   mapHeight: number;
   mapWidth: number;
   specialTiles: Array<HuntingLocationSpecialTile>;
