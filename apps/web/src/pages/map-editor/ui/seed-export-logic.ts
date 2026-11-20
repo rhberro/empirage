@@ -25,8 +25,8 @@ function buildLocationSql(
 
   return [
     '-- Hunting Location: ' + location.name,
-    'insert into public.hunting_locations (id, slug, name, description, position_x, position_y, wave_delay_seconds, tileset_url, map_data)',
-    `values (${location.id}, '${escapedSlug}', '${escapedName}', '${escapedDesc}', ${location.positionX}, ${location.positionY}, 3, '${escapedTileset}', '${mapJsonEscaped}'::jsonb)`,
+    'insert into public.hunting_locations (id, slug, name, description, wave_delay_seconds, tileset_url, map_data)',
+    `values (${location.id}, '${escapedSlug}', '${escapedName}', '${escapedDesc}', 3, '${escapedTileset}', '${mapJsonEscaped}'::jsonb)`,
     'on conflict (id) do update set',
     '  slug = excluded.slug,',
     '  name = excluded.name,',

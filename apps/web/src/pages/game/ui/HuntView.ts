@@ -58,11 +58,16 @@ function tileKey(tile: Tile): string {
   return `${tile.x},${tile.y}`;
 }
 
+function compareLayerOrder(a: { order: number }, b: { order: number }): number {
+  return a.order - b.order;
+}
+
 export class HuntView {
   public active = false;
   public pending = false;
   public connected = false;
   private readonly backdrop: GameObjects.Container;
+  private readonly foreground: GameObjects.Container;
   private readonly overlay: GameObjects.Container;
   private readonly scene: Scene;
   private readonly send: CommandSender;
@@ -104,6 +109,7 @@ export class HuntView {
     this.onAssetsReady = onAssetsReady;
     this.backdrop = scene.add.container(0, 0).setDepth(9_999).setScrollFactor(0);
     this.overlay = scene.add.container(0, 0).setDepth(10_000).setScrollFactor(0);
+    this.foreground = scene.add.container(0, 0).setDepth(10_001).setScrollFactor(0);
     this.effects = new HuntEffects(scene);
     this.status = scene.add
       .text(8, 8, 'Conectando…', STATUS_STYLE)
@@ -460,6 +466,7 @@ export class HuntView {
       this.status.setText('').setVisible(false);
       this.creatures.reset();
       this.backdrop.removeAll(true);
+      this.foreground.removeAll(true);
       this.backdropKey = '';
       if (this.player) {
         this.player.destroy();
@@ -473,6 +480,7 @@ export class HuntView {
     const backdropKey = `${width}:${height}:${this.gridOriginX}:${this.gridOriginY}:${JSON.stringify(state.grid)}`;
     if (this.backdropKey !== backdropKey) {
       this.backdrop.removeAll(true);
+      this.foreground.removeAll(true);
       this.drawBackdrop(width, height, state);
       this.backdropKey = backdropKey;
     }
@@ -645,11 +653,13 @@ export class HuntView {
       }
       const frameRate = Math.round(1000 / Math.max(16, animConfig.frameRateMs));
       const animSettings = {
+        delay: animConfig.delayBetweenRunsMs ?? 0,
         duration: undefined,
         frameRate,
         frames: frameObjects,
         key: animKey,
         repeat: animConfig.iterations === 0 ? -1 : animConfig.iterations,
+        repeatDelay: animConfig.delayBetweenRunsMs ?? 0,
         yoyo: animConfig.mode === 'pingpong',
       };
       this.scene.anims.create(animSettings);
@@ -657,11 +667,78 @@ export class HuntView {
     tileSprite.play(animKey);
   }
 
-  private drawTilesetBackdrop(location: HuntingLocation, tilesetKey: string, grid: HuntGrid): void {
-    const tileMap = new Map<string, { animationId?: string | null; frame: number }>();
-    for (const tile of location.map.tiles) {
-      tileMap.set(tileKey(tile), { animationId: tile.animationId, frame: tile.frame });
+  private renderLayerTile(
+    layerContainer: GameObjects.Container,
+    locationId: number,
+    tilesetKey: string,
+    column: number,
+    row: number,
+    frame: number,
+    tileData: { animationId?: string | null; frame: number } | undefined,
+    animationsById: Map<string, HuntingLocationAnimation>,
+  ): void {
+    const tileSprite = this.scene.add.sprite(
+      this.gridOriginX + column * this.tileSize + this.tileSize / 2,
+      this.gridOriginY + row * this.tileSize + this.tileSize / 2,
+      tilesetKey,
+      String(frame),
+    );
+    layerContainer.add(tileSprite);
+
+    if (tileData && tileData.animationId) {
+      const animConfig = animationsById.get(tileData.animationId);
+      if (animConfig) {
+        this.playTileAnimation(tileSprite, locationId, tilesetKey, animConfig);
+      }
     }
+  }
+
+  private renderSingleLayer(
+    location: HuntingLocation,
+    tilesetKey: string,
+    grid: HuntGrid,
+    layer: HuntingLocation['map']['layers'] extends Array<infer L> ? L : never,
+    layerIndex: number,
+    animationsById: Map<string, HuntingLocationAnimation>,
+  ): void {
+    if (layer.visible === false) {
+      return;
+    }
+    const layerContainer = layer.placement === 'above_characters' ? this.foreground : this.backdrop;
+
+    const layerTileMap = new Map<string, { animationId?: string | null; frame: number }>();
+    for (const tile of layer.tiles) {
+      layerTileMap.set(tileKey(tile), { animationId: tile.animationId, frame: tile.frame });
+    }
+
+    for (let row = 0; row < grid.height; row += 1) {
+      for (let column = 0; column < grid.width; column += 1) {
+        const position = { x: column, y: row };
+        const tileData = layerTileMap.get(tileKey(position));
+        const frame =
+          tileData === undefined
+            ? layerIndex === 0
+              ? location.map.defaultTileFrame
+              : null
+            : tileData.frame;
+
+        if (frame !== null && frame !== undefined) {
+          this.renderLayerTile(
+            layerContainer,
+            location.id,
+            tilesetKey,
+            column,
+            row,
+            frame,
+            tileData,
+            animationsById,
+          );
+        }
+      }
+    }
+  }
+
+  private drawTilesetBackdrop(location: HuntingLocation, tilesetKey: string, grid: HuntGrid): void {
     const animationsById = new Map<string, HuntingLocationAnimation>();
     if (location.map.animations) {
       for (const anim of location.map.animations) {
@@ -669,26 +746,24 @@ export class HuntView {
       }
     }
 
-    for (let row = 0; row < grid.height; row += 1) {
-      for (let column = 0; column < grid.width; column += 1) {
-        const position = { x: column, y: row };
-        const tileData = tileMap.get(tileKey(position));
-        const frame = tileData ? tileData.frame : location.map.defaultTileFrame;
-        const tileSprite = this.scene.add.sprite(
-          this.gridOriginX + column * this.tileSize + this.tileSize / 2,
-          this.gridOriginY + row * this.tileSize + this.tileSize / 2,
-          tilesetKey,
-          String(frame),
-        );
-        this.backdrop.add(tileSprite);
+    const layers =
+      location.map.layers && location.map.layers.length > 0
+        ? location.map.layers
+        : [
+            {
+              id: 'layer-0',
+              name: 'Base',
+              order: 0,
+              placement: 'below_characters' as const,
+              tiles: location.map.tiles || [],
+              visible: true,
+            },
+          ];
 
-        if (tileData && tileData.animationId) {
-          const animConfig = animationsById.get(tileData.animationId);
-          if (animConfig) {
-            this.playTileAnimation(tileSprite, location.id, tilesetKey, animConfig);
-          }
-        }
-      }
+    const sortedLayers = layers.toSorted(compareLayerOrder);
+
+    for (const [layerIndex, layer] of sortedLayers.entries()) {
+      this.renderSingleLayer(location, tilesetKey, grid, layer, layerIndex, animationsById);
     }
   }
 

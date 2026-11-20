@@ -1,4 +1,4 @@
-/* eslint-disable oxsome/no-inline-structural-types */
+/* eslint-disable max-lines, oxsome/no-inline-structural-types */
 import type { HuntingLocationSpecialTile } from '~/entities/hunting-location';
 
 import { getTileSourceCoordinates } from './tile-coords';
@@ -33,11 +33,22 @@ export interface StoredTile {
 export type SpecialTileLookup = Map<string, HuntingLocationSpecialTile>;
 export type TileLookup = Map<string, StoredTile>;
 
+export interface LayerRenderData {
+  id: string;
+  name: string;
+  order: number;
+  placement: 'above_characters' | 'below_characters';
+  tileMap: TileLookup;
+  visible?: boolean;
+}
+
 export interface RenderCanvasOptions {
+  activeLayerId?: string;
   activeRectPreview: RectSelection | null;
   canvas: HTMLCanvasElement;
   defaultTileFrame: number;
   height: number;
+  layers?: Array<LayerRenderData>;
   offset: Point;
   scale: number;
   showGridLines: boolean;
@@ -49,39 +60,75 @@ export interface RenderCanvasOptions {
   width: number;
 }
 
-function drawTerrain(context: CanvasRenderingContext2D, options: RenderCanvasOptions): void {
-  const { defaultTileFrame, height, tileMap, tilesetImage, width } = options;
-
+function drawSingleLayer(
+  context: CanvasRenderingContext2D,
+  layerTileMap: TileLookup,
+  defaultTileFrame: number | null,
+  tilesetImage: HTMLImageElement | null,
+  width: number,
+  height: number,
+): void {
   for (let r = 0; r < height; r += 1) {
     for (let c = 0; c < width; c += 1) {
       const key = `${c},${r}`;
-      const tileData = tileMap.get(key);
+      const tileData = layerTileMap.get(key);
       const frame = tileData ? tileData.frame : defaultTileFrame;
 
-      if (tilesetImage) {
-        const { sx, sy } = getTileSourceCoordinates(frame, tilesetImage.naturalHeight);
-        context.drawImage(
-          tilesetImage,
-          sx,
-          sy,
-          TILE_SIZE,
-          TILE_SIZE,
-          c * TILE_SIZE,
-          r * TILE_SIZE,
-          TILE_SIZE,
-          TILE_SIZE,
-        );
-      } else {
-        context.fillStyle = (r + c) % 2 === 0 ? '#3f3f46' : '#52525b';
-        context.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-      }
+      if (frame !== null && frame !== undefined) {
+        if (tilesetImage) {
+          const { sx, sy } = getTileSourceCoordinates(frame, tilesetImage.naturalHeight);
+          context.drawImage(
+            tilesetImage,
+            sx,
+            sy,
+            TILE_SIZE,
+            TILE_SIZE,
+            c * TILE_SIZE,
+            r * TILE_SIZE,
+            TILE_SIZE,
+            TILE_SIZE,
+          );
+        } else if (defaultTileFrame !== null) {
+          context.fillStyle = (r + c) % 2 === 0 ? '#3f3f46' : '#52525b';
+          context.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
 
-      if (tileData && tileData.animationId) {
-        context.fillStyle = 'rgba(6, 182, 212, 0.8)';
-        context.fillRect(c * TILE_SIZE, r * TILE_SIZE, 4, 4);
+        if (tileData && tileData.animationId) {
+          context.fillStyle = 'rgba(6, 182, 212, 0.8)';
+          context.fillRect(c * TILE_SIZE, r * TILE_SIZE, 4, 4);
+        }
       }
     }
   }
+}
+
+function compareLayerOrder(a: LayerRenderData, b: LayerRenderData): number {
+  return a.order - b.order;
+}
+
+function drawTerrain(context: CanvasRenderingContext2D, options: RenderCanvasOptions): void {
+  const { activeLayerId, defaultTileFrame, height, layers, tileMap, tilesetImage, width } = options;
+
+  if (layers && layers.length > 0) {
+    const sortedLayers = layers.toSorted(compareLayerOrder);
+    const hasActiveLayer = Boolean(activeLayerId);
+
+    for (const [index, layer] of sortedLayers.entries()) {
+      if (layer.visible === false) {
+        continue;
+      }
+      const isCurrentActive = layer.id === activeLayerId;
+      const targetAlpha = !hasActiveLayer || isCurrentActive ? 1.0 : 0.35;
+      context.globalAlpha = targetAlpha;
+
+      const layerDefaultFrame = index === 0 ? defaultTileFrame : null;
+      drawSingleLayer(context, layer.tileMap, layerDefaultFrame, tilesetImage, width, height);
+    }
+    context.globalAlpha = 1.0;
+    return;
+  }
+
+  drawSingleLayer(context, tileMap, defaultTileFrame, tilesetImage, width, height);
 }
 
 function getSpecialTileStyle(kind: string): { fill: string; label: string } {

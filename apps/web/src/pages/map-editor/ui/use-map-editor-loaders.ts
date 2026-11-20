@@ -14,13 +14,13 @@ import { useSpeciesCatalog } from './use-species-catalog';
 export { useSpeciesCatalog };
 
 export function useTilesetImage(
-  tilesetUrl: string = '/assets/tilesets/exterior.png',
+  tilesetUrl: string = '/assets/tiles/editor-tileset.png',
 ): HTMLImageElement | null {
   const [tilesetImage, setTilesetImage] = useState<HTMLImageElement | null>(null);
 
   function loadTileset(): () => void {
     const img = new globalThis.Image();
-    img.src = tilesetUrl;
+    img.src = '/assets/tiles/editor-tileset.png';
     function handleLoad(): void {
       setTilesetImage(img);
     }

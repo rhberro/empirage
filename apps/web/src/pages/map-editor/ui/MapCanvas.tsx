@@ -17,12 +17,13 @@ import {
 } from './map-canvas-tools';
 import {
   drawMapToCanvas,
+  type LayerRenderData,
   type Point,
   type RectSelection,
   type StoredTile,
   type TileCoord,
 } from './map-renderer';
-import type { BrushType, EditorTool } from './types';
+import type { BrushType, EditorTool, HuntingLocationMapLayer } from './types';
 
 const TILE_SIZE = 16;
 const INITIAL_OFFSET: Point = { x: 40, y: 40 };
@@ -30,13 +31,17 @@ const INITIAL_PAN_START: Point = { x: 0, y: 0 };
 
 type BrushChangeHandler = (brush: BrushType) => void;
 type TilesChangeHandler = (tiles: Array<HuntingLocationMapTile>) => void;
+type LayersChangeHandler = (layers: Array<HuntingLocationMapLayer>) => void;
 type SpecialTilesChangeHandler = (specialTiles: Array<HuntingLocationSpecialTile>) => void;
 type SelectToolHandler = (tool: EditorTool) => void;
 type RecordActionHandler = () => void;
 
 interface MapCanvasProps {
+  activeLayerId?: string;
   defaultTileFrame: number;
   height: number;
+  layers?: Array<HuntingLocationMapLayer>;
+  onLayersChange?: LayersChangeHandler;
   onRecordAction: RecordActionHandler;
   onSelectBrush: BrushChangeHandler;
   onSelectTool: SelectToolHandler;
@@ -57,10 +62,28 @@ function preventContextMenu(e: React.MouseEvent): void {
   e.preventDefault();
 }
 
+function buildLayerRenderData(layer: HuntingLocationMapLayer): LayerRenderData {
+  return {
+    id: layer.id,
+    name: layer.name,
+    order: layer.order,
+    placement: layer.placement,
+    tileMap: buildTileLookup(layer.tiles),
+    visible: layer.visible,
+  };
+}
+
+function isBaseLayer(layer: HuntingLocationMapLayer): boolean {
+  return layer.order === 0;
+}
+
 export function MapCanvas(props: MapCanvasProps): React.ReactElement {
   const {
+    activeLayerId,
     defaultTileFrame,
     height,
+    layers,
+    onLayersChange,
     onRecordAction,
     onSelectBrush,
     onSelectTool,
@@ -90,6 +113,13 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
   const [rectPreview, setRectPreview] = useState<RectSelection | null>(null);
 
   function createTileLookup(): ReturnType<typeof buildTileLookup> {
+    if (layers && layers.length > 0 && activeLayerId) {
+      for (const layer of layers) {
+        if (layer.id === activeLayerId) {
+          return buildTileLookup(layer.tiles);
+        }
+      }
+    }
     return buildTileLookup(tiles);
   }
 
@@ -97,8 +127,19 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
     return buildSpecialLookup(specialTiles);
   }
 
-  const tileMap = useMemo(createTileLookup, [tiles]);
+  const tileMap = useMemo(createTileLookup, [activeLayerId, layers, tiles]);
   const specialTileMap = useMemo(createSpecialLookup, [specialTiles]);
+
+  function computeRenderedLayers(): Array<LayerRenderData> | undefined {
+    if (!layers || layers.length === 0) {
+      return;
+    }
+    return layers.map(buildLayerRenderData);
+  }
+
+  const renderedLayers: Array<LayerRenderData> | undefined = useMemo(computeRenderedLayers, [
+    layers,
+  ]);
 
   function draw(): void {
     const canvas = canvasRef.current;
@@ -106,10 +147,12 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
       return;
     }
     const options = {
+      activeLayerId,
       activeRectPreview: rectPreview,
       canvas,
       defaultTileFrame,
       height,
+      layers: renderedLayers,
       offset,
       scale,
       showGridLines,
@@ -124,10 +167,12 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
   }
 
   const renderCanvas = useCallback(draw, [
+    activeLayerId,
     defaultTileFrame,
     height,
     offset,
     rectPreview,
+    renderedLayers,
     scale,
     showGridLines,
     showSpecialTiles,
@@ -163,6 +208,26 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
 
   useEffect(handleResizeEffect, [resizeCallback]);
 
+  function updateTilesForActiveLayer(newTiles: Array<HuntingLocationMapTile>): void {
+    function updateLayerTiles(layer: HuntingLocationMapLayer): HuntingLocationMapLayer {
+      if (layer.id === activeLayerId) {
+        return { ...layer, tiles: newTiles };
+      }
+      return layer;
+    }
+
+    if (layers && onLayersChange && activeLayerId) {
+      const nextLayers = layers.map(updateLayerTiles);
+      onLayersChange(nextLayers);
+      const baseLayer = nextLayers.find(isBaseLayer) ?? nextLayers[0];
+      if (baseLayer) {
+        onTilesChange(baseLayer.tiles);
+      }
+      return;
+    }
+    onTilesChange(newTiles);
+  }
+
   function applySingleTile(col: number, row: number): void {
     if (col < 0 || col >= width || row < 0 || row >= height) {
       return;
@@ -176,10 +241,10 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
         frame: selectedTool.frame,
       };
       nextMap.set(key, newEntry);
-      onTilesChange(exportTilesFromLookup(nextMap, width, height));
+      updateTilesForActiveLayer(exportTilesFromLookup(nextMap, width, height));
     } else if (selectedTool.kind === 'stamp') {
       const newTiles = applyStampToMap(col, row, selectedTool, tileMap, width, height);
-      onTilesChange(newTiles);
+      updateTilesForActiveLayer(newTiles);
     } else if (selectedTool.kind === 'special') {
       const nextSpecial = new Map(specialTileMap);
       const specialObj: HuntingLocationSpecialTile = {
@@ -189,10 +254,16 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
       };
       nextSpecial.set(key, specialObj);
       onSpecialTilesChange(Array.from(nextSpecial.values()));
-    } else if (selectedTool.kind === 'eraser' && specialTileMap.has(key)) {
-      const nextSpecial = new Map(specialTileMap);
-      nextSpecial.delete(key);
-      onSpecialTilesChange(Array.from(nextSpecial.values()));
+    } else if (selectedTool.kind === 'eraser') {
+      if (specialTileMap.has(key)) {
+        const nextSpecial = new Map(specialTileMap);
+        nextSpecial.delete(key);
+        onSpecialTilesChange(Array.from(nextSpecial.values()));
+      } else if (tileMap.has(key)) {
+        const nextMap = new Map(tileMap);
+        nextMap.delete(key);
+        updateTilesForActiveLayer(exportTilesFromLookup(nextMap, width, height));
+      }
     }
   }
 
@@ -212,7 +283,7 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
     );
     if (filled) {
       onRecordAction();
-      onTilesChange(filled);
+      updateTilesForActiveLayer(filled);
     }
   }
 
@@ -229,7 +300,7 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
           nextMap.set(`${c},${r}`, fillEntry);
         }
       }
-      onTilesChange(exportTilesFromLookup(nextMap, width, height));
+      updateTilesForActiveLayer(exportTilesFromLookup(nextMap, width, height));
     } else if (selectedTool.kind === 'special') {
       const nextSpecial = new Map(specialTileMap);
       for (let r = minRow; r <= maxRow; r += 1) {
@@ -244,12 +315,15 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
       onSpecialTilesChange(Array.from(nextSpecial.values()));
     } else if (selectedTool.kind === 'eraser') {
       const nextSpecial = new Map(specialTileMap);
+      const nextMap = new Map(tileMap);
       for (let r = minRow; r <= maxRow; r += 1) {
         for (let c = minCol; c <= maxCol; c += 1) {
           nextSpecial.delete(`${c},${r}`);
+          nextMap.delete(`${c},${r}`);
         }
       }
       onSpecialTilesChange(Array.from(nextSpecial.values()));
+      updateTilesForActiveLayer(exportTilesFromLookup(nextMap, width, height));
     }
   }
 

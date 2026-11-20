@@ -13,6 +13,7 @@ export interface HuntingLocationSpecialTile {
 }
 
 export interface HuntingLocationAnimation {
+  delayBetweenRunsMs?: number;
   frameRateMs: number;
   frames: Array<number>;
   id: string;
@@ -26,10 +27,20 @@ export interface HuntingLocationMapObject {
   y: number;
 }
 
+export interface HuntingLocationMapLayer {
+  id: string;
+  name: string;
+  order: number;
+  placement: 'above_characters' | 'below_characters';
+  tiles: Array<HuntingLocationMapTile>;
+  visible?: boolean;
+}
+
 export interface HuntingLocationMap {
   animations?: Array<HuntingLocationAnimation>;
   defaultTileFrame: number;
   height: number;
+  layers?: Array<HuntingLocationMapLayer>;
   objects?: Array<HuntingLocationMapObject>;
   specialTiles?: Array<HuntingLocationSpecialTile>;
   tileSize: number;
@@ -90,8 +101,6 @@ export interface HuntingLocation {
   id: number;
   map: HuntingLocationMap;
   name: string;
-  positionX: number;
-  positionY: number;
   slug: string;
   species: HuntingLocationSpeciesList;
   tilesetUrl: string;

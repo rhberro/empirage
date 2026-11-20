@@ -16,8 +16,7 @@ import {
 import type { BrushType, EditorTool, MapSnapshot, SpecialCounts, StatusMessage } from './types';
 
 export const AVAILABLE_TILESETS = [
-  { id: 'exterior', name: 'Exterior (Cidades, Florestas)', url: '/assets/tilesets/exterior.png' },
-  { id: 'exterior2', name: 'Exterior 2', url: '/assets/tilesets/exterior2.png' },
+  { id: 'editor', name: 'Catálogo de Tiles (Editor)', url: '/assets/tiles/editor-tileset.png' },
 ];
 
 export const MAX_HISTORY_LENGTH = 25;
@@ -122,11 +121,21 @@ export function cropMapTiles(map: HuntingLocationMap): HuntingLocationMap {
     return special.x >= 0 && special.x < width && special.y >= 0 && special.y < height;
   }
 
+  function mapLayer(layer: HuntingLocationMapLayer): HuntingLocationMapLayer {
+    const layerTiles = layer.tiles.filter(isTileInside);
+    return {
+      ...layer,
+      tiles: layerTiles,
+    };
+  }
+
   const croppedTiles = map.tiles.filter(isTileInside);
   const croppedSpecial = map.specialTiles ? map.specialTiles.filter(isSpecialInside) : undefined;
+  const croppedLayers = map.layers ? map.layers.map(mapLayer) : undefined;
 
   return {
     ...map,
+    layers: croppedLayers,
     specialTiles: croppedSpecial,
     tiles: croppedTiles,
   };

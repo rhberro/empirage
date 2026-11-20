@@ -12,6 +12,7 @@ import type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapObject,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
@@ -29,6 +30,7 @@ export type {
   HuntingLocation,
   HuntingLocationAnimation,
   HuntingLocationMap,
+  HuntingLocationMapLayer,
   HuntingLocationMapObject,
   HuntingLocationMapTile,
   HuntingLocationSpecialTile,
@@ -64,8 +66,6 @@ interface HuntingLocationRow {
   id: number;
   map_data: HuntingLocationMap;
   name: string;
-  position_x: number;
-  position_y: number;
   slug: string;
   tileset_url: string;
 }
@@ -99,16 +99,30 @@ function mapWaveRange(range: HuntingLocationWaveRangeRow): HuntingLocationWaveRa
   return { maximumSize: range.maximum_size, minimumSize: range.minimum_size };
 }
 
+function normalizeMapData(rawMap: HuntingLocationMap): HuntingLocationMap {
+  const mapData = { ...rawMap };
+  if (!mapData.layers || mapData.layers.length === 0) {
+    const defaultLayer: HuntingLocationMapLayer = {
+      id: 'layer-0',
+      name: 'Ground (Base)',
+      order: 0,
+      placement: 'below_characters',
+      tiles: mapData.tiles || [],
+      visible: true,
+    };
+    mapData.layers = [defaultLayer];
+  }
+  return mapData;
+}
+
 function mapHuntingLocation(location: HuntingLocationRow): HuntingLocation {
   const species = location.hunting_location_species.map(mapSpecies);
   const waveRanges = location.hunting_location_wave_ranges.map(mapWaveRange);
   const huntingLocation = {
     description: location.description,
     id: location.id,
-    map: location.map_data,
+    map: normalizeMapData(location.map_data),
     name: location.name,
-    positionX: location.position_x,
-    positionY: location.position_y,
     slug: location.slug,
     species,
     tilesetUrl: location.tileset_url,
@@ -123,7 +137,7 @@ export async function listHuntingLocations(supabase: SupabaseClient): Promise<Hu
   const { data, error } = await supabase
     .from('hunting_locations')
     .select(
-      'id, slug, name, description, position_x, position_y, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
+      'id, slug, name, description, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
     )
     .order('id')
     .order('slot', speciesOrder)
@@ -163,8 +177,6 @@ export async function createHuntingLocation(
     id: nextId,
     map_data: input.mapData,
     name: input.name,
-    position_x: 0,
-    position_y: 0,
     slug: input.slug,
     tileset_url: input.tilesetUrl ?? '/assets/tilesets/exterior.png',
     wave_delay_seconds: 3,
@@ -181,7 +193,7 @@ export async function createHuntingLocation(
   const { data, error } = await supabase
     .from('hunting_locations')
     .select(
-      'id, slug, name, description, position_x, position_y, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
+      'id, slug, name, description, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
     )
     .eq('id', nextId)
     .maybeSingle();
@@ -224,7 +236,7 @@ export async function updateHuntingLocationMap(
   const { data, error } = await supabase
     .from('hunting_locations')
     .select(
-      'id, slug, name, description, position_x, position_y, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
+      'id, slug, name, description, tileset_url, map_data, hunting_location_species(slot, minimum_level, maximum_level, encounter_weight, species(id, name, description)), hunting_location_wave_ranges(minimum_size, maximum_size)',
     )
     .eq('id', locationId)
     .maybeSingle();

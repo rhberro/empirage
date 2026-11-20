@@ -11,6 +11,7 @@ export function useHuntingLocations(): UseQueryResult<Array<HuntingLocation>, Er
     enabled: Boolean(userId),
     queryFn: getHuntingLocations,
     queryKey: ['hunting-locations'],
+    staleTime: 5 * 60 * 1000,
   };
   const options = queryOptions(parameters);
   return useQuery(options);

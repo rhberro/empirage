@@ -230,13 +230,13 @@ Ou `null` quando não há caça. O servidor valida o token e filtra a busca pelo
       "tileSize": 16,
       "defaultTileFrame": 0,
       "tiles": [],
-      "objects": [
-        { "kind": "player_spawn", "x": 2, "y": 3 },
-        { "kind": "ally_spawn", "x": 6, "y": 3 }
+      "specialTiles": [
+        { "kind": "trainer_spawn", "x": 2, "y": 3 },
+        { "kind": "creature_spawn", "x": 6, "y": 3 },
+        { "kind": "enemy_spawn", "x": 9, "y": 3 },
+        { "kind": "blocked", "x": 4, "y": 2 }
       ]
     },
-    "positionX": 12,
-    "positionY": 8,
     "species": [
       {
         "id": 25,
@@ -255,7 +255,7 @@ Ou `null` quando não há caça. O servidor valida o token e filtra a busca pelo
 ]
 ```
 
-Valida o token e retorna a configuração disponível no banco. `tilesetUrl` referencia o spritesheet do cenário; `map` contém o tamanho, tiles por coordenada, animações (`animations`) e tiles especiais de scripts (`specialTiles`). O cliente usa esses dados para pré-carregar e, futuramente, pré-visualizar o mapa antes da transição.
+Valida o token e retorna a configuração disponível no banco. `tilesetUrl` referencia o spritesheet do cenário (otimizado sob demanda pelo Map Editor para conter apenas os tiles utilizados pelo mapa em `/assets/tilesets/{slug}.png`, com fallback para atlas global); `map` contém o tamanho, tiles por coordenada, camadas adicionais com profundidade (`layers`), animações (`animations`) e tiles especiais de scripts (`specialTiles`). O cliente usa esses dados para pré-carregar e renderizar o mapa antes e durante as transições de cena.
 
 `waveRanges` lista, em ordem crescente, as únicas faixas de criaturas por onda que o jogador pode selecionar naquele local.
 
@@ -325,6 +325,28 @@ Corpo da requisição:
     "defaultTileFrame": 0,
     "tiles": [
       { "x": 0, "y": 0, "frame": 45, "animationId": null }
+    ],
+    "layers": [
+      {
+        "id": "layer-0",
+        "name": "Ground",
+        "order": 0,
+        "placement": "below_characters",
+        "visible": true,
+        "tiles": [
+          { "x": 0, "y": 0, "frame": 45, "animationId": null }
+        ]
+      },
+      {
+        "id": "layer-1",
+        "name": "Canopy",
+        "order": 1,
+        "placement": "above_characters",
+        "visible": true,
+        "tiles": [
+          { "x": 4, "y": 3, "frame": 120, "animationId": null }
+        ]
+      }
     ],
     "specialTiles": [
       { "kind": "blocked", "x": 4, "y": 2 },

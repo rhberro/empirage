@@ -5,7 +5,6 @@ import type { HuntingLocation } from '~/entities/hunting-location';
 
 import { GridDimensionInputs } from './GridDimensionInputs';
 import { HeaderBadges } from './HeaderBadges';
-import { AVAILABLE_TILESETS } from './map-editor-logic';
 import { MapEditorNotificationBanner } from './MapEditorNotificationBanner';
 import type { SpecialCounts, StatusMessage } from './types';
 
@@ -30,7 +29,6 @@ interface MapEditorHeaderProps {
   onRedo: ActionHandler;
   onSave: ActionHandler;
   onSelectLocation: (id: number) => void;
-  onSelectTileset: (url: string) => void;
   onToggleGrid: ToggleHandler;
   onToggleSpecials: ToggleHandler;
   onToggleViewport: ToggleHandler;
@@ -38,7 +36,6 @@ interface MapEditorHeaderProps {
   onWidthChange: (val: number) => void;
   saving: boolean;
   selectedLocationId: number | null;
-  selectedTilesetUrl: string;
   showGridLines: boolean;
   showSpecialTiles: boolean;
   showViewportOverlay: boolean;
@@ -64,14 +61,6 @@ function renderOption(loc: HuntingLocation): React.ReactElement {
   );
 }
 
-function renderTilesetOption(t: (typeof AVAILABLE_TILESETS)[number]): React.ReactElement {
-  return (
-    <option key={t.id} value={t.url}>
-      {t.name}
-    </option>
-  );
-}
-
 export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement {
   const {
     canRedo,
@@ -90,7 +79,6 @@ export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement
     onRedo,
     onSave,
     onSelectLocation,
-    onSelectTileset,
     onToggleGrid,
     onToggleSpecials,
     onToggleViewport,
@@ -98,7 +86,6 @@ export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement
     onWidthChange,
     saving,
     selectedLocationId,
-    selectedTilesetUrl,
     showGridLines,
     showSpecialTiles,
     showViewportOverlay,
@@ -108,10 +95,6 @@ export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement
 
   function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>): void {
     onSelectLocation(Number(e.target.value));
-  }
-
-  function handleTilesetChange(e: React.ChangeEvent<HTMLSelectElement>): void {
-    onSelectTileset(e.target.value);
   }
 
   const isUndoDisabled = !canUndo;
@@ -130,7 +113,6 @@ export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement
 
   const selectValue = selectedLocationId === null ? '' : selectedLocationId;
   const renderedOptions = locations.map(renderOption);
-  const renderedTilesetOptions = AVAILABLE_TILESETS.map(renderTilesetOption);
 
   return (
     <Box>
@@ -187,15 +169,6 @@ export function MapEditorHeader(props: MapEditorHeaderProps): React.ReactElement
             >
               + Novo
             </Button>
-          </HStack>
-
-          <HStack gap="2">
-            <Text color="gray.400" fontSize="xs">
-              Tileset:
-            </Text>
-            <select onChange={handleTilesetChange} style={SELECT_STYLE} value={selectedTilesetUrl}>
-              {renderedTilesetOptions}
-            </select>
           </HStack>
 
           <HStack gap="1.5">
