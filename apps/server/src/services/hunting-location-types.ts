@@ -101,8 +101,6 @@ export interface HuntingLocation {
   id: number;
   map: HuntingLocationMap;
   name: string;
-  positionX: number;
-  positionY: number;
   slug: string;
   species: HuntingLocationSpeciesList;
   tilesetUrl: string;

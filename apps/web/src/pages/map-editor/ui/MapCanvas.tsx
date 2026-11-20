@@ -113,6 +113,13 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
   const [rectPreview, setRectPreview] = useState<RectSelection | null>(null);
 
   function createTileLookup(): ReturnType<typeof buildTileLookup> {
+    if (layers && layers.length > 0 && activeLayerId) {
+      for (const layer of layers) {
+        if (layer.id === activeLayerId) {
+          return buildTileLookup(layer.tiles);
+        }
+      }
+    }
     return buildTileLookup(tiles);
   }
 
@@ -120,7 +127,7 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
     return buildSpecialLookup(specialTiles);
   }
 
-  const tileMap = useMemo(createTileLookup, [tiles]);
+  const tileMap = useMemo(createTileLookup, [activeLayerId, layers, tiles]);
   const specialTileMap = useMemo(createSpecialLookup, [specialTiles]);
 
   function computeRenderedLayers(): Array<LayerRenderData> | undefined {
@@ -140,6 +147,7 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
       return;
     }
     const options = {
+      activeLayerId,
       activeRectPreview: rectPreview,
       canvas,
       defaultTileFrame,
@@ -159,6 +167,7 @@ export function MapCanvas(props: MapCanvasProps): React.ReactElement {
   }
 
   const renderCanvas = useCallback(draw, [
+    activeLayerId,
     defaultTileFrame,
     height,
     offset,

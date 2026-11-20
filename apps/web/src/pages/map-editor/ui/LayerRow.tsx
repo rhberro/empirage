@@ -1,8 +1,8 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { Badge, Button, HStack, IconButton, Input } from '@chakra-ui/react';
-import { LuEye, LuEyeOff, LuTrash2 } from 'react-icons/lu';
 
 import type { HuntingLocationMapLayer } from '~/entities/hunting-location';
+import { Icon } from '~/shared/ui/Icon';
 
 type IdHandler = (id: string) => void;
 type NameHandler = (id: string, name: string) => void;
@@ -72,7 +72,7 @@ export function LayerRow(props: LayerRowProps): React.ReactElement {
   const placementPalette = isAbove ? 'purple' : 'gray';
   const placementText = isAbove ? 'Acima' : 'Abaixo';
   const eyeLabel = isVisible ? 'Ocultar camada' : 'Exibir camada';
-  const EyeIcon = isVisible ? LuEye : LuEyeOff;
+  const eyeIconName = isVisible ? 'visibility' : 'visibility_off';
 
   const deleteButton = isBaseLayer ? null : (
     <IconButton
@@ -82,7 +82,7 @@ export function LayerRow(props: LayerRowProps): React.ReactElement {
       size="xs"
       variant="ghost"
     >
-      <LuTrash2 />
+      <Icon name="delete" />
     </IconButton>
   );
 
@@ -104,7 +104,7 @@ export function LayerRow(props: LayerRowProps): React.ReactElement {
         size="xs"
         variant="ghost"
       >
-        <EyeIcon />
+        <Icon name={eyeIconName} />
       </IconButton>
 
       <Input

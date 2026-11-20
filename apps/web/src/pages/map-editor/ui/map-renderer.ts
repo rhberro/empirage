@@ -43,6 +43,7 @@ export interface LayerRenderData {
 }
 
 export interface RenderCanvasOptions {
+  activeLayerId?: string;
   activeRectPreview: RectSelection | null;
   canvas: HTMLCanvasElement;
   defaultTileFrame: number;
@@ -106,17 +107,24 @@ function compareLayerOrder(a: LayerRenderData, b: LayerRenderData): number {
 }
 
 function drawTerrain(context: CanvasRenderingContext2D, options: RenderCanvasOptions): void {
-  const { defaultTileFrame, height, layers, tileMap, tilesetImage, width } = options;
+  const { activeLayerId, defaultTileFrame, height, layers, tileMap, tilesetImage, width } = options;
 
   if (layers && layers.length > 0) {
     const sortedLayers = layers.toSorted(compareLayerOrder);
+    const hasActiveLayer = Boolean(activeLayerId);
+
     for (const [index, layer] of sortedLayers.entries()) {
       if (layer.visible === false) {
         continue;
       }
+      const isCurrentActive = layer.id === activeLayerId;
+      const targetAlpha = !hasActiveLayer || isCurrentActive ? 1.0 : 0.35;
+      context.globalAlpha = targetAlpha;
+
       const layerDefaultFrame = index === 0 ? defaultTileFrame : null;
       drawSingleLayer(context, layer.tileMap, layerDefaultFrame, tilesetImage, width, height);
     }
+    context.globalAlpha = 1.0;
     return;
   }
 

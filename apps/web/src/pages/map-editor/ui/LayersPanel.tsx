@@ -1,8 +1,8 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { Box, Button, HStack, Stack, Text } from '@chakra-ui/react';
-import { LuPlus } from 'react-icons/lu';
 
 import type { HuntingLocationMapLayer } from '~/entities/hunting-location';
+import { Icon } from '~/shared/ui/Icon';
 
 import { LayerRow } from './LayerRow';
 
@@ -60,7 +60,7 @@ export function LayersPanel(props: LayersPanelProps): React.ReactElement {
           {headerText}
         </Text>
         <Button colorPalette="blue" onClick={onAddLayer} size="xs" variant="surface">
-          <LuPlus /> Adicionar Camada
+          <Icon name="add" /> Adicionar Camada
         </Button>
       </HStack>
 

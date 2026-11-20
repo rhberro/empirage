@@ -38,7 +38,7 @@ def pack_tileset(slug: str, frame_ids: list[int]) -> dict:
         else:
             print(f"Warning: tile file {tile_file} does not exist", file=sys.stderr)
 
-        frame_str = str(local_idx)
+        frame_str = str(global_frame)
         frames_meta[frame_str] = {
             "frame": {"h": TILE_SIZE, "w": TILE_SIZE, "x": gx * TILE_SIZE, "y": gy * TILE_SIZE},
             "rotated": False,

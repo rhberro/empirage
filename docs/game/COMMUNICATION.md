@@ -230,13 +230,13 @@ Ou `null` quando não há caça. O servidor valida o token e filtra a busca pelo
       "tileSize": 16,
       "defaultTileFrame": 0,
       "tiles": [],
-      "objects": [
-        { "kind": "player_spawn", "x": 2, "y": 3 },
-        { "kind": "ally_spawn", "x": 6, "y": 3 }
+      "specialTiles": [
+        { "kind": "trainer_spawn", "x": 2, "y": 3 },
+        { "kind": "creature_spawn", "x": 6, "y": 3 },
+        { "kind": "enemy_spawn", "x": 9, "y": 3 },
+        { "kind": "blocked", "x": 4, "y": 2 }
       ]
     },
-    "positionX": 12,
-    "positionY": 8,
     "species": [
       {
         "id": 25,

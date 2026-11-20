@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 
 export interface PackTilesetResult {
   atlasUrl: string;
@@ -16,8 +17,10 @@ type StdioConfig = ['pipe', 'pipe', 'pipe'];
 function resolveScriptPath(): string {
   const currentDir = import.meta.dir;
   const candidatePaths = [
-    path.resolve(currentDir, '../../web/scripts/pack-map-tileset.py'),
+    path.resolve(process.cwd(), 'apps/web/scripts/pack-map-tileset.py'),
+    path.resolve(currentDir, '../../../../apps/web/scripts/pack-map-tileset.py'),
     path.resolve(currentDir, '../../../apps/web/scripts/pack-map-tileset.py'),
+    path.resolve(currentDir, '../../web/scripts/pack-map-tileset.py'),
   ];
   const found = candidatePaths.find(existsSync);
   return found ?? candidatePaths[0];

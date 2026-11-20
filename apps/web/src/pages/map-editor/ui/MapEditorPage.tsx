@@ -1,6 +1,6 @@
 /* eslint-disable oxsome/no-inline-structural-types */
 import { Box } from '@chakra-ui/react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   EditorModals,
@@ -97,15 +97,22 @@ export function MapEditorPage(): React.ReactElement {
     setStatusMessage(null);
   }
 
+  const applyLocationMapCallback = useCallback(applyLocationMap, [history, layersManager]);
+
   function handleFirstLocation(first: HuntingLocation): void {
     if (selectedLocationId === null) {
       setSelectedLocationId(first.id);
-      applyLocationMap(first);
+      applyLocationMapCallback(first);
     }
   }
 
+  const handleFirstLocationCallback = useCallback(handleFirstLocation, [
+    applyLocationMapCallback,
+    selectedLocationId,
+  ]);
+
   const { loading, locations, setLocations } = useLocationsLoader(
-    handleFirstLocation,
+    handleFirstLocationCallback,
     setStatusMessage,
   );
 

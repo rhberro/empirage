@@ -58,7 +58,7 @@ export function EditorWorkspace(props: EditorWorkspaceProps): React.ReactElement
 
   return (
     <HStack flex="1" gap="0" overflow="hidden" w="full">
-      <Box display="flex" flexDirection="column" h="full" w="280px">
+      <Box display="flex" flexDirection="column" h="full" w="360px">
         <Box flex="1" overflow="hidden">
           <TilePalette
             animations={animations}

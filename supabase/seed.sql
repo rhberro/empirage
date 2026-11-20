@@ -7270,9 +7270,9 @@ insert into public.evolutions (from_species_id, to_species_id, trigger, required
   (148, 149, 'level', 55, null, '(Level 55)')
 on conflict (from_species_id, to_species_id, trigger) do update set required_level = excluded.required_level, required_item_id = excluded.required_item_id, condition_description = excluded.condition_description;
 
-insert into public.hunting_locations (id, slug, name, description, position_x, position_y, wave_delay_seconds) values
-  (1, 'route-1', 'Route 1', 'Wild encounters inspired by Route 1.', 8, 8, 3)
-on conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, position_x = excluded.position_x, position_y = excluded.position_y, wave_delay_seconds = excluded.wave_delay_seconds;
+insert into public.hunting_locations (id, slug, name, description, wave_delay_seconds) values
+  (1, 'route-1', 'Route 1', 'Wild encounters inspired by Route 1.', 3)
+on conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, wave_delay_seconds = excluded.wave_delay_seconds;
 
 insert into public.hunting_location_species (hunting_location_id, species_id, slot, minimum_level, maximum_level, encounter_weight) values
   (1, 16, 1, 2, 7, 80),

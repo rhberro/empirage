@@ -173,9 +173,7 @@ def route_location_rows(routes, generation_one):
                 current[2] += weight
         if not encounters_by_species:
             raise ValueError(f'route_has_no_respawning_creatures:{route["name"]}')
-        column = (index - 1) % 9
-        row = (index - 1) // 9
-        location_rows.append((index, route_slug, route['name'], f'Wild encounters inspired by {route["name"]}.', 8 + column * 11, 8 + row * 11, 3))
+        location_rows.append((index, route_slug, route['name'], f'Wild encounters inspired by {route["name"]}.', 3))
         for slot, (species_id, encounter) in enumerate(encounters_by_species.items(), 1):
             minimum_level, maximum_level, encounter_weight = encounter
             location_species_rows.append((index, species_id, slot, minimum_level, maximum_level, encounter_weight))
@@ -386,7 +384,7 @@ def main():
         'insert into public.move_stat_effects (move_id, stat, stage, chance, target) values\n' + values(MOVE_STAT_EFFECT_ROWS) + '\non conflict (move_id, stat, target) do update set stage = excluded.stage, chance = excluded.chance;\n',
         'insert into public.species_move_learnsets (species_id, move_id, learn_method, required_level, machine_code) values\n' + values(learnset_rows) + '\non conflict (species_id, move_id, learn_method) do update set required_level = excluded.required_level, machine_code = excluded.machine_code;\n',
         'insert into public.evolutions (from_species_id, to_species_id, trigger, required_level, required_item_id) values\n' + values(evolution_rows) + '\non conflict (from_species_id, to_species_id, trigger) do update set required_level = excluded.required_level, required_item_id = excluded.required_item_id;\n',
-        'insert into public.hunting_locations (id, slug, name, description, position_x, position_y, wave_delay_seconds) values\n' + values(location_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, position_x = excluded.position_x, position_y = excluded.position_y, wave_delay_seconds = excluded.wave_delay_seconds;\n',
+        'insert into public.hunting_locations (id, slug, name, description, wave_delay_seconds) values\n' + values(location_rows) + '\non conflict (id) do update set slug = excluded.slug, name = excluded.name, description = excluded.description, wave_delay_seconds = excluded.wave_delay_seconds;\n',
         'insert into public.hunting_location_species (hunting_location_id, species_id, slot, minimum_level, maximum_level, encounter_weight) values\n' + values(location_species_rows) + '\non conflict (hunting_location_id, species_id) do update set slot = excluded.slot, minimum_level = excluded.minimum_level, maximum_level = excluded.maximum_level, encounter_weight = excluded.encounter_weight;\n',
         'insert into public.hunting_location_wave_ranges (hunting_location_id, minimum_size, maximum_size) values\n' + values(location_wave_range_rows) + '\non conflict (hunting_location_id, minimum_size, maximum_size) do nothing;\n',
     ]
